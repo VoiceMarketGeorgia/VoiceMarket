@@ -1,157 +1,64 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { AudioPlayButton } from "@/components/audio-play-button";
-import { Star, Headphones, Mic2, BookOpen, GraduationCap } from "lucide-react";
-import CardAudioPlayer from "./card-audio-player";
-import { VoiceCard } from "./voice-card";
+import { VoiceCard, AudioSample } from "./voice-card";
+import { Mic2, Headphones, BookOpen } from "lucide-react";
 
 export function FeaturedTalents() {
   const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(
     null
   );
 
-  const talents = [
-    {
-      id: "01",
-      name: "Alex Morgan",
-      image:
-        "https://voicemarket.ge/wp-content/uploads/2024/03/zura-400x450.jpg",
-      samples: [
-        {
-          id: "commercial-1",
-          name: "სარეკლამო",
-          icon: <Mic2 className="h-4 w-4" />,
-          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-        },
-        {
-          id: "narration-1",
-          name: "გახმოვანება",
-          icon: <Headphones className="h-4 w-4" />,
-          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-        },
-        {
-          id: "character-1",
-          name: "მხატვრული",
-          icon: <BookOpen className="h-4 w-4" />,
-          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
-        },
-      ],
-      gradient: "from-orange-500 to-cyan-600",
-      rating: 4.9,
-      reviews: 124,
-      languages: ["English", "Spanish"],
-      tags: ["კომერციული", "მხატვრული"],
-    },
-    {
-      id: "02",
-      name: "Sophia Chen",
-      image:
-        "https://images.unsplash.com/photo-1494790108755-2616b612b691?w=300&h=400&fit=crop&crop=face",
-      samples: [
-        {
-          id: "commercial-2",
-          name: "Commercial",
-          icon: <Mic2 className="h-4 w-4" />,
-          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
-        },
-        {
-          id: "tutorial-2",
-          name: "Tutorial",
-          icon: <GraduationCap className="h-4 w-4" />,
-          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
-        },
-        {
-          id: "narration-2",
-          name: "Narration",
-          icon: <Headphones className="h-4 w-4" />,
-          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3",
-        },
-      ],
-      gradient: "from-purple-500 to-pink-600",
-      rating: 4.8,
-      reviews: 98,
-      languages: ["English", "Mandarin"],
-      tags: ["Commercial", "E-Learning"],
-    },
-    {
-      id: "03",
-      name: "Michael Davis",
-      image:
-        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=400&fit=crop&crop=face",
-      samples: [
-        {
-          id: "commercial-3",
-          name: "Commercial",
-          icon: <Mic2 className="h-4 w-4" />,
-          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3",
-        },
-        {
-          id: "audiobook-3",
-          name: "Audiobook",
-          icon: <BookOpen className="h-4 w-4" />,
-          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
-        },
-        {
-          id: "narration-3",
-          name: "Narration",
-          icon: <Headphones className="h-4 w-4" />,
-          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3",
-        },
-      ],
-      gradient: "from-blue-500 to-teal-600",
-      rating: 4.7,
-      reviews: 87,
-      languages: ["English"],
-      tags: ["Audiobook", "Narration"],
-    },
-    {
-      id: "04",
-      name: "Emma Wilson",
-      image:
-        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=300&h=400&fit=crop&crop=face",
-      samples: [
-        {
-          id: "commercial-4",
-          name: "Commercial",
-          icon: <Mic2 className="h-4 w-4" />,
-          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3",
-        },
-        {
-          id: "character-4",
-          name: "Character",
-          icon: <BookOpen className="h-4 w-4" />,
-          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3",
-        },
-        {
-          id: "tutorial-4",
-          name: "Tutorial",
-          icon: <GraduationCap className="h-4 w-4" />,
-          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3",
-        },
-      ],
-      gradient: "from-green-500 to-emerald-600",
-      rating: 5.0,
-      reviews: 156,
-      languages: ["English", "French"],
-      tags: ["Animation", "Character"],
-    },
+  const actorsCount = 4;
+
+  // Number of samples per actor
+  const samplesPerActor = [3, 2, 2, 3];
+
+  const sampleNames = [
+    { name: "სარეკლამო რგოლი", icon: <Mic2 className="h-4 w-4" /> },
+    { name: "ავტომოპასუხე", icon: <Headphones className="h-4 w-4" /> },
+    { name: "მხატვრული", icon: <BookOpen className="h-4 w-4" /> },
   ];
+
+  const talents = Array.from({ length: actorsCount }, (_, i) => {
+    const id = `${i + 1}`;
+    const audiosFolder = `/audios/${id}`;
+
+    const samples: AudioSample[] = [];
+
+    const count = samplesPerActor[i] || 0; // number of audios for this actor
+
+    for (let idx = 0; idx < count; idx++) {
+      samples.push({
+        id: `${id}-${idx + 1}`,
+        name: sampleNames[idx].name,
+        url: `${audiosFolder}/${id}.${idx + 1}.wav`,
+        icon: sampleNames[idx].icon,
+      });
+    }
+
+    return {
+      id,
+      name: `Actor ${id}`,
+      image: `/photos/${id}.jpg`,
+      samples,
+      gradient: "from-orange-500 to-cyan-600",
+      rating: 4.8,
+      reviews: 100 + i * 10,
+      languages: ["English"],
+      tags: ["Commercial", "Narration"],
+    };
+  });
 
   const handleTogglePlay = (playerId: string) => {
     setCurrentlyPlayingId(currentlyPlayingId === playerId ? null : playerId);
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-background p-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-background p-4">
       <div className="container mx-auto">
         <h1 className="text-3xl font-bold text-center mb-8 text-gray-800 dark:text-foreground">
-          Featured Voice Talents
+          ჩვენი მსახიობები
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {talents.map((talent) => (
@@ -166,7 +73,7 @@ export function FeaturedTalents() {
 
         <div className="mt-10 text-center">
           <button className="rounded-full px-8 py-3 border border-gray-300 dark:border-border bg-white dark:bg-card text-gray-700 dark:text-foreground hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all duration-300 shadow-md hover:shadow-lg">
-            View All Voice Talents
+            იხილეთ ყველა მსახიობი
           </button>
         </div>
       </div>

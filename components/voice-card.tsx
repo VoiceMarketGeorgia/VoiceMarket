@@ -1,8 +1,7 @@
 import { Star, Headphones, Mic2, BookOpen, GraduationCap } from "lucide-react";
 import CardAudioPlayer from "./card-audio-player";
 
-// Define the types for the props
-interface AudioSample {
+export interface AudioSample {
   id: string;
   name: string;
   icon: JSX.Element;
@@ -49,7 +48,9 @@ export function VoiceCard({
           className="absolute inset-0 w-full h-full object-cover"
         />
         <div className="absolute bottom-0 left-0 z-20 p-4">
-          <div className="text-3xl font-bold text-white mb-1">{talent.id}</div>
+          <div className="text-3xl font-bold text-white mb-1">
+            {talent.id.padStart(2, "0")}
+          </div>
           {/* <h3 className="text-white font-semibold text-lg mb-2">
             {talent.name}
           </h3> */}
