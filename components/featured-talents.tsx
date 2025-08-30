@@ -1,42 +1,79 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Image from "next/image"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { AudioPlayButton } from "@/components/audio-play-button"
-import { Star, Headphones, Mic2, BookOpen } from "lucide-react"
+import { useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { AudioPlayButton } from "@/components/audio-play-button";
+import { Star, Headphones, Mic2, BookOpen, GraduationCap } from "lucide-react";
+import CardAudioPlayer from "./card-audio-player";
+import { VoiceCard } from "./voice-card";
 
 export function FeaturedTalents() {
-  const [activeAudio, setActiveAudio] = useState<string | null>(null)
+  const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(
+    null
+  );
 
   const talents = [
     {
       id: "01",
       name: "Alex Morgan",
-      image: "/placeholder.svg?height=400&width=300",
+      image:
+        "https://voicemarket.ge/wp-content/uploads/2024/03/zura-400x450.jpg",
       samples: [
-        { id: "sample1", name: "Commercial", icon: <Mic2 className="h-4 w-4" />, url: "/demo-audio.mp3" },
-        { id: "sample2", name: "Narration", icon: <Headphones className="h-4 w-4" />, url: "/demo-audio.mp3" },
-        { id: "sample3", name: "Character", icon: <BookOpen className="h-4 w-4" />, url: "/demo-audio.mp3" },
+        {
+          id: "commercial-1",
+          name: "სარეკლამო",
+          icon: <Mic2 className="h-4 w-4" />,
+          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+        },
+        {
+          id: "narration-1",
+          name: "გახმოვანება",
+          icon: <Headphones className="h-4 w-4" />,
+          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+        },
+        {
+          id: "character-1",
+          name: "მხატვრული",
+          icon: <BookOpen className="h-4 w-4" />,
+          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+        },
       ],
       gradient: "from-orange-500 to-cyan-600",
       rating: 4.9,
       reviews: 124,
       languages: ["English", "Spanish"],
-      tags: ["Commercial", "Narration"],
+      tags: ["კომერციული", "მხატვრული"],
     },
     {
       id: "02",
       name: "Sophia Chen",
-      image: "/placeholder.svg?height=400&width=300",
+      image:
+        "https://images.unsplash.com/photo-1494790108755-2616b612b691?w=300&h=400&fit=crop&crop=face",
       samples: [
-        { id: "sample4", name: "Commercial", icon: <Mic2 className="h-4 w-4" />, url: "/demo-audio.mp3" },
-        { id: "sample5", name: "Narration", icon: <Headphones className="h-4 w-4" />, url: "/demo-audio.mp3" },
+        {
+          id: "commercial-2",
+          name: "Commercial",
+          icon: <Mic2 className="h-4 w-4" />,
+          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3",
+        },
+        {
+          id: "tutorial-2",
+          name: "Tutorial",
+          icon: <GraduationCap className="h-4 w-4" />,
+          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-5.mp3",
+        },
+        {
+          id: "narration-2",
+          name: "Narration",
+          icon: <Headphones className="h-4 w-4" />,
+          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-6.mp3",
+        },
       ],
-      gradient: "from-orange-500 to-cyan-600",
+      gradient: "from-purple-500 to-pink-600",
       rating: 4.8,
       reviews: 98,
       languages: ["English", "Mandarin"],
@@ -45,12 +82,29 @@ export function FeaturedTalents() {
     {
       id: "03",
       name: "Michael Davis",
-      image: "/placeholder.svg?height=400&width=300",
+      image:
+        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=300&h=400&fit=crop&crop=face",
       samples: [
-        { id: "sample6", name: "Commercial", icon: <Mic2 className="h-4 w-4" />, url: "/demo-audio.mp3" },
-        { id: "sample7", name: "Narration", icon: <Headphones className="h-4 w-4" />, url: "/demo-audio.mp3" },
+        {
+          id: "commercial-3",
+          name: "Commercial",
+          icon: <Mic2 className="h-4 w-4" />,
+          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-7.mp3",
+        },
+        {
+          id: "audiobook-3",
+          name: "Audiobook",
+          icon: <BookOpen className="h-4 w-4" />,
+          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3",
+        },
+        {
+          id: "narration-3",
+          name: "Narration",
+          icon: <Headphones className="h-4 w-4" />,
+          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-9.mp3",
+        },
       ],
-      gradient: "from-orange-500 to-cyan-600",
+      gradient: "from-blue-500 to-teal-600",
       rating: 4.7,
       reviews: 87,
       languages: ["English"],
@@ -59,96 +113,63 @@ export function FeaturedTalents() {
     {
       id: "04",
       name: "Emma Wilson",
-      image: "/placeholder.svg?height=400&width=300",
+      image:
+        "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=300&h=400&fit=crop&crop=face",
       samples: [
-        { id: "sample8", name: "Commercial", icon: <Mic2 className="h-4 w-4" />, url: "/demo-audio.mp3" },
-        { id: "sample9", name: "Narration", icon: <Headphones className="h-4 w-4" />, url: "/demo-audio.mp3" },
+        {
+          id: "commercial-4",
+          name: "Commercial",
+          icon: <Mic2 className="h-4 w-4" />,
+          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3",
+        },
+        {
+          id: "character-4",
+          name: "Character",
+          icon: <BookOpen className="h-4 w-4" />,
+          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-11.mp3",
+        },
+        {
+          id: "tutorial-4",
+          name: "Tutorial",
+          icon: <GraduationCap className="h-4 w-4" />,
+          url: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-12.mp3",
+        },
       ],
-      gradient: "from-orange-500 to-cyan-600",
+      gradient: "from-green-500 to-emerald-600",
       rating: 5.0,
       reviews: 156,
       languages: ["English", "French"],
       tags: ["Animation", "Character"],
     },
-  ]
+  ];
 
-  const toggleAudio = (sampleId: string) => {
-    if (activeAudio === sampleId) {
-      setActiveAudio(null)
-    } else {
-      setActiveAudio(sampleId)
-    }
-  }
+  const handleTogglePlay = (playerId: string) => {
+    setCurrentlyPlayingId(currentlyPlayingId === playerId ? null : playerId);
+  };
 
   return (
-    <section className="container">
-      <div className="text-center mb-10">
-        <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">Featured Voice Talents</h2>
-        <p className="mt-4 text-muted-foreground">Listen to samples from our top professional voice actors</p>
-      </div>
+    <div className="min-h-screen bg-gray-100 p-4">
+      <div className="container mx-auto">
+        <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
+          Featured Voice Talents
+        </h1>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {talents.map((talent) => (
+            <VoiceCard
+              key={talent.id}
+              talent={talent}
+              currentlyPlayingId={currentlyPlayingId}
+              onTogglePlay={handleTogglePlay}
+            />
+          ))}
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {talents.map((talent) => (
-          <Card
-            key={talent.id}
-            className="group overflow-hidden border-0 bg-transparent transition-all duration-300 hover:shadow-lg"
-          >
-            <CardContent className="p-0">
-              <div className={`relative aspect-[3/4] overflow-hidden rounded-xl bg-gradient-to-b ${talent.gradient}`}>
-                <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-                <Image src={talent.image || "/placeholder.svg"} alt={talent.name} fill className="object-cover" />
-                <div className="absolute bottom-0 left-0 z-20 p-6">
-                  <div className="text-4xl font-bold text-white">{talent.id}</div>
-                  <h3 className="text-xl font-semibold text-white mt-1">{talent.name}</h3>
-                  <div className="flex items-center gap-1 mt-1">
-                    <Star className="h-4 w-4 fill-orange-500 text-orange-500" />
-                    <span className="text-sm text-white">{talent.rating}</span>
-                    <span className="text-sm text-white/70">({talent.reviews})</span>
-                  </div>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {talent.tags.map((tag) => (
-                      <Badge key={tag} variant="secondary" className="bg-white/20 text-white hover:bg-white/30">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-4 space-y-4">
-                <div className="flex justify-center gap-3">
-                  {talent.samples.map((sample) => (
-                    <AudioPlayButton
-                      key={sample.id}
-                      isPlaying={activeAudio === sample.id}
-                      onClick={() => toggleAudio(sample.id)}
-                      icon={sample.icon}
-                      tooltip={sample.name}
-                    />
-                  ))}
-                </div>
-
-                <Link href={`/talents/${talent.id}`} className="block w-full">
-                  <Button className="w-full bg-orange-500 hover:bg-orange-600 transition-all duration-300">
-                    View Profile
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      <div className="mt-10 text-center">
-        <Link href="/talents">
-          <Button
-            variant="outline"
-            className="rounded-full px-8 transition-all duration-300 hover:bg-orange-500 hover:text-white"
-          >
+        <div className="mt-10 text-center">
+          <button className="rounded-full px-8 py-3 border border-gray-300 bg-white text-gray-700 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all duration-300 shadow-md hover:shadow-lg">
             View All Voice Talents
-          </Button>
-        </Link>
+          </button>
+        </div>
       </div>
-    </section>
-  )
+    </div>
+  );
 }

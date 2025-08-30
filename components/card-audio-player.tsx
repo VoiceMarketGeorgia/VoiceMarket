@@ -1,40 +1,53 @@
 import { useState, useRef, useEffect, ChangeEvent } from "react";
 
+import {
+  ChevronDown,
+  Mic2,
+  Headphones,
+  BookOpen,
+  GraduationCap,
+  Star,
+} from "lucide-react";
+
+interface AudioSample {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  url: string;
+}
+
 interface AudioPlayerProps {
-  audioSrc: string;
-  audioTitle?: string;
-  audioArtist?: string;
+  audioSamples: AudioSample[];
   playerId: string;
   isPlaying: boolean;
   onTogglePlay: (playerId: string) => void;
   className?: string;
   showTimeDisplay?: boolean;
-  showTextInfo?: boolean;
 }
 
 const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
-  audioSrc,
-  audioTitle,
-  audioArtist,
+  audioSamples,
   playerId,
   isPlaying,
   onTogglePlay,
   className = "",
   showTimeDisplay = true,
-  showTextInfo = true,
 }) => {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const [selectedSample, setSelectedSample] = useState(0);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  const currentSample = audioSamples[selectedSample];
+
   useEffect(() => {
-    // Initialize audio element if it doesn't exist
     if (!audioRef.current) {
       audioRef.current = new Audio();
     }
 
     const audio = audioRef.current;
-    audio.src = audioSrc;
+    audio.src = currentSample.url;
     audio.loop = true;
 
     const updateCurrentTime = () => setCurrentTime(audio.currentTime);
@@ -46,14 +59,13 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
     audio.addEventListener("timeupdate", updateCurrentTime);
     audio.addEventListener("loadedmetadata", setAudioData);
 
-    // Load the audio
     audio.load();
 
     return () => {
       audio.removeEventListener("timeupdate", updateCurrentTime);
       audio.removeEventListener("loadedmetadata", setAudioData);
     };
-  }, [audioSrc]);
+  }, [currentSample.url]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -80,6 +92,14 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
     return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
+  const handleSampleChange = (index: number) => {
+    if (isPlaying) {
+      onTogglePlay(playerId);
+    }
+    setSelectedSample(index);
+    setIsDropdownOpen(false);
+  };
+
   const PlayIcon = (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -102,34 +122,66 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
   );
 
   return (
-    <div
-      className={`bg-white rounded-xl shadow-lg p-4 border border-gray-100 ${className}`}
-    >
+    <div className={`bg-white rounded-xl shadow-lg p-4 ${className}`}>
+      {/* Category Dropdown */}
+      <div className="relative mb-3">
+        <button
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+          className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors duration-200"
+        >
+          <div className="flex items-center gap-2">
+            <span className="text-orange-500">{currentSample.icon}</span>
+            <span className="font-medium text-gray-700">
+              {currentSample.name}
+            </span>
+          </div>
+          <ChevronDown
+            className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${
+              isDropdownOpen ? "rotate-0" : "-rotate-180"
+            }`}
+          />
+        </button>
+
+        {isDropdownOpen && (
+          <div className="absolute bottom-full left-0 right-0 mb-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] overflow-hidden">
+            {audioSamples.map((sample, index) => (
+              <button
+                key={sample.id}
+                onClick={() => handleSampleChange(index)}
+                className={`w-full flex items-center gap-2 p-3 text-left hover:bg-gray-50 transition-colors duration-150 ${
+                  index === selectedSample
+                    ? "bg-orange-50 text-orange-600"
+                    : "text-gray-700"
+                }`}
+              >
+                <span
+                  className={
+                    index === selectedSample
+                      ? "text-orange-500"
+                      : "text-gray-400"
+                  }
+                >
+                  {sample.icon}
+                </span>
+                <span className="font-medium">{sample.name}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Audio Player Controls */}
       <div className="flex items-center gap-4">
         {/* Play/Pause Button */}
         <button
           onClick={togglePlayPause}
-          className="w-10 h-10 flex items-center justify-center rounded-full bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-offset-2 flex-shrink-0"
+          className="w-12 h-12 flex items-center justify-center rounded-full bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-offset-2 flex-shrink-0"
         >
           {isPlaying ? PauseIcon : PlayIcon}
         </button>
 
-        {/* Audio Info (Optional) */}
-        {showTextInfo && (
-          <div className="flex-1 min-w-0">
-            <h3 className="text-gray-900 font-semibold text-lg truncate">
-              {audioTitle}
-            </h3>
-            <p className="text-gray-600 text-sm truncate">{audioArtist}</p>
-          </div>
-        )}
-
         {/* Progress Bar */}
-        <div
-          className={`relative h-2 bg-gray-200 rounded-full overflow-hidden flex-shrink-0 ${
-            showTextInfo ? "w-24" : "flex-1"
-          }`}
-        >
+        <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden flex-1">
           <div
             className="absolute top-0 left-0 h-full bg-gradient-to-r from-orange-400 to-orange-500 rounded-full transition-all duration-200"
             style={{ width: `${(currentTime / duration) * 100}%` }}
@@ -144,7 +196,7 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
           />
         </div>
 
-        {/* Time Display (Optional) */}
+        {/* Time Display */}
         {showTimeDisplay && (
           <div className="text-xs text-gray-500 font-mono whitespace-nowrap flex-shrink-0">
             {formatTime(currentTime)} / {formatTime(duration)}
@@ -154,54 +206,4 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
     </div>
   );
 };
-
 export default CardAudioPlayer;
-
-// // Demo usage
-// const App = () => {
-//   return (
-//     <div className="min-h-screen bg-gray-50 p-8">
-//       <div className="max-w-2xl mx-auto space-y-6">
-//         <h1 className="text-3xl font-bold text-gray-900 mb-8">
-//           Audio Player Cards
-//         </h1>
-
-//         {/* Full player with text and time */}
-//         <CardAudioPlayer
-//           audioSrc="https://www.soundjay.com/misc/sounds/bell-ringing-05.wav"
-//           audioTitle="Peaceful Meditation"
-//           audioArtist="Zen Master"
-//           showTextInfo={true}
-//           showTimeDisplay={true}
-//         />
-
-//         {/* Player without time display */}
-//         <CardAudioPlayer
-//           audioSrc="https://www.soundjay.com/misc/sounds/bell-ringing-05.wav"
-//           audioTitle="Morning Coffee Jazz"
-//           audioArtist="The Smooth Collective"
-//           showTextInfo={true}
-//           showTimeDisplay={false}
-//         />
-
-//         {/* Minimal player - ONLY PLAY and PROGRESS BAR */}
-//         <CardAudioPlayer
-//           audioSrc="https://www.soundjay.com/misc/sounds/bell-ringing-05.wav"
-//           audioTitle="Focus Beats"
-//           audioArtist="Productivity Sounds"
-//           showTextInfo={false}
-//           showTimeDisplay={false}
-//         />
-
-//         {/* Player with time but no text info */}
-//         <CardAudioPlayer
-//           audioSrc="https://www.soundjay.com/misc/sounds/bell-ringing-05.wav"
-//           audioTitle="Ambient Sounds"
-//           audioArtist="Nature Collection"
-//           showTextInfo={false}
-//           showTimeDisplay={true}
-//         />
-//       </div>
-//     </div>
-//   );
-// };
