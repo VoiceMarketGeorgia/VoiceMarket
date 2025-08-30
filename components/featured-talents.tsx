@@ -148,9 +148,9 @@ export function FeaturedTalents() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-4">
+    <div className="min-h-screen bg-gray-100 dark:bg-background p-4">
       <div className="container mx-auto">
-        <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">
+        <h1 className="text-3xl font-bold text-center mb-8 text-gray-800 dark:text-foreground">
           Featured Voice Talents
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -165,7 +165,7 @@ export function FeaturedTalents() {
         </div>
 
         <div className="mt-10 text-center">
-          <button className="rounded-full px-8 py-3 border border-gray-300 bg-white text-gray-700 hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all duration-300 shadow-md hover:shadow-lg">
+          <button className="rounded-full px-8 py-3 border border-gray-300 dark:border-border bg-white dark:bg-card text-gray-700 dark:text-foreground hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all duration-300 shadow-md hover:shadow-lg">
             View All Voice Talents
           </button>
         </div>

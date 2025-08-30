@@ -36,7 +36,7 @@ export function VoiceCard({
   return (
     <div
       key={talent.id}
-      className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
+      className="bg-white dark:bg-card rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
     >
       {/* Image Section */}
       <div

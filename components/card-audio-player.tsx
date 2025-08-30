@@ -122,43 +122,43 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
   );
 
   return (
-    <div className={`bg-white rounded-xl shadow-lg p-4 ${className}`}>
+    <div className={`bg-white dark:bg-card rounded-xl shadow-lg p-4 ${className}`}>
       {/* Category Dropdown */}
       <div className="relative mb-3">
         <button
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="w-full flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors duration-200"
+          className="w-full flex items-center justify-between p-3 bg-gray-50 dark:bg-muted rounded-lg border border-gray-200 dark:border-border hover:bg-gray-100 dark:hover:bg-muted/80 transition-colors duration-200"
         >
           <div className="flex items-center gap-2">
             <span className="text-orange-500">{currentSample.icon}</span>
-            <span className="font-medium text-gray-700">
+            <span className="font-medium text-gray-700 dark:text-foreground">
               {currentSample.name}
             </span>
           </div>
           <ChevronDown
-            className={`h-4 w-4 text-gray-500 transition-transform duration-200 ${
+            className={`h-4 w-4 text-gray-500 dark:text-muted-foreground transition-transform duration-200 ${
               isDropdownOpen ? "rotate-0" : "-rotate-180"
             }`}
           />
         </button>
 
         {isDropdownOpen && (
-          <div className="absolute bottom-full left-0 right-0 mb-1 bg-white border border-gray-200 rounded-lg shadow-lg z-[9999] overflow-hidden">
+          <div className="absolute bottom-full left-0 right-0 mb-1 bg-white dark:bg-card border border-gray-200 dark:border-border rounded-lg shadow-lg z-[9999] overflow-hidden">
             {audioSamples.map((sample, index) => (
               <button
                 key={sample.id}
                 onClick={() => handleSampleChange(index)}
-                className={`w-full flex items-center gap-2 p-3 text-left hover:bg-gray-50 transition-colors duration-150 ${
+                className={`w-full flex items-center gap-2 p-3 text-left hover:bg-gray-50 dark:hover:bg-muted/50 transition-colors duration-150 ${
                   index === selectedSample
-                    ? "bg-orange-50 text-orange-600"
-                    : "text-gray-700"
+                    ? "bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400"
+                    : "text-gray-700 dark:text-foreground"
                 }`}
               >
                 <span
                   className={
                     index === selectedSample
-                      ? "text-orange-500"
-                      : "text-gray-400"
+                      ? "text-orange-500 dark:text-orange-400"
+                      : "text-gray-400 dark:text-muted-foreground"
                   }
                 >
                   {sample.icon}
@@ -181,7 +181,7 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
         </button>
 
         {/* Progress Bar */}
-        <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden flex-1">
+        <div className="relative h-2 bg-gray-200 dark:bg-muted rounded-full overflow-hidden flex-1">
           <div
             className="absolute top-0 left-0 h-full bg-gradient-to-r from-orange-400 to-orange-500 rounded-full transition-all duration-200"
             style={{ width: `${(currentTime / duration) * 100}%` }}
@@ -198,7 +198,7 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
 
         {/* Time Display */}
         {showTimeDisplay && (
-          <div className="text-xs text-gray-500 font-mono whitespace-nowrap flex-shrink-0">
+          <div className="text-xs text-gray-500 dark:text-muted-foreground font-mono whitespace-nowrap flex-shrink-0">
             {formatTime(currentTime)} / {formatTime(duration)}
           </div>
         )}
