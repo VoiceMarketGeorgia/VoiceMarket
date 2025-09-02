@@ -74,13 +74,13 @@ export function TalentProfile({ id }: TalentProfileProps) {
 
     // Generate tags
     const actorTags = [];
-    if (numId % 4 === 0) actorTags.push("Commercial");
-    if (numId % 3 === 0) actorTags.push("Narration");
-    if (numId % 5 === 0) actorTags.push("Documentary");
-    if (numId % 7 === 0) actorTags.push("Character");
-    if (numId % 6 === 0) actorTags.push("E-Learning");
+    if (numId % 4 === 0) actorTags.push("კომერციული");
+    if (numId % 3 === 0) actorTags.push("გახმოვანება");
+    if (numId % 5 === 0) actorTags.push("დოკუმენტური");
+    if (numId % 7 === 0) actorTags.push("პერსონაჟი");
+    if (numId % 6 === 0) actorTags.push("ელექტრონული სწავლება");
     if (actorTags.length < 2) {
-      actorTags.push("Commercial", "Narration");
+      actorTags.push("კომერციული", "გახმოვანება");
     }
 
     // Generate individual pricing
@@ -155,7 +155,7 @@ export function TalentProfile({ id }: TalentProfileProps) {
                 <div className="flex items-start gap-3">
                   <Languages className="h-5 w-5 text-orange-500 mt-0.5" />
                   <div>
-                    <h3 className="font-medium">Languages</h3>
+                    <h3 className="font-medium">ენები</h3>
                     <p className="text-sm text-muted-foreground">{talent.languages.join(", ")}</p>
                   </div>
                 </div>
@@ -163,7 +163,7 @@ export function TalentProfile({ id }: TalentProfileProps) {
                 <div className="flex items-start gap-3">
                   <Clock className="h-5 w-5 text-orange-500 mt-0.5" />
                   <div>
-                    <h3 className="font-medium">Turnaround Time</h3>
+                    <h3 className="font-medium">შესრულების დრო</h3>
                     <p className="text-sm text-muted-foreground">{talent.turnaround}</p>
                   </div>
                 </div>
@@ -171,7 +171,7 @@ export function TalentProfile({ id }: TalentProfileProps) {
                 <div className="flex items-start gap-3">
                   <DollarSign className="h-5 w-5 text-orange-500 mt-0.5" />
                   <div>
-                    <h3 className="font-medium">Price Range</h3>
+                    <h3 className="font-medium">ფასთა ფარგლები</h3>
                     <p className="text-sm text-muted-foreground">{talent.priceRange}</p>
                   </div>
                 </div>
@@ -185,21 +185,21 @@ export function TalentProfile({ id }: TalentProfileProps) {
             {/* Removed Save, Hire, Performance Stats buttons as requested */}
             <Button variant="outline" className="w-full">
               <MessageCircle className="h-4 w-4 mr-2" />
-              Contact Actor
+              მსახიობთან კონტაქტი
             </Button>
           </div>
         </div>
 
         <div className="space-y-8">
           <div>
-            <h2 className="text-xl font-semibold mb-4">About</h2>
+            <h2 className="text-xl font-semibold mb-4">შესახებ</h2>
             <p className="text-muted-foreground">{talent.bio}</p>
           </div>
 
           <Tabs defaultValue="demos" value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="demos">Voice Demos</TabsTrigger>
-              <TabsTrigger value="pricing">Pricing Calculator</TabsTrigger>
+              <TabsTrigger value="demos">ხმოვანი დემო</TabsTrigger>
+              <TabsTrigger value="pricing">ფასების კალკულატორი</TabsTrigger>
             </TabsList>
 
             <TabsContent value="demos" className="space-y-6 pt-6">

@@ -31,10 +31,10 @@ export function Testimonials() {
     <section className="container">
       <div className="text-center mb-10">
         <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          ჩვენი კლიენტები
+ჩვენი კლიენტები
         </h2>
         <p className="mt-4 text-muted-foreground px-4">
-          გაიგე ბიზნესებისგან, რომლებმაც იპოვეს მათი იდეალური ხმა
+გაიგე ბიზნესებისგან, რომლებმაც იპოვეს მათი იდეალური ხმა
         </p>
       </div>
 

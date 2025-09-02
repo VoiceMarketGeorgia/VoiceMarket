@@ -56,14 +56,14 @@ export function AllTalents() {
 
   // Available tags for filtering
   const availableTags = [
-    "Commercial",
-    "Narration", 
-    "Documentary",
-    "Character",
-    "E-Learning",
-    "Animation",
-    "News",
-    "Corporate"
+    "კომერციული",
+    "გახმოვანება", 
+    "დოკუმენტური",
+    "პერსონაჟი",
+    "ელექტრონული სწავლება",
+    "ანიმაცია",
+    "ახალი ამბები",
+    "კორპორატიული"
   ];
 
   // Generate all 47 talents
@@ -87,18 +87,18 @@ export function AllTalents() {
 
       // Assign diverse tags to actors
       const actorTags = [];
-      if (i % 4 === 0) actorTags.push("Commercial");
-      if (i % 3 === 0) actorTags.push("Narration");
-      if (i % 5 === 0) actorTags.push("Documentary");
-      if (i % 7 === 0) actorTags.push("Character");
-      if (i % 6 === 0) actorTags.push("E-Learning");
-      if (i % 8 === 0) actorTags.push("Animation");
-      if (i % 9 === 0) actorTags.push("News");
-      if (i % 10 === 0) actorTags.push("Corporate");
+      if (i % 4 === 0) actorTags.push("კომერციული");
+      if (i % 3 === 0) actorTags.push("გახმოვანება");
+      if (i % 5 === 0) actorTags.push("დოკუმენტური");
+      if (i % 7 === 0) actorTags.push("პერსონაჟი");
+      if (i % 6 === 0) actorTags.push("ელექტრონული სწავლება");
+      if (i % 8 === 0) actorTags.push("ანიმაცია");
+      if (i % 9 === 0) actorTags.push("ახალი ამბები");
+      if (i % 10 === 0) actorTags.push("კორპორატიული");
       
       // Ensure each actor has at least 2 tags
       if (actorTags.length < 2) {
-        actorTags.push("Commercial", "Narration");
+        actorTags.push("კომერციული", "გახმოვანება");
       }
 
       // Random duration for pricing (5-45 minutes)
@@ -203,7 +203,7 @@ export function AllTalents() {
             className="flex items-center gap-2 mt-4 md:mt-0"
           >
             <Filter className="h-4 w-4" />
-            ფილტრები
+ფილტრები
             {activeFilterCount > 0 && (
               <span className="bg-orange-500 text-white text-xs rounded-full px-2 py-1 ml-1">
                 {activeFilterCount}
@@ -212,7 +212,7 @@ export function AllTalents() {
           </Button>
         </div>
 
-        {/* Filters Panel */}
+        {/* ფილტრები Panel */}
         {showFilters && (
           <div className="bg-gray-50 dark:bg-card rounded-lg p-6 mb-8">
             <div className="flex items-center justify-between mb-4">
@@ -272,7 +272,7 @@ export function AllTalents() {
                 onClick={resetFilters}
                 className="flex-1"
               >
-                გადატვირთვა
+გადატვირთვა
               </Button>
             </div>
           </div>
@@ -295,14 +295,14 @@ export function AllTalents() {
         {filteredTalents.length === 0 && (
           <div className="text-center py-12">
             <p className="text-gray-500 dark:text-muted-foreground text-lg">
-              არ მოიძებნა მსახიობი შერჩეული ფილტრებით
+არ მოიძებნა მსახიობი შერჩეული ფილტრებით
             </p>
             <Button
               variant="outline"
               onClick={resetFilters}
               className="mt-4"
             >
-              ფილტრების გადატვირთვა
+გადატვირთვა ფილტრები
             </Button>
           </div>
         )}

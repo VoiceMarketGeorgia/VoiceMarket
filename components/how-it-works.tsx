@@ -30,10 +30,10 @@ export function HowItWorks() {
     <section className="container">
       <div className="text-center mb-10">
         <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-          როგორ მუშაობს
+როგორ მუშაობს
         </h2>
         <p className="mt-4 text-muted-foreground p-3">
-          სურვილის შემთხვევაში შეგიძლიათ დაესწროთ ჩაწერას და ცვლილება შეიტანოთ
+სურვილის შემთხვევაში შეგიძლიათ დაესწროთ ჩაწერას და ცვლილება შეიტანოთ
           ხასიათში, ინტონაციასა თუ დეტალებში
         </p>
       </div>

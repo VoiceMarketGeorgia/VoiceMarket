@@ -32,7 +32,7 @@ export function HeroSection() {
 
           {/* Subtitle */}
           <p className="mt-6 text-lg sm:text-xl md:text-2xl text-gray-200 drop-shadow-md font-medium">
-            🎙️ ყველა ხმა, ერთ სივრცეში!
+🎙️ ყველა ხმა, ერთ სივრცეში!
           </p>
 
           {/* Call to Action Buttons */}
@@ -42,7 +42,7 @@ export function HeroSection() {
               className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-8 py-3 text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
             >
               <Search className="mr-2 h-5 w-5" />
-              ხმების ძიება
+ხმების ძიება
             </Button>
 
             <Button
@@ -50,7 +50,7 @@ export function HeroSection() {
               size="lg"
               className="border-2 border-white/80 text-white hover:bg-white hover:text-gray-900 font-semibold px-8 py-3 text-lg backdrop-blur-sm bg-white/10 transition-all duration-300"
             >
-              მეტის ნახვა
+მეტის ნახვა
             </Button>
           </div>
         </div>

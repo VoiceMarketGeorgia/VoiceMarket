@@ -20,7 +20,7 @@ export function Footer() {
               <span className="text-xl font-bold">VoiceMarket</span>
             </Link>
             <p className="text-sm text-muted-foreground">
-              იპოვე იდეალური ხმა შენი პროექტისთვის ჩვენი პროფესიონალი
+იპოვე იდეალური ხმა შენი პროექტისთვის ჩვენი პროფესიონალი
               გახმოვანების მსახიობების შერჩეული კოლექციიდან
             </p>
           </div>

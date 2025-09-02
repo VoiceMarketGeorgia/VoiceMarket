@@ -43,23 +43,23 @@ export function ContactForm() {
             <div className="rounded-full bg-green-100 p-3 dark:bg-green-900">
               <CheckCircle2 className="h-10 w-10 text-green-600 dark:text-green-400" />
             </div>
-            <h3 className="mt-4 text-xl font-semibold">Message Sent Successfully</h3>
+            <h3 className="mt-4 text-xl font-semibold">შეტყობინება წარმატებით გაიგზავნა</h3>
             <p className="mt-2 text-muted-foreground">
-              Thank you for reaching out! We'll get back to you as soon as possible.
+              მადლობა, რომ მიმართეთ! ჩვენ მალე უპასუხებთ.
             </p>
             <Button className="mt-6" onClick={() => setIsSubmitted(false)}>
-              Send Another Message
+              სხვა შეტყობინების გაგზავნა
             </Button>
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="name">Your Name</Label>
+              <Label htmlFor="name">თქვენი სახელი</Label>
               <Input id="name" placeholder="John Doe" required value={name} onChange={(e) => setName(e.target.value)} />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
+              <Label htmlFor="email">ელ-ფოსტის მისამართი</Label>
               <Input
                 id="email"
                 type="email"
@@ -71,26 +71,26 @@ export function ContactForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="subject">Subject</Label>
+              <Label htmlFor="subject">თემა</Label>
               <Select value={subject} onValueChange={setSubject} required>
                 <SelectTrigger id="subject">
-                  <SelectValue placeholder="Select a subject" />
+                  <SelectValue placeholder="აირჩიეთ თემა" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="general">General Inquiry</SelectItem>
-                  <SelectItem value="support">Customer Support</SelectItem>
-                  <SelectItem value="billing">Billing Question</SelectItem>
-                  <SelectItem value="partnership">Partnership Opportunity</SelectItem>
-                  <SelectItem value="talent">Becoming a Voice Talent</SelectItem>
+                  <SelectItem value="general">ზოგადი კითხვა</SelectItem>
+                  <SelectItem value="support">მომხმარებელთა მხარდაჭერა</SelectItem>
+                  <SelectItem value="billing">ფასდაკლების კითხვა</SelectItem>
+                  <SelectItem value="partnership">პარტნიორობის შესაძლებლობა</SelectItem>
+                  <SelectItem value="talent">ხმოვანი მსახიობის გახდომა</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="message">Your Message</Label>
+              <Label htmlFor="message">თქვენი შეტყობინება</Label>
               <Textarea
                 id="message"
-                placeholder="How can we help you?"
+                placeholder="როგორ შეგვიძლია დაგეხმაროთ?"
                 rows={6}
                 required
                 value={message}
@@ -102,10 +102,10 @@ export function ContactForm() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Sending...
+                  იგზავნება...
                 </>
               ) : (
-                "Send Message"
+                "შეტყობინების გაგზავნა"
               )}
             </Button>
           </form>

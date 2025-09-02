@@ -60,7 +60,7 @@ export function FeaturedTalents() {
       samples,
       gradient: "from-orange-500 to-cyan-600",
       languages: ["English"],
-      tags: ["Commercial", "Narration"],
+      tags: ["კომერციული", "გახმოვანება"],
       pricing,
     };
   });
@@ -77,7 +77,7 @@ export function FeaturedTalents() {
     <div className=" bg-white dark:bg-background p-4 py-12">
       <div className="container mx-auto">
         <h1 className="text-3xl font-bold text-center mb-8 text-gray-800 dark:text-foreground">
-          ჩვენი მსახიობები
+ჩვენი მსახიობები
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {talents.map((talent) => (
@@ -94,7 +94,7 @@ export function FeaturedTalents() {
         <div className="mt-10 text-center">
           <Link href="/talents">
             <button className="rounded-full px-8 py-3 border border-gray-300 dark:border-border bg-white dark:bg-card text-gray-700 dark:text-foreground hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all duration-300 shadow-md hover:shadow-lg">
-              იხილეთ ყველა მსახიობი
+იხილეთ ყველა მსახიობი
             </button>
           </Link>
         </div>

@@ -49,7 +49,7 @@ export function OurServices() {
     <section className="container relative">
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-          ჩვენი სერვისები
+ჩვენი სერვისები
         </h2>
         {/* Beautiful decorative line */}
         <div className="flex items-center justify-center mt-4">
