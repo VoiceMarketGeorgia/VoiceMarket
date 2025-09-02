@@ -8,7 +8,7 @@ export interface AudioSample {
   url: string;
 }
 
-interface Talent {
+export interface Talent {
   id: string;
   name: string;
   image: string;

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { VoiceCard, AudioSample } from "./voice-card";
 import { Mic2, Headphones, BookOpen } from "lucide-react";
+import Link from "next/link";
 
 export function FeaturedTalents() {
   const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(
@@ -72,9 +73,11 @@ export function FeaturedTalents() {
         </div>
 
         <div className="mt-10 text-center">
-          <button className="rounded-full px-8 py-3 border border-gray-300 dark:border-border bg-white dark:bg-card text-gray-700 dark:text-foreground hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all duration-300 shadow-md hover:shadow-lg">
-            იხილეთ ყველა მსახიობი
-          </button>
+          <Link href="/talents">
+            <button className="rounded-full px-8 py-3 border border-gray-300 dark:border-border bg-white dark:bg-card text-gray-700 dark:text-foreground hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all duration-300 shadow-md hover:shadow-lg">
+              იხილეთ ყველა მსახიობი
+            </button>
+          </Link>
         </div>
       </div>
     </div>
