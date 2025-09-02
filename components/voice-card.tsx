@@ -48,14 +48,14 @@ export function VoiceCard({
   return (
     <div
       key={talent.id}
-      onClick={onClick}
-      className={`bg-white dark:bg-card rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 ${
-        onClick ? 'cursor-pointer' : ''
-      }`}
+      className="bg-white dark:bg-card rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
     >
       {/* Image Section */}
       <div
-        className={`relative aspect-[3/4] overflow-hidden bg-gradient-to-br ${talent.gradient}`}
+        onClick={onClick}
+        className={`relative aspect-[3/4] overflow-hidden bg-gradient-to-br ${talent.gradient} ${
+          onClick ? 'cursor-pointer hover:opacity-90 transition-opacity duration-200' : ''
+        }`}
       >
         <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
         <img
