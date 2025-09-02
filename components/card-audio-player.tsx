@@ -122,7 +122,9 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
   );
 
   return (
-    <div className={`bg-white dark:bg-card rounded-xl shadow-lg p-4 ${className}`}>
+    <div
+      className={`bg-white dark:bg-card rounded-xl shadow-lg p-4 ${className}`}
+    >
       {/* Category Dropdown */}
       <div className="relative mb-3">
         <button

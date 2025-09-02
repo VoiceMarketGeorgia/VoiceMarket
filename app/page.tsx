@@ -9,7 +9,7 @@ import { RandomVoiceFinder } from "@/components/random-voice-finder";
 
 export default function Home() {
   return (
-    <div className="flex flex-col gap-16 pb-16">
+    <div className="flex flex-col gap-8 pb-16">
       {/* <div className="container">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
           <h2 className="text-2xl font-bold">Try Your Luck:</h2>
@@ -22,14 +22,13 @@ export default function Home() {
       </div> */}
 
       <HeroSection />
-
-      <FeaturedTalents />
-
       <OurServices />
 
+      <FeaturedTalents />
       <HowItWorks />
-      <Testimonials />
+
       <CallToAction />
+      <Testimonials />
     </div>
   );
 }
