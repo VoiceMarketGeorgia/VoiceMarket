@@ -8,22 +8,34 @@ export interface AudioSample {
   url: string;
 }
 
+export interface ActorPricing {
+  basePrice: number; // Base price per word/syllable
+  pricePerWord: number;
+  expressDeliveryFee: number;
+  backgroundMusicFee: number;
+  soundEffectsFee: number;
+  revisionFee: number;
+  isFixedPrice: boolean; // Whether the actor charges a fixed price
+  fixedPriceAmount?: number; // Fixed price if applicable
+  minOrder: number; // Minimum order amount
+}
+
 export interface Talent {
   id: string;
   name: string;
   image: string;
   samples: AudioSample[];
   gradient: string;
-  rating: number;
-  reviews: number;
   languages: string[];
   tags: string[];
+  pricing: ActorPricing;
 }
 
 interface VoiceCardProps {
   talent: Talent;
   currentlyPlayingId: string | null;
   onTogglePlay: (playerId: string) => void;
+  onClick?: () => void;
 }
 
 // Use the interface to type the props
@@ -31,11 +43,15 @@ export function VoiceCard({
   talent,
   currentlyPlayingId,
   onTogglePlay,
+  onClick,
 }: VoiceCardProps) {
   return (
     <div
       key={talent.id}
-      className="bg-white dark:bg-card rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
+      onClick={onClick}
+      className={`bg-white dark:bg-card rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 ${
+        onClick ? 'cursor-pointer' : ''
+      }`}
     >
       {/* Image Section */}
       <div

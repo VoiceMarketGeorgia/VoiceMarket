@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { VoiceCard, AudioSample, Talent } from "./voice-card";
+import { VoiceCard, AudioSample, Talent, ActorPricing } from "./voice-card";
+import { useRouter } from "next/navigation";
 import { Mic2, Headphones, BookOpen, Filter, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -14,11 +15,20 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-interface TalentWithDuration extends Talent {
+interface TalentWithDuration {
+  id: string;
+  name: string;
+  image: string;
+  samples: AudioSample[];
+  gradient: string;
+  languages: string[];
+  tags: string[];
+  pricing: ActorPricing;
   duration: number; // Duration in minutes for pricing
 }
 
 export function AllTalents() {
+  const router = useRouter();
   const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(
     null
   );
@@ -94,16 +104,29 @@ export function AllTalents() {
       // Random duration for pricing (5-45 minutes)
       const duration = Math.floor(Math.random() * 40) + 5;
 
+      // Generate individual pricing for each actor
+      const isFixedPrice = Math.random() > 0.7; // 30% chance of fixed price
+      const pricing: ActorPricing = {
+        basePrice: 30 + Math.floor(Math.random() * 50), // $30-80 base
+        pricePerWord: 0.05 + Math.random() * 0.15, // $0.05-0.20 per word
+        expressDeliveryFee: 25 + Math.floor(Math.random() * 35), // $25-60
+        backgroundMusicFee: 15 + Math.floor(Math.random() * 25), // $15-40
+        soundEffectsFee: 20 + Math.floor(Math.random() * 30), // $20-50
+        revisionFee: 10 + Math.floor(Math.random() * 15), // $10-25
+        isFixedPrice,
+        fixedPriceAmount: isFixedPrice ? 100 + Math.floor(Math.random() * 300) : undefined, // $100-400
+        minOrder: 25 + Math.floor(Math.random() * 25), // $25-50 minimum
+      };
+
       return {
         id,
         name: `Actor ${id}`,
         image: `/photos/${id}.jpg`,
         samples,
         gradient: `from-orange-${400 + (i % 3) * 100} to-cyan-${500 + (i % 3) * 100}`,
-        rating: 4.5 + Math.random() * 0.5,
-        reviews: 50 + i * 5,
         languages: ["Georgian", ...(i % 3 === 0 ? ["English"] : [])],
         tags: actorTags,
+        pricing,
         duration,
       };
     });
@@ -129,6 +152,10 @@ export function AllTalents() {
 
   const handleTogglePlay = (playerId: string) => {
     setCurrentlyPlayingId(currentlyPlayingId === playerId ? null : playerId);
+  };
+
+  const handleCardClick = (talentId: string) => {
+    router.push(`/talents/${talentId}`);
   };
 
   const toggleTagFilter = (tag: string) => {
@@ -256,9 +283,10 @@ export function AllTalents() {
           {filteredTalents.map((talent) => (
             <VoiceCard
               key={talent.id}
-              talent={talent}
+              talent={talent as Talent}
               currentlyPlayingId={currentlyPlayingId}
               onTogglePlay={handleTogglePlay}
+              onClick={() => handleCardClick(talent.id)}
             />
           ))}
         </div>
