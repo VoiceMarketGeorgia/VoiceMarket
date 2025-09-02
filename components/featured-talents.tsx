@@ -55,7 +55,7 @@ export function FeaturedTalents() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-background p-4">
+    <div className=" bg-white dark:bg-background p-4 py-12">
       <div className="container mx-auto">
         <h1 className="text-3xl font-bold text-center mb-8 text-gray-800 dark:text-foreground">
           ჩვენი მსახიობები
