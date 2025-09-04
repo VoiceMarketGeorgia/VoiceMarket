@@ -32,6 +32,11 @@ export interface VoiceActor {
   review_count: number | null
   created_at: string
   updated_at: string
+  // New fields for admin functionality
+  age_range?: string | null
+  accent?: string | null
+  voice_style?: string[]
+  photo_url?: string | null // For backwards compatibility and form handling
 }
 
 export interface ActorPricing {
@@ -103,7 +108,7 @@ export interface QuoteRequest {
 
 // Combined types for frontend components
 export interface VoiceActorWithPricing extends VoiceActor {
-  pricing: ActorPricing
+  pricing: ActorPricing[]
   samples: AudioSample[]
 }
 

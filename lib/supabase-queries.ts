@@ -276,3 +276,263 @@ export function convertToTalent(voiceActor: VoiceActorWithPricing): any {
     }
   }
 }
+
+// Admin-specific Voice Actor Queries (includes inactive actors)
+export async function getAllVoiceActorsAdmin(): Promise<VoiceActorWithPricing[]> {
+  const { data, error } = await supabase
+    .from('voice_actors')
+    .select(`
+      *,
+      pricing:actor_pricing(*),
+      samples:audio_samples(*)
+    `)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Error fetching all voice actors for admin:', error)
+    throw error
+  }
+
+  // Sort by numeric value of actor_id for consistent ordering
+  const sortedData = (data || []).sort((a, b) => {
+    const numA = parseInt(a.actor_id)
+    const numB = parseInt(b.actor_id)
+    return numA - numB
+  })
+
+  return sortedData
+}
+
+export async function createVoiceActor(actorData: {
+  actor_id: string
+  name: string
+  bio: string
+  languages: string[]
+  age_range: string
+  accent: string
+  voice_style: string[]
+  photo_url: string
+  is_featured: boolean
+  is_active: boolean
+  base_price_per_word: number
+  rush_multiplier: number
+  revision_price: number
+  background_music_price: number
+  sound_effects_price: number
+}): Promise<VoiceActor> {
+  // First, create the voice actor
+  const { data: actorResult, error: actorError } = await supabase
+    .from('voice_actors')
+    .insert({
+      actor_id: actorData.actor_id,
+      name: actorData.name,
+      bio: actorData.bio,
+      languages: actorData.languages,
+      image_url: actorData.photo_url || null, // Use image_url instead of photo_url
+      tags: actorData.voice_style || [], // Use tags instead of voice_style
+      is_featured: actorData.is_featured,
+      is_active: actorData.is_active,
+      // Note: age_range and accent will be added after schema update
+      age_range: actorData.age_range,
+      accent: actorData.accent,
+      voice_style: actorData.voice_style
+    })
+    .select()
+    .single()
+
+  if (actorError) {
+    console.error('Error creating voice actor:', actorError)
+    throw actorError
+  }
+
+  // Then create the pricing record
+  const { error: pricingError } = await supabase
+    .from('actor_pricing')
+    .insert({
+      voice_actor_id: actorResult.id,
+      base_price_per_word: actorData.base_price_per_word,
+      rush_multiplier: actorData.rush_multiplier,
+      revision_price: actorData.revision_price,
+      background_music_price: actorData.background_music_price,
+      sound_effects_price: actorData.sound_effects_price
+    })
+
+  if (pricingError) {
+    console.error('Error creating actor pricing:', pricingError)
+    // If pricing creation fails, we should delete the actor to maintain consistency
+    await supabase.from('voice_actors').delete().eq('id', actorResult.id)
+    throw pricingError
+  }
+
+  return actorResult
+}
+
+export async function updateVoiceActor(
+  actorId: number,
+  actorData: {
+    actor_id: string
+    name: string
+    bio: string
+    languages: string[]
+    age_range: string
+    accent: string
+    voice_style: string[]
+    photo_url: string
+    is_featured: boolean
+    is_active: boolean
+    base_price_per_word: number
+    rush_multiplier: number
+    revision_price: number
+    background_music_price: number
+    sound_effects_price: number
+  }
+): Promise<VoiceActor> {
+  // Update the voice actor
+  const { data: actorResult, error: actorError } = await supabase
+    .from('voice_actors')
+    .update({
+      actor_id: actorData.actor_id,
+      name: actorData.name,
+      bio: actorData.bio,
+      languages: actorData.languages,
+      image_url: actorData.photo_url || null, // Use image_url instead of photo_url
+      tags: actorData.voice_style || [], // Use tags instead of voice_style  
+      is_featured: actorData.is_featured,
+      is_active: actorData.is_active,
+      // Note: age_range and accent will be added after schema update
+      age_range: actorData.age_range,
+      accent: actorData.accent,
+      voice_style: actorData.voice_style,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', actorId)
+    .select()
+    .single()
+
+  if (actorError) {
+    console.error('Error updating voice actor:', actorError)
+    throw actorError
+  }
+
+  // Update or create pricing record
+  const { error: pricingError } = await supabase
+    .from('actor_pricing')
+    .upsert({
+      voice_actor_id: actorId,
+      base_price_per_word: actorData.base_price_per_word,
+      rush_multiplier: actorData.rush_multiplier,
+      revision_price: actorData.revision_price,
+      background_music_price: actorData.background_music_price,
+      sound_effects_price: actorData.sound_effects_price
+    })
+
+  if (pricingError) {
+    console.error('Error updating actor pricing:', pricingError)
+    throw pricingError
+  }
+
+  return actorResult
+}
+
+export async function deleteVoiceActor(actorId: number): Promise<void> {
+  // Delete pricing records first (due to foreign key constraint)
+  const { error: pricingError } = await supabase
+    .from('actor_pricing')
+    .delete()
+    .eq('voice_actor_id', actorId)
+
+  if (pricingError) {
+    console.error('Error deleting actor pricing:', pricingError)
+    throw pricingError
+  }
+
+  // Delete audio samples
+  const { error: samplesError } = await supabase
+    .from('audio_samples')
+    .delete()
+    .eq('voice_actor_id', actorId)
+
+  if (samplesError) {
+    console.error('Error deleting audio samples:', samplesError)
+    throw samplesError
+  }
+
+  // Finally delete the voice actor
+  const { error: actorError } = await supabase
+    .from('voice_actors')
+    .delete()
+    .eq('id', actorId)
+
+  if (actorError) {
+    console.error('Error deleting voice actor:', actorError)
+    throw actorError
+  }
+}
+
+// Audio Sample Management Functions
+export async function createAudioSample(sample: {
+  voice_actor_id: number
+  sample_id: string
+  name: string
+  audio_url: string
+  category: string
+}): Promise<AudioSample> {
+  const { data, error } = await supabase
+    .from('audio_samples')
+    .insert(sample)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error creating audio sample:', error)
+    throw error
+  }
+
+  return data
+}
+
+export async function updateAudioSample(
+  sampleId: number,
+  updates: Partial<AudioSample>
+): Promise<AudioSample> {
+  const { data, error } = await supabase
+    .from('audio_samples')
+    .update(updates)
+    .eq('id', sampleId)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error updating audio sample:', error)
+    throw error
+  }
+
+  return data
+}
+
+export async function deleteAudioSample(sampleId: number): Promise<void> {
+  const { error } = await supabase
+    .from('audio_samples')
+    .delete()
+    .eq('id', sampleId)
+
+  if (error) {
+    console.error('Error deleting audio sample:', error)
+    throw error
+  }
+}
+
+export async function getAudioSamplesByActor(actorId: number): Promise<AudioSample[]> {
+  const { data, error } = await supabase
+    .from('audio_samples')
+    .select('*')
+    .eq('voice_actor_id', actorId)
+    .order('created_at', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching audio samples:', error)
+    throw error
+  }
+
+  return data || []
+}

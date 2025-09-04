@@ -6,45 +6,59 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { QuoteRequest } from "@/lib/supabase"
+import { QuoteRequest, VoiceActor } from "@/lib/supabase"
 import { Calendar, DollarSign, FileText, Phone, Mail, User } from "lucide-react"
 import { createSupabaseClient } from "@/lib/supabase"
 
 export default function AdminQuotesPage() {
   const [quotes, setQuotes] = useState<QuoteRequest[]>([])
+  const [actors, setActors] = useState<VoiceActor[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<string>("all")
 
   useEffect(() => {
-    async function loadQuotes() {
+    async function loadData() {
       try {
         const supabase = createSupabaseClient()
-        const { data, error } = await supabase
+        
+        // Load quotes
+        const { data: quotesData, error: quotesError } = await supabase
           .from('quote_requests')
           .select('*')
           .order('created_at', { ascending: false })
 
-        if (error) {
-          console.error('Error fetching quote requests:', error)
-          console.error('Error details:', error.message, error.code, error.details)
-        } else {
-          console.log('Successfully loaded quotes:', data?.length || 0, 'quotes')
+        if (quotesError) {
+          console.error('Error fetching quote requests:', quotesError)
         }
 
-        setQuotes(data || [])
+        // Load actors
+        const { data: actorsData, error: actorsError } = await supabase
+          .from('voice_actors')
+          .select('*')
+
+        if (actorsError) {
+          console.error('Error fetching voice actors:', actorsError)
+        }
+
+        setQuotes(quotesData || [])
+        setActors(actorsData || [])
       } catch (error) {
-        console.error("Error loading quotes:", error)
+        console.error("Error loading data:", error)
       } finally {
         setLoading(false)
       }
     }
 
-    loadQuotes()
+    loadData()
   }, [])
 
   const filteredQuotes = quotes.filter(quote => 
     filter === "all" || quote.status === filter
   )
+
+  const getActorById = (actorId: string) => {
+    return actors.find(actor => actor.actor_id === actorId)
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -148,16 +162,40 @@ export default function AdminQuotesPage() {
             <Card key={quote.id} className="overflow-hidden">
               <CardHeader>
                 <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
-                  <div className="flex-1 min-w-0">
-                    <CardTitle className="flex flex-wrap items-center gap-2 text-lg">
-                      <FileText className="h-5 w-5 flex-shrink-0" />
-                      <span className="truncate">მოთხოვნა #{quote.id}</span>
-                      {quote.voice_actor_id && (
-                        <span className="text-sm font-normal text-muted-foreground whitespace-nowrap">
-                          მსახიობი {quote.voice_actor_id}
-                        </span>
-                      )}
-                    </CardTitle>
+                  <div className="flex gap-3 flex-1 min-w-0">
+                    {/* Actor Photo */}
+                    {quote.voice_actor_id && (
+                      <div className="w-12 h-12 rounded-full overflow-hidden bg-muted flex-shrink-0">
+                        {(() => {
+                          const actor = getActorById(quote.voice_actor_id)
+                          return actor?.photo_url ? (
+                            <img 
+                              src={actor.photo_url} 
+                              alt={actor.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <User className="h-6 w-6 text-muted-foreground" />
+                            </div>
+                          )
+                        })()}
+                      </div>
+                    )}
+                    
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="flex flex-wrap items-center gap-2 text-lg">
+                        <FileText className="h-5 w-5 flex-shrink-0" />
+                        <span className="truncate">მოთხოვნა #{quote.id}</span>
+                        {quote.voice_actor_id && (
+                          <span className="text-sm font-normal text-muted-foreground whitespace-nowrap">
+                            {(() => {
+                              const actor = getActorById(quote.voice_actor_id)
+                              return actor ? actor.name : `მსახიობი ${quote.voice_actor_id}`
+                            })()}
+                          </span>
+                        )}
+                      </CardTitle>
                     <div className="flex flex-wrap items-center gap-2 md:gap-4 mt-2 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1 whitespace-nowrap">
                         <Calendar className="h-4 w-4" />
@@ -173,6 +211,7 @@ export default function AdminQuotesPage() {
                           ${quote.estimated_price}
                         </span>
                       )}
+                    </div>
                     </div>
                   </div>
                   <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
