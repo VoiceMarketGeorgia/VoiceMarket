@@ -37,9 +37,9 @@ export function LoginForm() {
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900">
             <Lock className="h-6 w-6 text-orange-600 dark:text-orange-400" />
           </div>
-          <CardTitle className="text-2xl">Admin Login</CardTitle>
+          <CardTitle className="text-2xl">ადმინისტრაციის შესვლა</CardTitle>
           <p className="text-muted-foreground">
-            Sign in to access the admin dashboard
+            შედით ადმინისტრაციის პანელზე წვდომისთვის
           </p>
         </CardHeader>
         <CardContent>
@@ -51,7 +51,7 @@ export function LoginForm() {
             )}
             
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">ელ-ფოსტა</Label>
               <Input
                 id="email"
                 type="email"
@@ -64,11 +64,11 @@ export function LoginForm() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">პაროლი</Label>
               <Input
                 id="password"
                 type="password"
-                placeholder="Enter your password"
+                placeholder="შეიყვანეთ პაროლი"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -84,10 +84,10 @@ export function LoginForm() {
               {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Signing in...
+                  შესვლა...
                 </>
               ) : (
-                "Sign In"
+                "შესვლა"
               )}
             </Button>
           </form>

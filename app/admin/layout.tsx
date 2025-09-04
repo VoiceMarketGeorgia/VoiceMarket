@@ -18,33 +18,33 @@ export default function AdminLayout({
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
           <AdminHeader />
           
-          <div className="container mx-auto px-4 py-8">
-            <div className="grid grid-cols-1 lg:grid-cols-[250px_1fr] gap-8">
+          <div className="container mx-auto px-4 py-4 md:py-8">
+            <div className="grid grid-cols-1 lg:grid-cols-[250px_1fr] gap-4 lg:gap-8">
               {/* Sidebar */}
               <aside className="space-y-4">
-                <nav className="space-y-2">
+                <nav className="grid grid-cols-2 lg:grid-cols-1 gap-2">
                   <Link href="/admin">
                     <Button variant="ghost" className="w-full justify-start">
                       <BarChart3 className="mr-2 h-4 w-4" />
-                      Dashboard
+                      მთავარი გვერდი
                     </Button>
                   </Link>
                   <Link href="/admin/quotes">
                     <Button variant="ghost" className="w-full justify-start">
                       <FileText className="mr-2 h-4 w-4" />
-                      Quote Requests
+                      ფასის მოთხოვნები
                     </Button>
                   </Link>
                   <Link href="/admin/contacts">
                     <Button variant="ghost" className="w-full justify-start">
                       <MessageSquare className="mr-2 h-4 w-4" />
-                      Contact Submissions
+                      შეტყობინებები
                     </Button>
                   </Link>
                   <Link href="/admin/actors">
                     <Button variant="ghost" className="w-full justify-start">
                       <Users className="mr-2 h-4 w-4" />
-                      Voice Actors
+                      ხმოვანი მსახიობები
                     </Button>
                   </Link>
                 </nav>

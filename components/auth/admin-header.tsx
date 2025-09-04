@@ -11,7 +11,7 @@ export function AdminHeader() {
     <header className="border-b bg-white dark:bg-gray-950">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold">VoiceMarket Admin</h1>
+          <h1 className="text-xl font-semibold">VoiceMarket ადმინისტრაცია</h1>
         </div>
         
         <div className="flex items-center gap-4">
@@ -26,7 +26,7 @@ export function AdminHeader() {
             className="flex items-center gap-2"
           >
             <LogOut className="h-4 w-4" />
-            Sign Out
+            გასვლა
           </Button>
         </div>
       </div>
