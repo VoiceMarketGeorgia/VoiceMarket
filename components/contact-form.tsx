@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent } from "@/components/ui/card"
 import { CheckCircle2, Loader2 } from "lucide-react"
+import { submitContactForm } from "@/lib/supabase-queries"
 
 export function ContactForm() {
   const [name, setName] = useState("")
@@ -18,21 +19,36 @@ export function ContactForm() {
   const [message, setMessage] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
+    setError(null)
 
-    // Simulate form submission
-    setTimeout(() => {
+    try {
+      const result = await submitContactForm({
+        name,
+        email,
+        subject,
+        message
+      })
+
+      if (result.success) {
+        setIsSubmitted(true)
+        // Reset form after submission
+        setName("")
+        setEmail("")
+        setSubject("")
+        setMessage("")
+      } else {
+        setError(result.error || 'შეტყობინების გაგზავნა ვერ მოხერხდა')
+      }
+    } catch (err) {
+      setError('შეტყობინების გაგზავნა ვერ მოხერხდა')
+    } finally {
       setIsSubmitting(false)
-      setIsSubmitted(true)
-      // Reset form after submission
-      setName("")
-      setEmail("")
-      setSubject("")
-      setMessage("")
-    }, 1500)
+    }
   }
 
   return (
@@ -53,6 +69,11 @@ export function ContactForm() {
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+                <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="name">თქვენი სახელი</Label>
               <Input id="name" placeholder="John Doe" required value={name} onChange={(e) => setName(e.target.value)} />

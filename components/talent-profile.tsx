@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Image from "next/image"
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -27,6 +27,7 @@ import {
 import { AudioPlayer } from "@/components/audio-player"
 import { ActorPricingCalculator } from "@/components/actor-pricing-calculator"
 import { ActorPricing } from "@/components/voice-card"
+import { getVoiceActorById, convertToTalent } from "@/lib/supabase-queries"
 import CardAudioPlayer from "@/components/card-audio-player"
 
 interface TalentProfileProps {
@@ -36,90 +37,100 @@ interface TalentProfileProps {
 export function TalentProfile({ id }: TalentProfileProps) {
   const [activeTab, setActiveTab] = useState("demos")
   const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(null);
+  const [talent, setTalent] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Generate real talent data based on the ID
-  const generateTalentData = (actorId: string) => {
-    const numId = parseInt(actorId);
-    
-    // Generate samples based on the same logic as AllTalents
-    const samplesPerActor = [
-      3, 2, 2, 2, 3, 3, 3, 3, 3, 3, // 1-10
-      3, 3, 3, 3, 4, 3, 3, 3, 2, 3, // 11-20
-      3, 4, 3, 3, 3, 3, 3, 2, 3, 2, // 21-30
-      3, 2, 2, 3, 2, 2, 3, 3, 3, 4, // 31-40
-      2, 2, 2, 2, 2, 3, 2, // 41-47
-    ];
+  // Load talent data from Supabase
+  useEffect(() => {
+    async function loadTalent() {
+      try {
+        setLoading(true);
+        const voiceActor = await getVoiceActorById(id);
+        
+        if (voiceActor) {
+          const talentData = convertToTalent(voiceActor);
+          
+          // Add proper icons to samples
+          const samplesWithIcons = talentData.samples.map((sample: any) => ({
+            ...sample,
+            icon: getSampleIcon(sample.name),
+            category: sample.name,
+            description: `Professional ${sample.name.toLowerCase()} voice sample.`
+          }));
 
-    const sampleNames = [
-      { name: "სარეკლამო რგოლი", icon: <Mic2 className="h-5 w-5" /> },
-      { name: "ავტომოპასუხე", icon: <Headphones className="h-5 w-5" /> },
-      { name: "მხატვრული", icon: <BookOpen className="h-5 w-5" /> },
-      { name: "დოკუმენტური", icon: <FileText className="h-5 w-5" /> },
-    ];
-
-    const samples = [];
-    const count = samplesPerActor[numId - 1] || 2;
-    
-    for (let idx = 0; idx < count; idx++) {
-      const sampleIndex = idx % sampleNames.length;
-      samples.push({
-        id: `${actorId}-${idx + 1}`,
-        name: sampleNames[sampleIndex].name,
-        category: sampleNames[sampleIndex].name,
-        url: `/audios/${actorId}/${actorId}.${idx + 1}.wav`,
-        icon: sampleNames[sampleIndex].icon,
-        description: `Professional ${sampleNames[sampleIndex].name.toLowerCase()} voice sample.`,
-      });
+          setTalent({
+            ...talentData,
+            title: "Professional Voice Actor",
+            coverImage: talentData.image,
+            bio: voiceActor.bio || `Professional voice actor with extensive experience in various voice-over projects. Specializes in ${talentData.tags.join(", ").toLowerCase()} work with a distinctive and engaging voice style.`,
+            priceRange: talentData.pricing.isFixedPrice 
+              ? `Fixed: $${talentData.pricing.fixedPriceAmount}` 
+              : `$${talentData.pricing.basePrice}-${talentData.pricing.basePrice + 200}`,
+            turnaround: voiceActor.turnaround_time || "24-48 hours",
+            categories: talentData.tags,
+            samples: samplesWithIcons,
+            rating: voiceActor.rating || 4.5,
+            reviewCount: voiceActor.review_count || 0
+          });
+        } else {
+          setError('Voice actor not found');
+        }
+      } catch (err) {
+        console.error('Error loading talent:', err);
+        setError('Failed to load voice actor profile');
+      } finally {
+        setLoading(false);
+      }
     }
 
-    // Generate tags
-    const actorTags = [];
-    if (numId % 4 === 0) actorTags.push("კომერციული");
-    if (numId % 3 === 0) actorTags.push("გახმოვანება");
-    if (numId % 5 === 0) actorTags.push("დოკუმენტური");
-    if (numId % 7 === 0) actorTags.push("პერსონაჟი");
-    if (numId % 6 === 0) actorTags.push("ელექტრონული სწავლება");
-    if (actorTags.length < 2) {
-      actorTags.push("კომერციული", "გახმოვანება");
+    loadTalent();
+  }, [id]);
+
+  // Helper function to get icon for sample type
+  const getSampleIcon = (sampleName: string) => {
+    switch (sampleName) {
+      case "სარეკლამო რგოლი":
+        return <Mic2 className="h-5 w-5" />;
+      case "ავტომოპასუხე":
+        return <Headphones className="h-5 w-5" />;
+      case "მხატვრული":
+        return <BookOpen className="h-5 w-5" />;
+      case "დოკუმენტური":
+        return <FileText className="h-5 w-5" />;
+      default:
+        return <Mic2 className="h-5 w-5" />;
     }
-
-    // Generate individual pricing
-    const isFixedPrice = Math.random() > 0.7;
-    const pricing: ActorPricing = {
-      basePrice: 30 + (numId * 3) % 50,
-      pricePerWord: 0.05 + ((numId * 2) % 15) / 100,
-      expressDeliveryFee: 25 + (numId * 5) % 35,
-      backgroundMusicFee: 15 + (numId * 3) % 25,
-      soundEffectsFee: 20 + (numId * 4) % 30,
-      revisionFee: 10 + (numId * 2) % 15,
-      isFixedPrice,
-      fixedPriceAmount: isFixedPrice ? 100 + (numId * 10) % 300 : undefined,
-      minOrder: 25 + (numId * 2) % 25,
-    };
-
-    return {
-      id: actorId,
-      name: `Actor ${actorId}`, // Remove name display as requested
-      title: "Professional Voice Actor",
-      image: `/photos/${actorId}.jpg`,
-      coverImage: `/photos/${actorId}.jpg`, // Use same image for cover
-      bio: `Professional voice actor with extensive experience in various voice-over projects. Specializes in ${actorTags.join(", ").toLowerCase()} work with a distinctive and engaging voice style.`,
-      languages: ["Georgian", ...(numId % 3 === 0 ? ["English"] : [])],
-      pricing,
-      priceRange: pricing.isFixedPrice 
-        ? `Fixed: $${pricing.fixedPriceAmount}` 
-        : `$${pricing.basePrice}-${pricing.basePrice + 200}`,
-      turnaround: "24-48 hours",
-      categories: actorTags,
-      samples,
-    };
   };
-
-  const talent = generateTalentData(id);
 
   const handleTogglePlay = (playerId: string) => {
     setCurrentlyPlayingId(currentlyPlayingId === playerId ? null : playerId);
   };
+
+  if (loading) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-500 dark:text-muted-foreground text-lg">
+          იტვირთება...
+        </p>
+      </div>
+    );
+  }
+
+  if (error || !talent) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-500 text-lg">{error || 'Voice actor not found'}</p>
+        <Button
+          variant="outline"
+          onClick={() => window.history.back()}
+          className="mt-4"
+        >
+          უკან დაბრუნება
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
@@ -238,7 +249,6 @@ export function TalentProfile({ id }: TalentProfileProps) {
                 </CardContent>
               </Card>
             </TabsContent>
-
 
           </Tabs>
         </div>

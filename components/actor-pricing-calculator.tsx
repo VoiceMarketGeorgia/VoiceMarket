@@ -5,9 +5,12 @@ import { Textarea } from "@/components/ui/textarea"
 import { Slider } from "@/components/ui/slider"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Calculator, Clock, DollarSign, AlertCircle } from "lucide-react"
+import { Calculator, Clock, DollarSign, AlertCircle, Send, CheckCircle2, Loader2 } from "lucide-react"
 import { ActorPricing } from "./voice-card"
+import { submitQuoteRequest } from "@/lib/supabase-queries"
 
 interface ActorPricingCalculatorProps {
   pricing: ActorPricing;
@@ -23,6 +26,16 @@ export function ActorPricingCalculator({ pricing, actorId }: ActorPricingCalcula
   const [soundEffects, setSoundEffects] = useState(false)
   const [price, setPrice] = useState(0)
   const [deliveryTime, setDeliveryTime] = useState("48 hours")
+  
+  // Quote request form states
+  const [showQuoteForm, setShowQuoteForm] = useState(false)
+  const [clientName, setClientName] = useState("")
+  const [clientEmail, setClientEmail] = useState("")
+  const [clientPhone, setClientPhone] = useState("")
+  const [specialRequirements, setSpecialRequirements] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitted, setIsSubmitted] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   // Calculate word count
   useEffect(() => {
@@ -77,6 +90,49 @@ export function ActorPricingCalculator({ pricing, actorId }: ActorPricingCalcula
 
     setPrice(Math.round(calculatedPrice));
   }, [script, wordCount, revisions, expressDelivery, backgroundMusic, soundEffects, pricing]);
+
+  const handleSubmitQuote = async () => {
+    if (!clientName || !clientEmail || !script) {
+      setSubmitError("გთხოვთ შეავსოთ სავალდებულო ველები");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const result = await submitQuoteRequest({
+        voice_actor_id: parseInt(actorId),
+        client_name: clientName,
+        client_email: clientEmail,
+        client_phone: clientPhone,
+        script_text: script,
+        word_count: wordCount,
+        revisions_requested: revisions[0],
+        express_delivery: expressDelivery,
+        background_music: backgroundMusic,
+        sound_effects: soundEffects,
+        estimated_price: price,
+        special_requirements: specialRequirements
+      });
+
+      if (result.success) {
+        setIsSubmitted(true);
+        // Reset form
+        setClientName("");
+        setClientEmail("");
+        setClientPhone("");
+        setSpecialRequirements("");
+        setShowQuoteForm(false);
+      } else {
+        setSubmitError(result.error || "მოთხოვნის გაგზავნა ვერ მოხერხდა");
+      }
+    } catch (err) {
+      setSubmitError("მოთხოვნის გაგზავნა ვერ მოხერხდა");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -253,6 +309,157 @@ export function ActorPricingCalculator({ pricing, actorId }: ActorPricingCalcula
           </Card>
         </div>
       </div>
+
+      {/* Success Message */}
+      {isSubmitted && (
+        <Card className="border-green-200 bg-green-50 dark:bg-green-950/20">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3">
+              <CheckCircle2 className="h-6 w-6 text-green-600" />
+              <div>
+                <h3 className="font-semibold text-green-800 dark:text-green-200">
+                  მოთხოვნა წარმატებით გაიგზავნა!
+                </h3>
+                <p className="text-sm text-green-600 dark:text-green-300">
+                  ჩვენ განვიხილავთ თქვენს პროექტს და 24 საათში გამოგიგზავნით ზუსტ ფასს.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Quote Request Button/Form */}
+      {!isSubmitted && (
+        <Card>
+          <CardContent className="p-6">
+            {!showQuoteForm ? (
+              <div className="text-center">
+                <h3 className="text-lg font-semibold mb-2">მომწონს ეს ფასი?</h3>
+                <p className="text-muted-foreground mb-4">
+                  გაგზავნეთ მოთხოვნა Actor #{actorId}-ისთვის და მიიღეთ ზუსტი ფასი
+                </p>
+                <Button 
+                  onClick={() => setShowQuoteForm(true)}
+                  className="bg-orange-500 hover:bg-orange-600"
+                  size="lg"
+                  disabled={!script || wordCount === 0}
+                >
+                  <Send className="mr-2 h-4 w-4" />
+                  მოთხოვნის გაგზავნა
+                </Button>
+                {(!script || wordCount === 0) && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    * გთხოვთ ჯერ შეიყვანოთ სკრიპტი
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">კონტაქტის ინფორმაცია</h3>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowQuoteForm(false)}
+                  >
+                    უკან
+                  </Button>
+                </div>
+
+                {submitError && (
+                  <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+                    <p className="text-red-600 dark:text-red-400 text-sm">{submitError}</p>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="clientName">სრული სახელი *</Label>
+                    <Input
+                      id="clientName"
+                      placeholder="გელა გელაშვილი"
+                      value={clientName}
+                      onChange={(e) => setClientName(e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="clientEmail">ელ-ფოსტა *</Label>
+                    <Input
+                      id="clientEmail"
+                      type="email"
+                      placeholder="gela@example.com"
+                      value={clientEmail}
+                      onChange={(e) => setClientEmail(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="clientPhone">ტელეფონი</Label>
+                  <Input
+                    id="clientPhone"
+                    type="tel"
+                    placeholder="+995 555 123 456"
+                    value={clientPhone}
+                    onChange={(e) => setClientPhone(e.target.value)}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="specialRequirements">დამატებითი მოთხოვნები</Label>
+                  <Textarea
+                    id="specialRequirements"
+                    placeholder="სპეციალური ინსტრუქციები, ტონალობა, მიწოდების მოთხოვნები..."
+                    rows={3}
+                    value={specialRequirements}
+                    onChange={(e) => setSpecialRequirements(e.target.value)}
+                  />
+                </div>
+
+                {/* Summary */}
+                <Card className="bg-muted/50">
+                  <CardContent className="p-4">
+                    <h4 className="font-medium mb-2">მოთხოვნის შეჯამება</h4>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p><strong>მსახიობი:</strong> Actor #{actorId}</p>
+                        <p><strong>სიტყვები:</strong> {wordCount}</p>
+                        <p><strong>მიწოდება:</strong> {deliveryTime}</p>
+                      </div>
+                      <div>
+                        <p><strong>შესწორებები:</strong> {revisions[0]}</p>
+                        <p><strong>ფასი:</strong> ${price}</p>
+                        {expressDelivery && <p><strong>სწრაფი მიწოდება:</strong> ✓</p>}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Button 
+                  onClick={handleSubmitQuote}
+                  className="w-full bg-orange-500 hover:bg-orange-600"
+                  disabled={isSubmitting || !clientName || !clientEmail}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      იგზავნება...
+                    </>
+                  ) : (
+                    <>
+                      <Send className="mr-2 h-4 w-4" />
+                      მოთხოვნის გაგზავნა
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }
