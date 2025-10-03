@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Accordion,
   AccordionContent,
@@ -36,7 +37,10 @@ export function AllTalents() {
   );
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
-    tags: [] as string[],
+    voiceStyles: [] as string[],
+    languages: [] as string[],
+    genders: [] as string[],
+    audioCategories: [] as string[],
     durationRange: [1, 60] as [number, number], // 1-60 minutes
   });
   const [talents, setTalents] = useState<TalentWithDuration[]>([]);
@@ -297,10 +301,35 @@ export function AllTalents() {
   // Filter talents based on selected filters
   const filteredTalents = useMemo(() => {
     return talents.filter((talent) => {
-      // Filter by tags
-      if (filters.tags.length > 0) {
-        const hasMatchingTag = filters.tags.some(tag => talent.tags.includes(tag));
-        if (!hasMatchingTag) return false;
+      // Filter by voice styles
+      if (filters.voiceStyles.length > 0) {
+        const hasMatchingStyle = filters.voiceStyles.some(style => 
+          (talent as any).voice_style?.includes(style)
+        );
+        if (!hasMatchingStyle) return false;
+      }
+
+      // Filter by languages
+      if (filters.languages.length > 0) {
+        const hasMatchingLanguage = filters.languages.some(lang => 
+          talent.languages?.includes(lang)
+        );
+        if (!hasMatchingLanguage) return false;
+      }
+
+      // Filter by genders
+      if (filters.genders.length > 0) {
+        const hasMatchingGender = filters.genders.includes((talent as any).gender);
+        if (!hasMatchingGender) return false;
+      }
+
+      // Filter by audio categories (from samples)
+      if (filters.audioCategories.length > 0) {
+        const sampleCategories = talent.samples.map((s: any) => s.category).filter(Boolean);
+        const hasMatchingCategory = filters.audioCategories.some(cat => 
+          sampleCategories.includes(cat)
+        );
+        if (!hasMatchingCategory) return false;
       }
 
       // Filter by duration range
@@ -320,12 +349,39 @@ export function AllTalents() {
     router.push(`/talents/${talentId}`);
   };
 
-  const toggleTagFilter = (tag: string) => {
+  const toggleVoiceStyleFilter = (style: string) => {
     setFilters(prev => ({
       ...prev,
-      tags: prev.tags.includes(tag)
-        ? prev.tags.filter(t => t !== tag)
-        : [...prev.tags, tag]
+      voiceStyles: prev.voiceStyles.includes(style)
+        ? prev.voiceStyles.filter(s => s !== style)
+        : [...prev.voiceStyles, style]
+    }));
+  };
+
+  const toggleLanguageFilter = (language: string) => {
+    setFilters(prev => ({
+      ...prev,
+      languages: prev.languages.includes(language)
+        ? prev.languages.filter(l => l !== language)
+        : [...prev.languages, language]
+    }));
+  };
+
+  const toggleGenderFilter = (gender: string) => {
+    setFilters(prev => ({
+      ...prev,
+      genders: prev.genders.includes(gender)
+        ? prev.genders.filter(g => g !== gender)
+        : [...prev.genders, gender]
+    }));
+  };
+
+  const toggleAudioCategoryFilter = (category: string) => {
+    setFilters(prev => ({
+      ...prev,
+      audioCategories: prev.audioCategories.includes(category)
+        ? prev.audioCategories.filter(c => c !== category)
+        : [...prev.audioCategories, category]
     }));
   };
 
@@ -338,12 +394,20 @@ export function AllTalents() {
 
   const resetFilters = () => {
     setFilters({
-      tags: [],
+      voiceStyles: [],
+      languages: [],
+      genders: [],
+      audioCategories: [],
       durationRange: [1, 60],
     });
   };
 
-  const activeFilterCount = filters.tags.length + (filters.durationRange[0] !== 1 || filters.durationRange[1] !== 60 ? 1 : 0);
+  const activeFilterCount = 
+    filters.voiceStyles.length + 
+    filters.languages.length + 
+    filters.genders.length + 
+    filters.audioCategories.length + 
+    (filters.durationRange[0] !== 1 || filters.durationRange[1] !== 60 ? 1 : 0);
 
   return (
     <div className="bg-white dark:bg-background">
@@ -391,43 +455,89 @@ export function AllTalents() {
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Tags Filter */}
+            <div className="space-y-6">
+              {/* Voice Styles Filter */}
               <div>
-                <h4 className="font-medium mb-3">ტეგები</h4>
-                <div className="grid grid-cols-2 gap-2">
-                  {availableTags.map((tag) => (
-                    <div key={tag} className="flex items-center space-x-2">
+                <h4 className="font-medium mb-3">ხმის სტილი</h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {VOICE_STYLE_OPTIONS.map((style) => (
+                    <div key={style.value} className="flex items-center space-x-2">
                       <Checkbox
-                        id={tag}
-                        checked={filters.tags.includes(tag)}
-                        onCheckedChange={() => toggleTagFilter(tag)}
+                        id={`voice-${style.value}`}
+                        checked={filters.voiceStyles.includes(style.value)}
+                        onCheckedChange={() => toggleVoiceStyleFilter(style.value)}
                       />
-                      <Label htmlFor={tag} className="text-sm">
-                        {tag}
+                      <Label htmlFor={`voice-${style.value}`} className="text-sm">
+                        {style.label}
                       </Label>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Duration Range Filter */}
+              {/* Languages Filter */}
               <div>
-                <h4 className="font-medium mb-3">
-                  ხანგრძლივობა (წუთი): {filters.durationRange[0]} - {filters.durationRange[1]}
-                </h4>
-                <Slider
-                  value={filters.durationRange}
-                  onValueChange={handleDurationChange}
-                  max={60}
-                  min={1}
-                  step={1}
-                  className="mt-2"
-                />
-                <div className="flex justify-between text-sm text-gray-500 mt-1">
-                  <span>1 წუთი</span>
-                  <span>60 წუთი</span>
+                <h4 className="font-medium mb-3">ენები</h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {LANGUAGE_OPTIONS.map((language) => (
+                    <div key={language.value} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`lang-${language.value}`}
+                        checked={filters.languages.includes(language.value)}
+                        onCheckedChange={() => toggleLanguageFilter(language.value)}
+                      />
+                      <Label htmlFor={`lang-${language.value}`} className="text-sm">
+                        {language.label}
+                      </Label>
+                    </div>
+                  ))}
                 </div>
+              </div>
+
+              {/* Gender Filter */}
+              <div>
+                <h4 className="font-medium mb-3">სქესი</h4>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {GENDER_OPTIONS.map((gender) => (
+                    <div key={gender.value} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`gender-${gender.value}`}
+                        checked={filters.genders.includes(gender.value)}
+                        onCheckedChange={() => toggleGenderFilter(gender.value)}
+                      />
+                      <Label htmlFor={`gender-${gender.value}`} className="text-sm">
+                        {gender.label}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Audio Category Filter - Dropdown */}
+              <div>
+                <h4 className="font-medium mb-3">აუდიო კატეგორია</h4>
+                <Select 
+                  value={filters.audioCategories[0] || "all"} 
+                  onValueChange={(value) => {
+                    if (value && value !== "all") {
+                      setFilters(prev => ({ ...prev, audioCategories: [value] }));
+                    } else {
+                      setFilters(prev => ({ ...prev, audioCategories: [] }));
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="აირჩიეთ კატეგორია" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">ყველა კატეგორია</SelectItem>
+                    {AUDIO_CATEGORIES.map((category) => (
+                      <SelectItem key={category.value} value={category.value}>
+                        {category.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

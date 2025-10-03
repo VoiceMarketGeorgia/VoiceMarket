@@ -19,9 +19,11 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import Image from "next/image"
+import { getAllVoiceActors, convertToTalent } from "@/lib/supabase-queries"
 
 interface ActorData {
   id: string;
+  dbId: number; // Database primary key for foreign key references
   pricing: ActorPricing;
   rating: number;
   tags: string[];
@@ -48,46 +50,25 @@ export function PricingPageCalculator() {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  // Generate all actor data
-  const allActors: ActorData[] = useMemo(() => {
-    return Array.from({ length: 47 }, (_, i) => {
-      const id = `${i + 1}`;
-      const numId = i + 1;
-      
-      // Generate tags
-      const actorTags = [];
-      if (numId % 4 === 0) actorTags.push("კომერციული");
-      if (numId % 3 === 0) actorTags.push("გახმოვანება");
-      if (numId % 5 === 0) actorTags.push("დოკუმენტური");
-      if (numId % 7 === 0) actorTags.push("პერსონაჟი");
-      if (numId % 6 === 0) actorTags.push("ელექტრონული სწავლება");
-      if (numId % 8 === 0) actorTags.push("ანიმაცია");
-      if (actorTags.length < 2) {
-        actorTags.push("კომერციული", "გახმოვანება");
-      }
+  const [allActors, setAllActors] = useState<ActorData[]>([])
 
-      // Generate individual pricing
-      const isFixedPrice = (numId * 7) % 10 > 6; // Deterministic but varied
-      const pricing: ActorPricing = {
-        basePrice: 30 + (numId * 3) % 50,
-        pricePerWord: 0.05 + ((numId * 2) % 15) / 100,
-        expressDeliveryFee: 25 + (numId * 5) % 35,
-        backgroundMusicFee: 15 + (numId * 3) % 25,
-        soundEffectsFee: 20 + (numId * 4) % 30,
-        revisionFee: 10 + (numId * 2) % 15,
-        isFixedPrice,
-        fixedPriceAmount: isFixedPrice ? 100 + (numId * 10) % 300 : undefined,
-        minOrder: 25 + (numId * 2) % 25,
-      };
-
-      return {
-        id,
-        pricing,
-        rating: 0, // Not using rating system
-        tags: actorTags,
-      };
-    });
-  }, []);
+  useEffect(() => {
+    async function loadActors() {
+      const voiceActors = await getAllVoiceActors()
+      const mapped: ActorData[] = voiceActors.map(actor => {
+        const talent = convertToTalent(actor)
+        return {
+          id: talent.id,
+          dbId: talent.dbId,
+          pricing: talent.pricing,
+          rating: 0,
+          tags: talent.tags || []
+        }
+      })
+      setAllActors(mapped)
+    }
+    loadActors()
+  }, [])
 
   const selectedActor = allActors.find(actor => actor.id === selectedActorId);
 
@@ -162,7 +143,7 @@ export function PricingPageCalculator() {
 
     try {
       const result = await submitQuoteRequest({
-        voice_actor_id: parseInt(selectedActorId),
+        voice_actor_id: selectedActor?.dbId, // Use database ID for foreign key
         client_name: clientName,
         client_email: clientEmail,
         client_phone: clientPhone,
