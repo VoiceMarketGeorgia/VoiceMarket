@@ -345,7 +345,7 @@ function EditSampleForm({
 }) {
   const [editedSample, setEditedSample] = useState<Partial<AudioSample>>({
     name: sample.name,
-    category: sample.category,
+    category: sample.category || "კომერციული",
     audio_url: sample.audio_url,
   });
 
@@ -364,7 +364,7 @@ function EditSampleForm({
         <div className="space-y-2">
           <Label>კატეგორია</Label>
           <Select
-            value={editedSample.category}
+            value={editedSample.category || "კომერციული"}
             onValueChange={(value) =>
               setEditedSample({ ...editedSample, category: value })
             }
