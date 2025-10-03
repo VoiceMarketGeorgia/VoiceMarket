@@ -195,7 +195,7 @@ export function PricingPageCalculator() {
                 <div className="flex items-center gap-3 p-2 w-full min-w-0 sm:min-w-[400px]">
                   <div className="relative w-10 h-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0">
                     <Image
-                      src={`/photos/${actor.id}.jpg`}
+                      src={`https://szdvrblspjfonkwfamur.supabase.co/storage/v1/object/public/photos/${actor.id}.jpg`}
                       alt={`Actor ${actor.id}`}
                       fill
                       className="object-cover"
