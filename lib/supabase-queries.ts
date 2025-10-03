@@ -410,7 +410,7 @@ export function convertToTalent(voiceActor: VoiceActorWithPricing): any {
     id: voiceActor.actor_id,
     dbId: voiceActor.id, // Database primary key for foreign key references
     name: voiceActor.name || `Actor ${voiceActor.actor_id}`,
-    image: voiceActor.image_url || `/photos/${voiceActor.actor_id}.jpg`,
+    image: voiceActor.image_url || `https://szdvrblspjfonkwfamur.supabase.co/storage/v1/object/public/photos/${voiceActor.actor_id}.jpg`,
     samples,
     gradient: voiceActor.gradient_colors || 'from-orange-500 to-cyan-600',
     languages: voiceActor.languages,

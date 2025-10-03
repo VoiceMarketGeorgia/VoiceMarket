@@ -1,4 +1,6 @@
-// Local public-folder upload utility (no Supabase Storage)
+// Supabase Storage file upload utility
+
+import { supabase } from './supabase'
 
 export interface UploadResult {
   url: string
@@ -23,6 +25,12 @@ const DEFAULT_OPTIONS: Partial<FileUploadOptions> = {
 const IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
 const AUDIO_TYPES = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/m4a']
 
+// Map bucket names to Supabase storage buckets
+const BUCKET_MAP = {
+  'actor-photos': 'photos',
+  'audio-samples': 'audios'
+}
+
 export async function uploadFile(
   file: File, 
   options: FileUploadOptions
@@ -38,7 +46,7 @@ export async function uploadFile(
       }
     }
 
-    // Validate file type (accept by MIME or extension)
+    // Validate file type
     const allowedTypes = options.allowedTypes || 
       (options.bucket === 'actor-photos' ? IMAGE_TYPES : AUDIO_TYPES)
     const fileExt = file.name.split('.').pop()?.toLowerCase()
@@ -52,19 +60,40 @@ export async function uploadFile(
       }
     }
 
-    // Post to local upload API which writes into /public/uploads
-    const form = new FormData()
-    form.append('file', file)
-    if (options.folder) form.append('folder', options.folder)
-    if (options.dir) form.append('dir', options.dir)
-    if (options.fileName) form.append('filename', options.fileName)
-    const response = await fetch('/api/upload', { method: 'POST', body: form })
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}))
-      return { url: '', path: '', error: err?.error || 'Upload failed' }
+    // Generate file path
+    const bucketName = BUCKET_MAP[options.bucket]
+    const timestamp = Date.now()
+    const randomStr = Math.random().toString(36).slice(2, 8)
+    const ext = file.name.split('.').pop()
+    const fileName = options.fileName || `${timestamp}-${randomStr}.${ext}`
+    const filePath = options.folder ? `${options.folder}/${fileName}` : fileName
+
+    // Upload to Supabase Storage
+    const { data, error } = await supabase.storage
+      .from(bucketName)
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      })
+
+    if (error) {
+      console.error('Supabase upload error:', error)
+      return {
+        url: '',
+        path: '',
+        error: error.message || 'Upload failed'
+      }
     }
-    const json = await response.json()
-    return { url: json.url, path: json.path }
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from(bucketName)
+      .getPublicUrl(filePath)
+
+    return {
+      url: publicUrl,
+      path: filePath
+    }
   } catch (error) {
     console.error('Upload error:', error)
     return {
@@ -77,23 +106,43 @@ export async function uploadFile(
 
 export async function deleteFile(bucket: string, path: string): Promise<boolean> {
   try {
-    const res = await fetch(`/api/upload?path=${encodeURIComponent(path)}`, { method: 'DELETE' })
-    return res.ok
+    const bucketName = BUCKET_MAP[bucket as keyof typeof BUCKET_MAP] || bucket
+    
+    const { error } = await supabase.storage
+      .from(bucketName)
+      .remove([path])
+
+    if (error) {
+      console.error('Delete error:', error)
+      return false
+    }
+
+    return true
   } catch (error) {
     console.error('Delete error:', error)
     return false
   }
 }
 
-// Helper function to extract path from Supabase URL
+// Helper function to extract path from Supabase Storage URL
 export function extractPathFromUrl(url: string): string | null {
   try {
-    const urlObj = new URL(url, window.location.origin)
-    // Expect URLs like /uploads/<folder>/<filename>
-    const parts = urlObj.pathname.split('/')
-    const uploadsIndex = parts.indexOf('uploads')
-    if (uploadsIndex !== -1) return parts.slice(uploadsIndex + 1).join('/')
-    return urlObj.pathname.startsWith('/') ? urlObj.pathname.slice(1) : urlObj.pathname
+    // Supabase Storage URLs format: https://<project>.supabase.co/storage/v1/object/public/<bucket>/<path>
+    const urlObj = new URL(url)
+    const pathParts = urlObj.pathname.split('/')
+    const publicIndex = pathParts.indexOf('public')
+    
+    if (publicIndex !== -1 && pathParts.length > publicIndex + 2) {
+      // Skip bucket name, return the file path
+      return pathParts.slice(publicIndex + 2).join('/')
+    }
+    
+    // Fallback for local URLs
+    if (url.startsWith('/')) {
+      return url.slice(1)
+    }
+    
+    return null
   } catch {
     return null
   }
