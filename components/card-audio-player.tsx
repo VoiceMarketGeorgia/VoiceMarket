@@ -37,45 +37,74 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
   const [duration, setDuration] = useState(0);
   const [selectedSample, setSelectedSample] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isAudioLoaded, setIsAudioLoaded] = useState(false);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const currentSample = audioSamples[selectedSample];
 
-  useEffect(() => {
-    if (!audioRef.current) {
-      audioRef.current = new Audio();
+  // Function to load audio lazily when play button is clicked
+  const loadAudio = async () => {
+    if (isAudioLoaded || isLoadingAudio) return;
+    
+    setIsLoadingAudio(true);
+    
+    try {
+      if (!audioRef.current) {
+        audioRef.current = new Audio();
+      }
+
+      const audio = audioRef.current;
+      audio.src = currentSample.url;
+      audio.loop = true;
+      audio.preload = 'metadata';
+
+      const updateCurrentTime = () => setCurrentTime(audio.currentTime);
+      const setAudioData = () => {
+        setDuration(audio.duration);
+        setCurrentTime(audio.currentTime);
+        setIsAudioLoaded(true);
+        setIsLoadingAudio(false);
+      };
+
+      const handleError = () => {
+        console.error('Error loading audio:', currentSample.url);
+        setIsLoadingAudio(false);
+      };
+
+      audio.addEventListener("timeupdate", updateCurrentTime);
+      audio.addEventListener("loadedmetadata", setAudioData);
+      audio.addEventListener("error", handleError);
+
+      // Load the audio
+      await audio.load();
+      
+    } catch (error) {
+      console.error('Error loading audio:', error);
+      setIsLoadingAudio(false);
     }
-
-    const audio = audioRef.current;
-    audio.src = currentSample.url;
-    audio.loop = true;
-
-    const updateCurrentTime = () => setCurrentTime(audio.currentTime);
-    const setAudioData = () => {
-      setDuration(audio.duration);
-      setCurrentTime(audio.currentTime);
-    };
-
-    audio.addEventListener("timeupdate", updateCurrentTime);
-    audio.addEventListener("loadedmetadata", setAudioData);
-
-    audio.load();
-
-    return () => {
-      audio.removeEventListener("timeupdate", updateCurrentTime);
-      audio.removeEventListener("loadedmetadata", setAudioData);
-    };
-  }, [currentSample.url]);
+  };
 
   useEffect(() => {
     const audio = audioRef.current;
-    if (!audio) return;
+    if (!audio || !isAudioLoaded) return;
 
     if (isPlaying) audio.play().catch(console.error);
     else audio.pause();
-  }, [isPlaying]);
+  }, [isPlaying, isAudioLoaded]);
 
-  const togglePlayPause = () => onTogglePlay(playerId);
+  const togglePlayPause = async () => {
+    // Load audio first if not loaded
+    if (!isAudioLoaded && !isLoadingAudio) {
+      await loadAudio();
+      // Wait a bit for audio to be ready
+      setTimeout(() => {
+        onTogglePlay(playerId);
+      }, 100);
+    } else {
+      onTogglePlay(playerId);
+    }
+  };
 
   const handleProgressChange = (event: ChangeEvent<HTMLInputElement>) => {
     const audio = audioRef.current;
@@ -98,6 +127,10 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
     }
     setSelectedSample(index);
     setIsDropdownOpen(false);
+    // Reset audio loaded state when changing samples
+    setIsAudioLoaded(false);
+    setCurrentTime(0);
+    setDuration(0);
   };
 
   const PlayIcon = (
@@ -177,31 +210,47 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
         {/* Play/Pause Button */}
         <button
           onClick={togglePlayPause}
-          className="w-12 h-12 flex items-center justify-center rounded-full bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-offset-2 flex-shrink-0"
+          disabled={isLoadingAudio}
+          className={`w-12 h-12 flex items-center justify-center rounded-full bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-offset-2 flex-shrink-0 ${
+            isLoadingAudio ? 'opacity-50 cursor-not-allowed' : ''
+          }`}
         >
-          {isPlaying ? PauseIcon : PlayIcon}
+          {isLoadingAudio ? (
+            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : isPlaying ? (
+            PauseIcon
+          ) : (
+            PlayIcon
+          )}
         </button>
 
         {/* Progress Bar */}
         <div className="relative h-2 bg-gray-200 dark:bg-muted rounded-full overflow-hidden flex-1">
           <div
             className="absolute top-0 left-0 h-full bg-gradient-to-r from-orange-400 to-orange-500 rounded-full transition-all duration-200"
-            style={{ width: `${(currentTime / duration) * 100}%` }}
+            style={{ width: `${isAudioLoaded ? (currentTime / duration) * 100 : 0}%` }}
           />
           <input
             type="range"
             min="0"
             max="100"
-            value={(currentTime / duration) * 100 || 0}
+            value={isAudioLoaded ? (currentTime / duration) * 100 : 0}
             onChange={handleProgressChange}
-            className="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer"
+            disabled={!isAudioLoaded}
+            className={`absolute top-0 left-0 w-full h-full opacity-0 ${
+              isAudioLoaded ? 'cursor-pointer' : 'cursor-not-allowed'
+            }`}
           />
         </div>
 
         {/* Time Display */}
         {showTimeDisplay && (
           <div className="text-xs text-gray-500 dark:text-muted-foreground font-mono whitespace-nowrap flex-shrink-0">
-            {formatTime(currentTime)} / {formatTime(duration)}
+            {isAudioLoaded ? (
+              `${formatTime(currentTime)} / ${formatTime(duration)}`
+            ) : (
+              '0:00 / 0:00'
+            )}
           </div>
         )}
       </div>

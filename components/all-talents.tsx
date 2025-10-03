@@ -44,7 +44,7 @@ export function AllTalents() {
   const [error, setError] = useState<string | null>(null);
   
   // Infinite scrolling state
-  const [limit] = useState(5); // Load 5 actors per request
+  const [limit, setLimit] = useState(4); // Dynamic limit based on screen size
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -52,6 +52,50 @@ export function AllTalents() {
   // Intersection Observer refs
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  // Function to calculate responsive limit based on screen size using percentages
+  const calculateResponsiveLimit = useCallback(() => {
+    if (typeof window === 'undefined') return 4; // Default for SSR
+    
+    const width = window.innerWidth;
+    
+    // Calculate batch size as percentage of screen width
+    // Assuming each card is approximately 300px wide with gaps
+    const cardWidth = 320; // Approximate card width including gaps
+    const cardsPerRow = Math.floor(width / cardWidth);
+    
+    // Load 2 rows worth of content in advance
+    const batchSize = Math.max(1, cardsPerRow * 2);
+    
+    // Set reasonable limits to prevent too large or too small batches
+    const minBatch = 2;
+    const maxBatch = 12;
+    
+    return Math.min(maxBatch, Math.max(minBatch, batchSize));
+  }, []);
+
+  // Update limit when screen size changes
+  useEffect(() => {
+    const handleResize = () => {
+      const newLimit = calculateResponsiveLimit();
+      if (newLimit !== limit) {
+        setLimit(newLimit);
+        // Reset pagination when limit changes to avoid issues
+        setOffset(0);
+        setHasMore(true);
+      }
+    };
+
+    // Set initial limit
+    handleResize();
+
+    // Add resize listener
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [calculateResponsiveLimit, limit]);
 
   // Load more actors function for infinite scrolling
   const loadMoreActors = useCallback(async () => {
@@ -69,7 +113,7 @@ export function AllTalents() {
           samples:audio_samples(*)
         `)
         .eq('is_active', true)
-        .order('actor_id', { ascending: true })
+        .order('id', { ascending: true })
         .range(offset, offset + limit - 1);
       
       if (error) {
@@ -158,7 +202,7 @@ export function AllTalents() {
             samples:audio_samples(*)
           `)
           .eq('is_active', true)
-          .order('actor_id', { ascending: true })
+          .order('id', { ascending: true })
           .range(0, limit - 1);
         
         if (error) {
@@ -203,7 +247,7 @@ export function AllTalents() {
     }
 
     loadInitialTalents();
-  }, [limit]);
+  }, [limit, calculateResponsiveLimit]);
 
   // Intersection Observer for infinite scrolling
   useEffect(() => {
@@ -312,6 +356,9 @@ export function AllTalents() {
             </h1>
             <p className="text-gray-600 dark:text-muted-foreground">
               {filteredTalents.length} მსახიობი მოიძებნა
+              <span className="ml-2 text-xs text-gray-400">
+                (იტვირთება {limit} ერთდროულად - {Math.floor((window?.innerWidth || 1200) / 320)} ზედიზედ)
+              </span>
             </p>
           </div>
           
