@@ -31,16 +31,7 @@ interface AudioSampleManagerProps {
   onSamplesChange: (samples: AudioSample[]) => void;
 }
 
-const AUDIO_CATEGORIES = [
-  { value: "კომერციული", label: "კომერციული" },
-  { value: "გახმოვანება", label: "გახმოვანება" },
-  { value: "დოკუმენტური", label: "დოკუმენტური" },
-  { value: "პერსონაჟი", label: "პერსონაჟი" },
-  { value: "ელექტრონული სწავლება", label: "ელექტრონული სწავლება" },
-  { value: "ანიმაცია", label: "ანიმაცია" },
-  { value: "სარეკლამო", label: "სარეკლამო" },
-  { value: "ავტომოპასუხე", label: "ავტომოპასუხე" },
-];
+import { AUDIO_CATEGORIES } from "@/lib/constants";
 
 export function AudioSampleManager({
   actorId,
@@ -139,6 +130,10 @@ export function AudioSampleManager({
         "bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400",
       ანიმაცია:
         "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400",
+      "ახალი ამბები":
+        "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-400",
+      კორპორატიული:
+        "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-400",
       სარეკლამო: "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400",
       ავტომოპასუხე:
         "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400",

@@ -390,6 +390,7 @@ export function convertToTalent(voiceActor: VoiceActorWithPricing): any {
     id: sample.sample_id,
     name: sample.name,
     url: sample.audio_url,
+    category: sample.category,
     icon: null // You'll need to map this based on category
   })) || []
 
@@ -413,6 +414,8 @@ export function convertToTalent(voiceActor: VoiceActorWithPricing): any {
     gradient: voiceActor.gradient_colors || 'from-orange-500 to-cyan-600',
     languages: voiceActor.languages,
     tags: voiceActor.tags,
+    voice_style: voiceActor.voice_style || [], // ADDED: Pass voice_style for filtering
+    gender: (voiceActor as any).gender || 'Male', // ADDED: Pass gender for filtering
     pricing: {
       basePrice,
       pricePerWord,
@@ -525,8 +528,8 @@ export async function createVoiceActor(actorData: {
   bio: string
   languages: string[]
   age_range: string
-  accent: string
   voice_style: string[]
+  gender: string
   photo_url: string
   is_featured: boolean
   is_active: boolean
@@ -548,10 +551,9 @@ export async function createVoiceActor(actorData: {
       tags: actorData.voice_style || [], // Use tags instead of voice_style
       is_featured: actorData.is_featured,
       is_active: actorData.is_active,
-      // Note: age_range and accent will be added after schema update
       age_range: actorData.age_range,
-      accent: actorData.accent,
-      voice_style: actorData.voice_style
+      voice_style: actorData.voice_style,
+      gender: actorData.gender
     })
     .select()
     .single()
@@ -592,8 +594,8 @@ export async function updateVoiceActor(
     bio: string
     languages: string[]
     age_range: string
-    accent: string
     voice_style: string[]
+    gender: string
     photo_url: string
     is_featured: boolean
     is_active: boolean
@@ -616,10 +618,9 @@ export async function updateVoiceActor(
       tags: actorData.voice_style || [], // Use tags instead of voice_style  
       is_featured: actorData.is_featured,
       is_active: actorData.is_active,
-      // Note: age_range and accent will be added after schema update
       age_range: actorData.age_range,
-      accent: actorData.accent,
       voice_style: actorData.voice_style,
+      gender: actorData.gender,
       updated_at: new Date().toISOString()
     })
     .eq('id', actorId)

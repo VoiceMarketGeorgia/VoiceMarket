@@ -23,8 +23,8 @@ interface ActorFormData {
   bio: string
   languages: string[]
   age_range: string
-  accent: string
   voice_style: string[]
+  gender: string
   photo_url: string
   is_featured: boolean
   is_active: boolean
@@ -42,8 +42,8 @@ const INITIAL_FORM_DATA: ActorFormData = {
   bio: '',
   languages: ['Georgian'],
   age_range: '25-35',
-  accent: 'Georgian Standard',
   voice_style: ['Conversational'],
+  gender: 'Male',
   photo_url: '',
   is_featured: false,
   is_active: true,
@@ -55,10 +55,7 @@ const INITIAL_FORM_DATA: ActorFormData = {
   audio_samples: []
 }
 
-const LANGUAGE_OPTIONS = ['Georgian', 'English', 'Russian', 'Armenian', 'Azerbaijani']
-const AGE_RANGE_OPTIONS = ['18-25', '25-35', '35-45', '45-55', '55+']
-const ACCENT_OPTIONS = ['Georgian Standard', 'Tbilisi', 'Western Georgian', 'Eastern Georgian', 'English (American)', 'English (British)', 'Russian']
-const VOICE_STYLE_OPTIONS = ['Conversational', 'Professional', 'Warm', 'Energetic', 'Dramatic', 'Calm', 'Authoritative', 'Friendly', 'Serious', 'Playful']
+import { LANGUAGE_OPTIONS, AGE_RANGE_OPTIONS, VOICE_STYLE_OPTIONS, GENDER_OPTIONS, getGeorgianLabel } from '@/lib/constants'
 
 export default function ActorsPage() {
   const [actors, setActors] = useState<VoiceActorWithPricing[]>([])
@@ -212,8 +209,8 @@ export default function ActorsPage() {
       bio: actor.bio || '',
       languages: actor.languages || ['Georgian'],
       age_range: actor.age_range || '25-35',
-      accent: actor.accent || 'Georgian Standard',
       voice_style: actor.voice_style || ['Conversational'],
+      gender: (actor as any).gender || 'Male',
       photo_url: actor.photo_url || actor.image_url || '',
       is_featured: actor.is_featured || false,
       is_active: actor.is_active || true,
@@ -239,7 +236,7 @@ export default function ActorsPage() {
     setFormData({
       ...INITIAL_FORM_DATA,
       actor_id: nextId,
-      name: `Actor ${nextId}`
+      name: `მსახიობი ${nextId}`
     })
     setEditingActor(null)
   }
@@ -349,7 +346,7 @@ export default function ActorsPage() {
               <div className="space-y-2">
                 <div className="flex items-center gap-2 text-sm">
                   <Globe className="h-4 w-4 text-muted-foreground" />
-                  <span>{(actor.languages || []).join(', ')}</span>
+                  <span>{(actor.languages || []).map(lang => getGeorgianLabel(lang, 'language')).join(', ')}</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -368,7 +365,7 @@ export default function ActorsPage() {
               <div className="flex flex-wrap gap-1">
                 {(actor.voice_style || []).slice(0, 3).map((style) => (
                   <Badge key={style} variant="outline" className="text-xs">
-                    {style}
+                    {getGeorgianLabel(style, 'voiceStyle')}
                   </Badge>
                 ))}
                 {(actor.voice_style || []).length > 3 && (
@@ -553,14 +550,14 @@ function ActorForm({ formData, setFormData, onSubmit, isSubmitting, submitLabel 
           </Select>
         </div>
         <div className="space-y-2">
-          <Label>აქცენტი</Label>
-          <Select value={formData.accent} onValueChange={(value) => setFormData({ ...formData, accent: value })}>
+          <Label>სქესი</Label>
+          <Select value={formData.gender} onValueChange={(value) => setFormData({ ...formData, gender: value })}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {ACCENT_OPTIONS.map((accent) => (
-                <SelectItem key={accent} value={accent}>{accent}</SelectItem>
+              {GENDER_OPTIONS.map((gender) => (
+                <SelectItem key={gender.value} value={gender.value}>{gender.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -571,14 +568,14 @@ function ActorForm({ formData, setFormData, onSubmit, isSubmitting, submitLabel 
         <Label>ენები</Label>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
           {LANGUAGE_OPTIONS.map((language) => (
-            <label key={language} className="flex items-center gap-2 text-sm">
+            <label key={language.value} className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
-                checked={formData.languages.includes(language)}
-                onChange={(e) => handleLanguageChange(language, e.target.checked)}
+                checked={formData.languages.includes(language.value)}
+                onChange={(e) => handleLanguageChange(language.value, e.target.checked)}
                 className="rounded"
               />
-              {language}
+              {language.label}
             </label>
           ))}
         </div>
@@ -588,14 +585,14 @@ function ActorForm({ formData, setFormData, onSubmit, isSubmitting, submitLabel 
         <Label>ხმის სტილი</Label>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
           {VOICE_STYLE_OPTIONS.map((style) => (
-            <label key={style} className="flex items-center gap-2 text-sm">
+            <label key={style.value} className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
-                checked={formData.voice_style.includes(style)}
-                onChange={(e) => handleVoiceStyleChange(style, e.target.checked)}
+                checked={formData.voice_style.includes(style.value)}
+                onChange={(e) => handleVoiceStyleChange(style.value, e.target.checked)}
                 className="rounded"
               />
-              {style}
+              {style.label}
             </label>
           ))}
         </div>
