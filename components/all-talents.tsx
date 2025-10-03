@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { VoiceCard, AudioSample, Talent, ActorPricing } from "./voice-card";
 import { useRouter } from "next/navigation";
 import { Mic2, Headphones, BookOpen, Filter, X } from "lucide-react";
@@ -16,7 +16,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { getAllVoiceActors, convertToTalent } from "@/lib/supabase-queries";
-import { VOICE_STYLE_OPTIONS, LANGUAGE_OPTIONS, GENDER_OPTIONS, AUDIO_CATEGORIES } from "@/lib/constants";
+import { supabase } from "@/lib/supabase";
 
 interface TalentWithDuration {
   id: string;
@@ -46,6 +46,121 @@ export function AllTalents() {
   const [talents, setTalents] = useState<TalentWithDuration[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Infinite scrolling state
+  const [limit, setLimit] = useState(4); // Dynamic limit based on screen size
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  // Intersection Observer refs
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
+
+  // Function to calculate responsive limit based on screen size using percentages
+  const calculateResponsiveLimit = useCallback(() => {
+    if (typeof window === 'undefined') return 4; // Default for SSR
+    
+    const width = window.innerWidth;
+    
+    // Calculate batch size as percentage of screen width
+    // Assuming each card is approximately 300px wide with gaps
+    const cardWidth = 320; // Approximate card width including gaps
+    const cardsPerRow = Math.floor(width / cardWidth);
+    
+    // Load 2 rows worth of content in advance
+    const batchSize = Math.max(1, cardsPerRow * 2);
+    
+    // Set reasonable limits to prevent too large or too small batches
+    const minBatch = 2;
+    const maxBatch = 12;
+    
+    return Math.min(maxBatch, Math.max(minBatch, batchSize));
+  }, []);
+
+  // Update limit when screen size changes
+  useEffect(() => {
+    const handleResize = () => {
+      const newLimit = calculateResponsiveLimit();
+      if (newLimit !== limit) {
+        setLimit(newLimit);
+        // Reset pagination when limit changes to avoid issues
+        setOffset(0);
+        setHasMore(true);
+      }
+    };
+
+    // Set initial limit
+    handleResize();
+
+    // Add resize listener
+    window.addEventListener('resize', handleResize);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [calculateResponsiveLimit, limit]);
+
+  // Load more actors function for infinite scrolling
+  const loadMoreActors = useCallback(async () => {
+    if (isLoadingMore || !hasMore) return;
+    
+    try {
+      setIsLoadingMore(true);
+      
+      // Use Supabase range to get the next batch
+      const { data, error } = await supabase
+        .from('voice_actors')
+        .select(`
+          *,
+          pricing:actor_pricing(*),
+          samples:audio_samples(*)
+        `)
+        .eq('is_active', true)
+        .order('id', { ascending: true })
+        .range(offset, offset + limit - 1);
+      
+      if (error) {
+        console.error('Error loading more actors:', error);
+        return;
+      }
+      
+      if (data && data.length > 0) {
+        // Convert to TalentWithDuration format
+        const newTalents: TalentWithDuration[] = data.map(actor => {
+          const talent = convertToTalent(actor);
+          
+          // Add proper icons to samples
+          const samplesWithIcons = talent.samples.map((sample: any) => ({
+            ...sample,
+            icon: getSampleIcon(sample.name)
+          }));
+
+          return {
+            ...talent,
+            samples: samplesWithIcons,
+            duration: Math.floor(Math.random() * 40) + 5, // Random duration for pricing
+          };
+        });
+        
+        // Append new talents to existing ones
+        setTalents(prev => [...prev, ...newTalents]);
+        setOffset(prev => prev + limit);
+        
+        // Check if we got fewer results than requested (end of data)
+        if (data.length < limit) {
+          setHasMore(false);
+        }
+      } else {
+        // No more data
+        setHasMore(false);
+      }
+    } catch (err) {
+      console.error('Error loading more actors:', err);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [offset, limit, hasMore, isLoadingMore]);
 
   // Number of samples per actor (based on actual audio folder structure)
   const samplesPerActor = [
@@ -63,41 +178,109 @@ export function AllTalents() {
     { name: "დოკუმენტური", icon: <Mic2 className="h-4 w-4" /> },
   ];
 
-  // Load talents from Supabase
+  // Available tags for filtering
+  const availableTags = [
+    "კომერციული",
+    "გახმოვანება", 
+    "დოკუმენტური",
+    "პერსონაჟი",
+    "ელექტრონული სწავლება",
+    "ანიმაცია",
+    "ახალი ამბები",
+    "კორპორატიული"
+  ];
+
+  // Load initial talents from Supabase (first batch)
   useEffect(() => {
-    async function loadTalents() {
+    async function loadInitialTalents() {
       try {
         setLoading(true);
-        const voiceActors = await getAllVoiceActors();
-        
-        const talentsWithDuration: TalentWithDuration[] = voiceActors.map(actor => {
-          const talent = convertToTalent(actor);
-          
-          // Add proper icons to samples
-          const samplesWithIcons = talent.samples.map((sample: any) => ({
-            ...sample,
-            icon: getSampleIcon(sample.name)
-          }));
-
-          return {
-            ...talent,
-            samples: samplesWithIcons,
-            duration: Math.floor(Math.random() * 40) + 5, // Random duration for pricing
-          };
-        });
-
-        setTalents(talentsWithDuration);
         setError(null);
+        
+        // Load first batch using the same logic as loadMoreActors
+        const { data, error } = await supabase
+          .from('voice_actors')
+          .select(`
+            *,
+            pricing:actor_pricing(*),
+            samples:audio_samples(*)
+          `)
+          .eq('is_active', true)
+          .order('id', { ascending: true })
+          .range(0, limit - 1);
+        
+        if (error) {
+          console.error('Error loading initial talents:', error);
+          setError('Failed to load voice actors');
+          return;
+        }
+        
+        if (data && data.length > 0) {
+          const talentsWithDuration: TalentWithDuration[] = data.map(actor => {
+            const talent = convertToTalent(actor);
+            
+            // Add proper icons to samples
+            const samplesWithIcons = talent.samples.map((sample: any) => ({
+              ...sample,
+              icon: getSampleIcon(sample.name)
+            }));
+
+            return {
+              ...talent,
+              samples: samplesWithIcons,
+              duration: Math.floor(Math.random() * 40) + 5, // Random duration for pricing
+            };
+          });
+
+          setTalents(talentsWithDuration);
+          setOffset(limit); // Set offset for next batch
+          
+          // Check if we got fewer results than requested (end of data)
+          if (data.length < limit) {
+            setHasMore(false);
+          }
+        } else {
+          setHasMore(false);
+        }
       } catch (err) {
-        console.error('Error loading talents:', err);
+        console.error('Error loading initial talents:', err);
         setError('Failed to load voice actors');
       } finally {
         setLoading(false);
       }
     }
 
-    loadTalents();
-  }, []);
+    loadInitialTalents();
+  }, [limit, calculateResponsiveLimit]);
+
+  // Intersection Observer for infinite scrolling
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const target = entries[0];
+        if (target.isIntersecting && hasMore && !isLoadingMore) {
+          loadMoreActors();
+        }
+      },
+      {
+        root: null, // Use viewport
+        rootMargin: '100px', // Start loading 100px before reaching the element
+        threshold: 0.1,
+      }
+    );
+    
+    observerRef.current = observer;
+    
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+    
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [hasMore, isLoadingMore, loadMoreActors]);
 
   // Helper function to get icon for sample type
   const getSampleIcon = (sampleName: string) => {
@@ -237,6 +420,9 @@ export function AllTalents() {
             </h1>
             <p className="text-gray-600 dark:text-muted-foreground">
               {filteredTalents.length} მსახიობი მოიძებნა
+              <span className="ml-2 text-xs text-gray-400">
+                (იტვირთება {limit} ერთდროულად - {Math.floor((window?.innerWidth || 1200) / 320)} ზედიზედ)
+              </span>
             </p>
           </div>
           
@@ -405,8 +591,32 @@ export function AllTalents() {
               ))}
             </div>
 
+            {/* Loading More Indicator */}
+            {isLoadingMore && (
+              <div className="text-center py-8">
+                <div className="inline-flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                  <p className="text-gray-500 dark:text-muted-foreground">
+                    იტვირთება მეტი მსახიობი...
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* End of Results */}
+            {!hasMore && talents.length > 0 && !isLoadingMore && (
+              <div className="text-center py-8 text-gray-500 dark:text-muted-foreground">
+                <p>ყველა მსახიობი ნაჩვენებია</p>
+              </div>
+            )}
+
+            {/* Intersection Observer Target - invisible element at the bottom */}
+            {hasMore && !isLoadingMore && (
+              <div ref={loadMoreRef} className="h-1" />
+            )}
+
             {/* No Results */}
-            {filteredTalents.length === 0 && (
+            {filteredTalents.length === 0 && talents.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-gray-500 dark:text-muted-foreground text-lg">
                   არ მოიძებნა მსახიობი შერჩეული ფილტრებით
