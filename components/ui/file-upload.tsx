@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { useDropzone } from 'react-dropzone'
+import { useDropzone, FileRejection } from 'react-dropzone'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { uploadFile, deleteFile, extractPathFromUrl, FileUploadOptions } from '@/lib/file-upload'
@@ -75,21 +75,37 @@ export function FileUpload({
   }, [bucket, folder, maxSize, accept, defaultAccept, onUpload, dirOverride, fileName])
 
   const handleRemove = async () => {
-    if (!currentUrl) return
+    if (!currentUrl) {
+      if (onRemove) onRemove()
+      return
+    }
 
     const path = extractPathFromUrl(currentUrl)
     if (path) {
-      const success = await deleteFile(bucket, path)
-      if (success && onRemove) {
-        onRemove()
-      }
-    } else if (onRemove) {
-      onRemove()
+      await deleteFile(bucket, path)
+      if (onRemove) onRemove()
+    } else {
+      if (onRemove) onRemove()
     }
   }
 
+  const onDropRejected = useCallback((fileRejections: FileRejection[]) => {
+    if (!fileRejections || fileRejections.length === 0) return
+    const rejection = fileRejections[0]
+    const error = rejection.errors[0]
+    if (!error) return
+    if (error.code === 'file-too-large') {
+      setUploadError(`ფაილი ძალიან დიდია. მაქსიმალური ზომა ${Math.round(maxSize / 1024 / 1024)}MB`)
+    } else if (error.code === 'file-invalid-type') {
+      setUploadError(isImage ? 'ფაილის ტიპი არასწორია. დასაშვებია JPG, PNG, WebP' : 'ფაილის ტიპი არასწორია. დასაშვებია WAV')
+    } else {
+      setUploadError(error.message)
+    }
+  }, [isImage, maxSize])
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
+    onDropRejected,
     accept: accept || defaultAccept,
     maxFiles: 1,
     maxSize,
@@ -170,7 +186,7 @@ export function FileUpload({
                 {uploading ? 'იტვირთება...' : (placeholder || defaultPlaceholder)}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {isImage ? 'მაქსიმუმ 5MB, JPG, PNG, WebP' : 'მაქსიმუმ 10MB, MP3, WAV, OGG'}
+                {isImage ? `მაქსიმუმ ${Math.round(maxSize / 1024 / 1024)}MB, JPG, PNG, WebP` : 'მაქსიმუმ 10MB, MP3, WAV, OGG'}
               </p>
             </div>
           </div>
@@ -190,8 +206,8 @@ export function ImageUpload(props: Omit<FileUploadProps, 'bucket'>) {
       <FileUpload
       {...props}
         bucket="actor-photos"
-      accept={{ 'image/*': ['.jpeg', '.jpg'] }}
-      maxSize={5 * 1024 * 1024} // 5MB for images
+      accept={{ 'image/*': ['.jpeg', '.jpg', '.png', '.webp'] }}
+      maxSize={10 * 1024 * 1024} // 10MB for images
     />
   )
 }

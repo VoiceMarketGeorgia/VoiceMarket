@@ -63,7 +63,15 @@ export async function DELETE(req: NextRequest) {
     if (!fullPath.startsWith(publicRoot)) {
       return NextResponse.json({ error: 'Invalid path' }, { status: 400 })
     }
-    await fs.unlink(fullPath)
+    try {
+      await fs.unlink(fullPath)
+    } catch (err: any) {
+      // If file does not exist, consider this a successful delete (idempotent)
+      if (err && (err.code === 'ENOENT' || err.message?.includes('no such file'))) {
+        return NextResponse.json({ success: true })
+      }
+      throw err
+    }
     return NextResponse.json({ success: true })
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || 'Delete failed' }, { status: 500 })
