@@ -1,8 +1,10 @@
-import { supabase, VoiceActor, ActorPricing, AudioSample, ContactSubmission, QuoteRequest, VoiceActorWithPricing } from './supabase'
+import { createSupabaseClient, VoiceActor, ActorPricing, AudioSample, ContactSubmission, QuoteRequest, VoiceActorWithPricing } from './supabase'
+const supabase = createSupabaseClient()
 
 // Voice Actors Queries
 export async function getAllVoiceActors(): Promise<VoiceActorWithPricing[]> {
-  const { data, error } = await supabase
+  // Try the relationship query first
+  const { data: dataWithRelation, error: errorWithRelation } = await supabase
     .from('voice_actors')
     .select(`
       *,
@@ -11,13 +13,66 @@ export async function getAllVoiceActors(): Promise<VoiceActorWithPricing[]> {
     `)
     .eq('is_active', true)
 
-  if (error) {
-    console.error('Error fetching voice actors:', error)
-    throw error
+  // If relationship query works and has pricing, use it
+  if (!errorWithRelation && dataWithRelation) {
+    const actorsWithPricing = dataWithRelation.filter(a => a.pricing && a.pricing.length > 0).length
+    
+    if (actorsWithPricing > 0) {
+      const sortedData = dataWithRelation.sort((a, b) => {
+        const numA = parseInt(a.actor_id)
+        const numB = parseInt(b.actor_id)
+        return numA - numB
+      })
+      return sortedData
+    }
   }
 
+  // Fallback: Fetch actors and pricing separately
+  // console.log('⚠️ Public pricing: Using manual JOIN fallback...')
+  
+  const { data: actors, error: actorsError } = await supabase
+    .from('voice_actors')
+    .select('*')
+    .eq('is_active', true)
+
+  if (actorsError) {
+    console.error('Error fetching voice actors:', actorsError)
+    throw actorsError
+  }
+
+  const { data: allPricing, error: pricingError } = await supabase
+    .from('actor_pricing')
+    .select('*')
+
+  if (pricingError) {
+    console.error('Error fetching pricing:', pricingError)
+    throw pricingError
+  }
+
+  const { data: allSamples, error: samplesError } = await supabase
+    .from('audio_samples')
+    .select('*')
+    .eq('is_active', true)
+
+  if (samplesError) {
+    console.error('Error fetching samples:', samplesError)
+    throw samplesError
+  }
+
+  // Manually join the data
+  const actorsWithData = actors?.map(actor => {
+    const pricing = allPricing?.filter(p => p.voice_actor_id === actor.id) || []
+    const samples = allSamples?.filter(s => s.voice_actor_id === actor.id) || []
+    
+    return {
+      ...actor,
+      pricing,
+      samples
+    }
+  }) || []
+
   // Sort by numeric value of actor_id to get proper order (1, 2, 3... instead of 1, 10, 11...)
-  const sortedData = (data || []).sort((a, b) => {
+  const sortedData = actorsWithData.sort((a, b) => {
     const numA = parseInt(a.actor_id)
     const numB = parseInt(b.actor_id)
     return numA - numB
@@ -27,7 +82,8 @@ export async function getAllVoiceActors(): Promise<VoiceActorWithPricing[]> {
 }
 
 export async function getFeaturedVoiceActors(): Promise<VoiceActorWithPricing[]> {
-  const { data, error } = await supabase
+  // Try the relationship query first
+  const { data: dataWithRelation, error: errorWithRelation } = await supabase
     .from('voice_actors')
     .select(`
       *,
@@ -38,13 +94,60 @@ export async function getFeaturedVoiceActors(): Promise<VoiceActorWithPricing[]>
     .eq('is_featured', true)
     .limit(6)
 
-  if (error) {
-    console.error('Error fetching featured voice actors:', error)
-    throw error
+  // If relationship query works and has pricing, use it
+  if (!errorWithRelation && dataWithRelation) {
+    const actorsWithPricing = dataWithRelation.filter(a => a.pricing && a.pricing.length > 0).length
+    
+    if (actorsWithPricing > 0) {
+      const sortedData = dataWithRelation.sort((a, b) => {
+        const numA = parseInt(a.actor_id)
+        const numB = parseInt(b.actor_id)
+        return numA - numB
+      })
+      return sortedData
+    }
   }
 
+  // Fallback: Fetch featured actors and pricing separately
+  const { data: actors, error: actorsError } = await supabase
+    .from('voice_actors')
+    .select('*')
+    .eq('is_active', true)
+    .eq('is_featured', true)
+    .limit(6)
+
+  if (actorsError) {
+    console.error('Error fetching featured voice actors:', actorsError)
+    throw actorsError
+  }
+
+  const actorIds = actors?.map(a => a.id) || []
+  
+  const { data: allPricing } = await supabase
+    .from('actor_pricing')
+    .select('*')
+    .in('voice_actor_id', actorIds)
+
+  const { data: allSamples } = await supabase
+    .from('audio_samples')
+    .select('*')
+    .in('voice_actor_id', actorIds)
+    .eq('is_active', true)
+
+  // Manually join the data
+  const actorsWithData = actors?.map(actor => {
+    const pricing = allPricing?.filter(p => p.voice_actor_id === actor.id) || []
+    const samples = allSamples?.filter(s => s.voice_actor_id === actor.id) || []
+    
+    return {
+      ...actor,
+      pricing,
+      samples
+    }
+  }) || []
+
   // Sort by numeric value of actor_id for consistent ordering
-  const sortedData = (data || []).sort((a, b) => {
+  const sortedData = actorsWithData.sort((a, b) => {
     const numA = parseInt(a.actor_id)
     const numB = parseInt(b.actor_id)
     return numA - numB
@@ -54,7 +157,8 @@ export async function getFeaturedVoiceActors(): Promise<VoiceActorWithPricing[]>
 }
 
 export async function getVoiceActorById(actorId: string): Promise<VoiceActorWithPricing | null> {
-  const { data, error } = await supabase
+  // Try the relationship query first
+  const { data: dataWithRelation, error: errorWithRelation } = await supabase
     .from('voice_actors')
     .select(`
       *,
@@ -65,16 +169,50 @@ export async function getVoiceActorById(actorId: string): Promise<VoiceActorWith
     .eq('is_active', true)
     .single()
 
-  if (error) {
-    if (error.code === 'PGRST116') {
+  if (errorWithRelation) {
+    if (errorWithRelation.code === 'PGRST116') {
       // No rows returned
       return null
     }
-    console.error('Error fetching voice actor:', error)
-    throw error
   }
 
-  return data
+  // If relationship query works and has pricing, use it
+  if (dataWithRelation && dataWithRelation.pricing && dataWithRelation.pricing.length > 0) {
+    return dataWithRelation
+  }
+
+  // Fallback: Fetch actor and pricing separately
+  const { data: actor, error: actorError } = await supabase
+    .from('voice_actors')
+    .select('*')
+    .eq('actor_id', actorId)
+    .eq('is_active', true)
+    .single()
+
+  if (actorError) {
+    if (actorError.code === 'PGRST116') {
+      return null
+    }
+    console.error('Error fetching voice actor:', actorError)
+    throw actorError
+  }
+
+  const { data: pricing } = await supabase
+    .from('actor_pricing')
+    .select('*')
+    .eq('voice_actor_id', actor.id)
+
+  const { data: samples } = await supabase
+    .from('audio_samples')
+    .select('*')
+    .eq('voice_actor_id', actor.id)
+    .eq('is_active', true)
+
+  return {
+    ...actor,
+    pricing: pricing || [],
+    samples: samples || []
+  }
 }
 
 export async function getVoiceActorsByTags(tags: string[]): Promise<VoiceActorWithPricing[]> {
@@ -252,34 +390,53 @@ export function convertToTalent(voiceActor: VoiceActorWithPricing): any {
     id: sample.sample_id,
     name: sample.name,
     url: sample.audio_url,
+    category: sample.category,
     icon: null // You'll need to map this based on category
   })) || []
 
+  const p = voiceActor.pricing && voiceActor.pricing[0] ? voiceActor.pricing[0] as any : {}
+  // Map admin-saved fields with safe defaults (no hidden base added)
+  const basePrice = p.base_price ?? 0
+  const pricePerWord = p.price_per_word ?? p.base_price_per_word ?? 0
+  const expressDeliveryFee = p.express_delivery_fee ?? 0
+  const backgroundMusicFee = p.background_music_fee ?? p.background_music_price ?? 0
+  const soundEffectsFee = p.sound_effects_fee ?? p.sound_effects_price ?? 0
+  const revisionFee = p.revision_fee ?? p.revision_price ?? 0
+  const isFixedPrice = p.is_fixed_price ?? false
+  const fixedPriceAmount = p.fixed_price_amount ?? undefined
+  const minOrder = p.min_order ?? 0
+
   return {
     id: voiceActor.actor_id,
+    dbId: voiceActor.id, // Database primary key for foreign key references
     name: voiceActor.name || `Actor ${voiceActor.actor_id}`,
     image: voiceActor.image_url || `/photos/${voiceActor.actor_id}.jpg`,
     samples,
     gradient: voiceActor.gradient_colors || 'from-orange-500 to-cyan-600',
     languages: voiceActor.languages,
     tags: voiceActor.tags,
+    voice_style: voiceActor.voice_style || [], // ADDED: Pass voice_style for filtering
+    gender: (voiceActor as any).gender || 'Male', // ADDED: Pass gender for filtering
     pricing: {
-      basePrice: voiceActor.pricing[0]?.base_price || 50,
-      pricePerWord: voiceActor.pricing[0]?.price_per_word || 0.1,
-      expressDeliveryFee: voiceActor.pricing[0]?.express_delivery_fee || 50,
-      backgroundMusicFee: voiceActor.pricing[0]?.background_music_fee || 30,
-      soundEffectsFee: voiceActor.pricing[0]?.sound_effects_fee || 40,
-      revisionFee: voiceActor.pricing[0]?.revision_fee || 15,
-      isFixedPrice: voiceActor.pricing[0]?.is_fixed_price || false,
-      fixedPriceAmount: voiceActor.pricing[0]?.fixed_price_amount || undefined,
-      minOrder: voiceActor.pricing[0]?.min_order || 25
+      basePrice,
+      pricePerWord,
+      expressDeliveryFee,
+      backgroundMusicFee,
+      soundEffectsFee,
+      revisionFee,
+      isFixedPrice,
+      fixedPriceAmount,
+      minOrder
     }
   }
 }
 
 // Admin-specific Voice Actor Queries (includes inactive actors)
 export async function getAllVoiceActorsAdmin(): Promise<VoiceActorWithPricing[]> {
-  const { data, error } = await supabase
+  // console.log('🔍 Fetching voice actors with pricing...')
+  
+  // Try the relationship query first
+  const { data: dataWithRelation, error: errorWithRelation } = await supabase
     .from('voice_actors')
     .select(`
       *,
@@ -288,13 +445,76 @@ export async function getAllVoiceActorsAdmin(): Promise<VoiceActorWithPricing[]>
     `)
     .order('created_at', { ascending: false })
 
-  if (error) {
-    console.error('Error fetching all voice actors for admin:', error)
-    throw error
+  // console.log('📊 Relationship query response:', { 
+  //   hasError: !!errorWithRelation, 
+  //   dataLength: dataWithRelation?.length,
+  //   firstActorPricing: dataWithRelation?.[0]?.pricing
+  // })
+
+  // If relationship query works, use it
+  if (!errorWithRelation && dataWithRelation) {
+    const actorsWithPricing = dataWithRelation.filter(a => a.pricing && a.pricing.length > 0).length
+    // console.log(`💰 Actors with pricing (relationship): ${actorsWithPricing} out of ${dataWithRelation.length}`)
+    
+    if (actorsWithPricing > 0) {
+      const sortedData = dataWithRelation.sort((a, b) => {
+        const numA = parseInt(a.actor_id)
+        const numB = parseInt(b.actor_id)
+        return numA - numB
+      })
+      return sortedData
+    }
   }
 
+  // Fallback: Fetch actors and pricing separately
+  // console.log('⚠️ Relationship query failed or returned no pricing, trying manual JOIN...')
+  
+  const { data: actors, error: actorsError } = await supabase
+    .from('voice_actors')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (actorsError) {
+    console.error('❌ Error fetching voice actors:', actorsError)
+    throw actorsError
+  }
+
+  const { data: allPricing, error: pricingError } = await supabase
+    .from('actor_pricing')
+    .select('*')
+
+  if (pricingError) {
+    console.error('❌ Error fetching pricing:', pricingError)
+    throw pricingError
+  }
+
+  const { data: allSamples, error: samplesError } = await supabase
+    .from('audio_samples')
+    .select('*')
+
+  if (samplesError) {
+    console.error('❌ Error fetching samples:', samplesError)
+    throw samplesError
+  }
+
+  // console.log(`📦 Manual fetch: ${actors?.length} actors, ${allPricing?.length} pricing records, ${allSamples?.length} samples`)
+
+  // Manually join the data
+  const actorsWithData = actors?.map(actor => {
+    const pricing = allPricing?.filter(p => p.voice_actor_id === actor.id) || []
+    const samples = allSamples?.filter(s => s.voice_actor_id === actor.id) || []
+    
+    return {
+      ...actor,
+      pricing,
+      samples
+    }
+  }) || []
+
+  // console.log(`💰 Actors with pricing (manual): ${actorsWithData.filter(a => a.pricing.length > 0).length} out of ${actorsWithData.length}`)
+
   // Sort by numeric value of actor_id for consistent ordering
-  const sortedData = (data || []).sort((a, b) => {
+  const sortedData = actorsWithData.sort((a, b) => {
     const numA = parseInt(a.actor_id)
     const numB = parseInt(b.actor_id)
     return numA - numB
@@ -309,8 +529,8 @@ export async function createVoiceActor(actorData: {
   bio: string
   languages: string[]
   age_range: string
-  accent: string
   voice_style: string[]
+  gender: string
   photo_url: string
   is_featured: boolean
   is_active: boolean
@@ -332,10 +552,9 @@ export async function createVoiceActor(actorData: {
       tags: actorData.voice_style || [], // Use tags instead of voice_style
       is_featured: actorData.is_featured,
       is_active: actorData.is_active,
-      // Note: age_range and accent will be added after schema update
       age_range: actorData.age_range,
-      accent: actorData.accent,
-      voice_style: actorData.voice_style
+      voice_style: actorData.voice_style,
+      gender: actorData.gender
     })
     .select()
     .single()
@@ -350,11 +569,12 @@ export async function createVoiceActor(actorData: {
     .from('actor_pricing')
     .insert({
       voice_actor_id: actorResult.id,
-      base_price_per_word: actorData.base_price_per_word,
-      rush_multiplier: actorData.rush_multiplier,
-      revision_price: actorData.revision_price,
-      background_music_price: actorData.background_music_price,
-      sound_effects_price: actorData.sound_effects_price
+      // Map admin form fields to pricing table columns
+      price_per_word: actorData.base_price_per_word,
+      express_delivery_fee: actorData.rush_multiplier,
+      revision_fee: actorData.revision_price,
+      background_music_fee: actorData.background_music_price,
+      sound_effects_fee: actorData.sound_effects_price
     })
 
   if (pricingError) {
@@ -375,8 +595,8 @@ export async function updateVoiceActor(
     bio: string
     languages: string[]
     age_range: string
-    accent: string
     voice_style: string[]
+    gender: string
     photo_url: string
     is_featured: boolean
     is_active: boolean
@@ -399,10 +619,9 @@ export async function updateVoiceActor(
       tags: actorData.voice_style || [], // Use tags instead of voice_style  
       is_featured: actorData.is_featured,
       is_active: actorData.is_active,
-      // Note: age_range and accent will be added after schema update
       age_range: actorData.age_range,
-      accent: actorData.accent,
       voice_style: actorData.voice_style,
+      gender: actorData.gender,
       updated_at: new Date().toISOString()
     })
     .eq('id', actorId)
@@ -415,19 +634,58 @@ export async function updateVoiceActor(
   }
 
   // Update or create pricing record
-  const { error: pricingError } = await supabase
+  // First, check if pricing record exists
+  const { data: existingPricing, error: checkError } = await supabase
     .from('actor_pricing')
-    .upsert({
-      voice_actor_id: actorId,
-      base_price_per_word: actorData.base_price_per_word,
-      rush_multiplier: actorData.rush_multiplier,
-      revision_price: actorData.revision_price,
-      background_music_price: actorData.background_music_price,
-      sound_effects_price: actorData.sound_effects_price
-    })
+    .select('id')
+    .eq('voice_actor_id', actorId)
+    .maybeSingle() // Use maybeSingle() instead of single() to avoid error when no rows found
+
+  const pricingData = {
+    voice_actor_id: actorId,
+    // Map admin form fields to pricing table columns
+    price_per_word: actorData.base_price_per_word,
+    express_delivery_fee: actorData.rush_multiplier,
+    revision_fee: actorData.revision_price,
+    background_music_fee: actorData.background_music_price,
+    sound_effects_fee: actorData.sound_effects_price,
+    updated_at: new Date().toISOString()
+  }
+
+  if (checkError && checkError.code !== 'PGRST116') {
+    // PGRST116 is "no rows returned" - that's okay, we'll insert
+    console.error('Error checking existing pricing:', checkError)
+    throw checkError
+  }
+
+  let pricingError
+  if (existingPricing && existingPricing.id) {
+    // Update existing pricing record
+    // console.log('Updating pricing for voice_actor_id:', actorId, 'with data:', pricingData)
+    const result = await supabase
+      .from('actor_pricing')
+      .update(pricingData)
+      .eq('voice_actor_id', actorId) // Use voice_actor_id instead of id for safety
+      .select()
+    pricingError = result.error
+    // if (!pricingError) {
+    //   console.log('Pricing updated successfully:', result.data)
+    // }
+  } else {
+    // Create new pricing record
+    // console.log('Creating new pricing for voice_actor_id:', actorId, 'with data:', pricingData)
+    const result = await supabase
+      .from('actor_pricing')
+      .insert(pricingData)
+      .select()
+    pricingError = result.error
+    // if (!pricingError) {
+    //   console.log('Pricing created successfully:', result.data)
+    // }
+  }
 
   if (pricingError) {
-    console.error('Error updating actor pricing:', pricingError)
+    console.error('Error updating/creating actor pricing:', pricingError)
     throw pricingError
   }
 

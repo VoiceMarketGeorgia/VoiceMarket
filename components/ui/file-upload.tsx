@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { useDropzone } from 'react-dropzone'
+import { useDropzone, FileRejection } from 'react-dropzone'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { uploadFile, deleteFile, extractPathFromUrl, FileUploadOptions } from '@/lib/file-upload'
@@ -13,6 +13,8 @@ interface FileUploadProps {
   currentUrl?: string
   bucket: 'actor-photos' | 'audio-samples'
   folder?: string
+  dirOverride?: 'audios' | 'photos'
+  fileName?: string
   accept?: Record<string, string[]>
   maxSize?: number
   className?: string
@@ -25,6 +27,8 @@ export function FileUpload({
   currentUrl,
   bucket,
   folder,
+  dirOverride,
+  fileName,
   accept,
   maxSize = 10 * 1024 * 1024, // 10MB default
   className = "",
@@ -51,7 +55,9 @@ export function FileUpload({
         folder,
         maxSize,
         allowedTypes: Object.keys(accept || defaultAccept).map(key => 
-          (accept || defaultAccept)[key]).flat()
+          (accept || defaultAccept)[key]).flat(),
+        dir: dirOverride || (bucket === 'audio-samples' ? 'audios' : 'photos'),
+        fileName
       }
 
       const result = await uploadFile(file, options)
@@ -66,24 +72,40 @@ export function FileUpload({
     } finally {
       setUploading(false)
     }
-  }, [bucket, folder, maxSize, accept, defaultAccept, onUpload])
+  }, [bucket, folder, maxSize, accept, defaultAccept, onUpload, dirOverride, fileName])
 
   const handleRemove = async () => {
-    if (!currentUrl) return
+    if (!currentUrl) {
+      if (onRemove) onRemove()
+      return
+    }
 
     const path = extractPathFromUrl(currentUrl)
     if (path) {
-      const success = await deleteFile(bucket, path)
-      if (success && onRemove) {
-        onRemove()
-      }
-    } else if (onRemove) {
-      onRemove()
+      await deleteFile(bucket, path)
+      if (onRemove) onRemove()
+    } else {
+      if (onRemove) onRemove()
     }
   }
 
+  const onDropRejected = useCallback((fileRejections: FileRejection[]) => {
+    if (!fileRejections || fileRejections.length === 0) return
+    const rejection = fileRejections[0]
+    const error = rejection.errors[0]
+    if (!error) return
+    if (error.code === 'file-too-large') {
+      setUploadError(`ფაილი ძალიან დიდია. მაქსიმალური ზომა ${Math.round(maxSize / 1024 / 1024)}MB`)
+    } else if (error.code === 'file-invalid-type') {
+      setUploadError(isImage ? 'ფაილის ტიპი არასწორია. დასაშვებია JPG, PNG, WebP' : 'ფაილის ტიპი არასწორია. დასაშვებია WAV')
+    } else {
+      setUploadError(error.message)
+    }
+  }, [isImage, maxSize])
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
+    onDropRejected,
     accept: accept || defaultAccept,
     maxFiles: 1,
     maxSize,
@@ -164,7 +186,7 @@ export function FileUpload({
                 {uploading ? 'იტვირთება...' : (placeholder || defaultPlaceholder)}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                {isImage ? 'მაქსიმუმ 5MB, JPG, PNG, WebP' : 'მაქსიმუმ 10MB, MP3, WAV, OGG'}
+                {isImage ? `მაქსიმუმ ${Math.round(maxSize / 1024 / 1024)}MB, JPG, PNG, WebP` : 'მაქსიმუმ 10MB, MP3, WAV, OGG'}
               </p>
             </div>
           </div>
@@ -181,11 +203,11 @@ export function FileUpload({
 // Specific component for image uploads
 export function ImageUpload(props: Omit<FileUploadProps, 'bucket'>) {
   return (
-    <FileUpload
+      <FileUpload
       {...props}
-      bucket="actor-photos"
+        bucket="actor-photos"
       accept={{ 'image/*': ['.jpeg', '.jpg', '.png', '.webp'] }}
-      maxSize={5 * 1024 * 1024} // 5MB for images
+      maxSize={10 * 1024 * 1024} // 10MB for images
     />
   )
 }
@@ -193,10 +215,10 @@ export function ImageUpload(props: Omit<FileUploadProps, 'bucket'>) {
 // Specific component for audio uploads
 export function AudioUpload(props: Omit<FileUploadProps, 'bucket'>) {
   return (
-    <FileUpload
+      <FileUpload
       {...props}
-      bucket="audio-samples"
-      accept={{ 'audio/*': ['.mp3', '.wav', '.ogg', '.m4a'] }}
+        bucket="audio-samples"
+      accept={{ 'audio/*': ['.wav'] }}
       maxSize={10 * 1024 * 1024} // 10MB for audio
     />
   )

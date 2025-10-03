@@ -6,10 +6,12 @@ import { OurServices } from "@/components/our-services";
 import { CallToAction } from "@/components/call-to-action";
 import { VoiceCarousel } from "@/components/voice-carousel";
 import { RandomVoiceFinder } from "@/components/random-voice-finder";
+import { FontTest } from "@/components/font-test";
 
 export default function Home() {
   return (
     <div className="flex flex-col gap-8 pb-16">
+      {/* <FontTest /> */}
       {/* <div className="container">
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
           <h2 className="text-2xl font-bold">Try Your Luck:</h2>

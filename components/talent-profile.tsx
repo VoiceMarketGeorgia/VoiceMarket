@@ -245,7 +245,7 @@ export function TalentProfile({ id }: TalentProfileProps) {
             <TabsContent value="pricing" className="pt-6">
               <Card>
                 <CardContent className="p-6">
-                  <ActorPricingCalculator pricing={talent.pricing} actorId={talent.id} />
+                  <ActorPricingCalculator pricing={talent.pricing} actorId={talent.id} dbId={talent.dbId} />
                 </CardContent>
               </Card>
             </TabsContent>

@@ -22,8 +22,8 @@ export function HeroSection() {
       {/* Content Container */}
       <div className="relative z-10 container mx-auto px-4 pt-16 pb-20 text-center">
         <div className="max-w-4xl mx-auto">
-          {/* Main Heading */}
-          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl">
+          {/* Main Heading - Using Dachi Font */}
+          <h1 className="font-dachi text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl">
             Voice Market
             {/* <span className="text-orange-400 drop-shadow-lg bg-gradient-to-r from-orange-400 to-orange-500 bg-clip-text text-transparent">
               
