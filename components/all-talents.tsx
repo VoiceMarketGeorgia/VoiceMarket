@@ -7,16 +7,10 @@ import { Mic2, Headphones, BookOpen, Filter, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Slider } from "@/components/ui/slider";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
 import { getAllVoiceActors, convertToTalent } from "@/lib/supabase-queries";
 import { supabase } from "@/lib/supabase";
+import { VOICE_STYLE_OPTIONS, LANGUAGE_OPTIONS, GENDER_OPTIONS, AUDIO_CATEGORIES } from "@/lib/constants";
 
 interface TalentWithDuration {
   id: string;
@@ -27,7 +21,6 @@ interface TalentWithDuration {
   languages: string[];
   tags: string[];
   pricing: ActorPricing;
-  duration: number; // Duration in minutes for pricing
 }
 
 export function AllTalents() {
@@ -41,7 +34,6 @@ export function AllTalents() {
     languages: [] as string[],
     genders: [] as string[],
     audioCategories: [] as string[],
-    durationRange: [1, 60] as [number, number], // 1-60 minutes
   });
   const [talents, setTalents] = useState<TalentWithDuration[]>([]);
   const [loading, setLoading] = useState(true);
@@ -139,7 +131,6 @@ export function AllTalents() {
           return {
             ...talent,
             samples: samplesWithIcons,
-            duration: Math.floor(Math.random() * 40) + 5, // Random duration for pricing
           };
         });
         
@@ -228,7 +219,6 @@ export function AllTalents() {
             return {
               ...talent,
               samples: samplesWithIcons,
-              duration: Math.floor(Math.random() * 40) + 5, // Random duration for pricing
             };
           });
 
@@ -332,11 +322,6 @@ export function AllTalents() {
         if (!hasMatchingCategory) return false;
       }
 
-      // Filter by duration range
-      if (talent.duration < filters.durationRange[0] || talent.duration > filters.durationRange[1]) {
-        return false;
-      }
-
       return true;
     });
   }, [talents, filters]);
@@ -385,20 +370,12 @@ export function AllTalents() {
     }));
   };
 
-  const handleDurationChange = (value: number[]) => {
-    setFilters(prev => ({
-      ...prev,
-      durationRange: [value[0], value[1]] as [number, number]
-    }));
-  };
-
   const resetFilters = () => {
     setFilters({
       voiceStyles: [],
       languages: [],
       genders: [],
       audioCategories: [],
-      durationRange: [1, 60],
     });
   };
 
@@ -406,8 +383,7 @@ export function AllTalents() {
     filters.voiceStyles.length + 
     filters.languages.length + 
     filters.genders.length + 
-    filters.audioCategories.length + 
-    (filters.durationRange[0] !== 1 || filters.durationRange[1] !== 60 ? 1 : 0);
+    filters.audioCategories.length;
 
   return (
     <div className="bg-white dark:bg-background">
