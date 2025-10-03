@@ -75,6 +75,11 @@ export default function ActorsPage() {
     try {
       setLoading(true)
       const data = await getAllVoiceActorsAdmin()
+      // console.log('Loaded actors with pricing:', data.map(a => ({
+      //   id: a.actor_id,
+      //   name: a.name,
+      //   pricing: a.pricing?.[0]
+      // })))
       setActors(data)
     } catch (error) {
       console.error('Error loading actors:', error)
@@ -197,6 +202,10 @@ export default function ActorsPage() {
       category: sample.category || 'კომერციული'
     })) || []
 
+    // Load pricing data from database (use actual DB column names)
+    const pricing = actor.pricing?.[0] as any
+    // console.log('Loading actor pricing data:', actor.actor_id, pricing)
+    
     setFormData({
       actor_id: actor.actor_id || '',
       name: actor.name || '',
@@ -208,11 +217,12 @@ export default function ActorsPage() {
       photo_url: actor.photo_url || actor.image_url || '',
       is_featured: actor.is_featured || false,
       is_active: actor.is_active || true,
-      base_price_per_word: (actor.pricing?.[0] as any)?.base_price_per_word ?? (actor.pricing?.[0] as any)?.price_per_word ?? 0.05,
-      rush_multiplier: (actor.pricing?.[0] as any)?.rush_multiplier ?? 1.5,
-      revision_price: (actor.pricing?.[0] as any)?.revision_price ?? (actor.pricing?.[0] as any)?.revision_fee ?? 50,
-      background_music_price: (actor.pricing?.[0] as any)?.background_music_price ?? (actor.pricing?.[0] as any)?.background_music_fee ?? 25,
-      sound_effects_price: (actor.pricing?.[0] as any)?.sound_effects_price ?? (actor.pricing?.[0] as any)?.sound_effects_fee ?? 30,
+      // Read from actual database column names (price_per_word, etc.)
+      base_price_per_word: pricing?.price_per_word ?? 0.05,
+      rush_multiplier: pricing?.express_delivery_fee ?? 1.5,
+      revision_price: pricing?.revision_fee ?? 50,
+      background_music_price: pricing?.background_music_fee ?? 25,
+      sound_effects_price: pricing?.sound_effects_fee ?? 30,
       audio_samples: audioSamples
     })
     setIsEditDialogOpen(true)
@@ -347,7 +357,7 @@ export default function ActorsPage() {
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  <span>${(actor.pricing?.[0] as any)?.base_price_per_word ?? (actor.pricing?.[0] as any)?.price_per_word ?? 0.05}/სიტყვა</span>
+                  <span>${(actor.pricing?.[0] as any)?.price_per_word ?? 0.05}/სიტყვა</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <FileAudio className="h-4 w-4 text-muted-foreground" />
