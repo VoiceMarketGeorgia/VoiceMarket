@@ -1,4 +1,4 @@
-# VoiceMarket.ge 🎙️
+# VoiceMarket.ge
 
 A platform, connecting clients with professional Georgian voice actors.
 
@@ -6,34 +6,34 @@ A platform, connecting clients with professional Georgian voice actors.
 
 VoiceMarket.ge is a straightforward platform showcasing professional voice actors in Georgia. The site helps clients discover and connect with voice talent for various projects including commercials, audiobooks, animations, documentaries, and more.
 
-## Features ✨
+## Features 
 
 - Browse professional voice actors
 - View voice actor profiles and specializations  
 - Contact information for hiring voice talent
 - Services for various voice-over needs:
-  - Commercial advertising 📺
-  - Audiobooks 📚
+  - Commercial advertising
+  - Audiobooks
   - Animated content
-  - Documentary films and series 🎬
+  - Documentary films and series
 
-## Technology Stack 🛠️
+## Technology Stack
 
 - **Frontend**: Next.js 14
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
 
 
-## Live Site 🌐
+## Live Site
 
 Visit: [https://voicemarket.ge](https://voicemarket.ge)
 
-## Developers 👥
+## Developers
 
-- 👩 [@MariamSh03](https://github.com/MariamSh03)
-- 👨‍🦱 [@DemetreShonia](https://github.com/DemetreShonia) 
+- [@MariamSh03](https://github.com/MariamSh03)
+- [@DemetreShonia](https://github.com/DemetreShonia)
 
-## License 📄
+## License
 
 MIT License - see [LICENSE](LICENSE) file for details.
 
