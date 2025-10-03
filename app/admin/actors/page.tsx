@@ -219,7 +219,17 @@ export default function ActorsPage() {
   }
 
   const resetForm = () => {
-    setFormData(INITIAL_FORM_DATA)
+    // Autofill next actor_id based on current actors list
+    const numericIds = actors
+      .map(a => parseInt((a.actor_id || '0').replace(/^0+/, '')))
+      .filter(n => !isNaN(n))
+    const maxId = numericIds.length > 0 ? Math.max(...numericIds) : 0
+    const nextId = String(maxId + 1)
+
+    setFormData({
+      ...INITIAL_FORM_DATA,
+      actor_id: nextId
+    })
     setEditingActor(null)
   }
 
@@ -481,16 +491,7 @@ function ActorForm({ formData, setFormData, onSubmit, isSubmitting, submitLabel 
             required
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="name">სახელი</Label>
-          <Input
-            id="name"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            placeholder="მსახიობის სახელი"
-            required
-          />
-        </div>
+        {/* Name field removed as requested */}
       </div>
 
       <div className="space-y-2">
@@ -510,7 +511,9 @@ function ActorForm({ formData, setFormData, onSubmit, isSubmitting, submitLabel 
           currentUrl={formData.photo_url}
           onUpload={(url) => setFormData({ ...formData, photo_url: url })}
           onRemove={() => setFormData({ ...formData, photo_url: '' })}
-          folder={`actor-${formData.actor_id || 'new'}`}
+          dirOverride="photos"
+          folder={''}
+          fileName={`${(formData.actor_id || '').replace(/^0+/, '') || 'new'}.jpg`}
           placeholder="ფოტოს ატვირთვა (გადმოიტანეთ ან დააკლიკეთ)"
         />
       </div>

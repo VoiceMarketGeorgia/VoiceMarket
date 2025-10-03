@@ -13,6 +13,8 @@ interface FileUploadProps {
   currentUrl?: string
   bucket: 'actor-photos' | 'audio-samples'
   folder?: string
+  dirOverride?: 'audios' | 'photos'
+  fileName?: string
   accept?: Record<string, string[]>
   maxSize?: number
   className?: string
@@ -25,6 +27,8 @@ export function FileUpload({
   currentUrl,
   bucket,
   folder,
+  dirOverride,
+  fileName,
   accept,
   maxSize = 10 * 1024 * 1024, // 10MB default
   className = "",
@@ -51,7 +55,9 @@ export function FileUpload({
         folder,
         maxSize,
         allowedTypes: Object.keys(accept || defaultAccept).map(key => 
-          (accept || defaultAccept)[key]).flat()
+          (accept || defaultAccept)[key]).flat(),
+        dir: dirOverride || (bucket === 'audio-samples' ? 'audios' : 'photos'),
+        fileName
       }
 
       const result = await uploadFile(file, options)
@@ -66,7 +72,7 @@ export function FileUpload({
     } finally {
       setUploading(false)
     }
-  }, [bucket, folder, maxSize, accept, defaultAccept, onUpload])
+  }, [bucket, folder, maxSize, accept, defaultAccept, onUpload, dirOverride, fileName])
 
   const handleRemove = async () => {
     if (!currentUrl) return
@@ -181,10 +187,10 @@ export function FileUpload({
 // Specific component for image uploads
 export function ImageUpload(props: Omit<FileUploadProps, 'bucket'>) {
   return (
-    <FileUpload
+      <FileUpload
       {...props}
-      bucket="actor-photos"
-      accept={{ 'image/*': ['.jpeg', '.jpg', '.png', '.webp'] }}
+        bucket="actor-photos"
+      accept={{ 'image/*': ['.jpeg', '.jpg'] }}
       maxSize={5 * 1024 * 1024} // 5MB for images
     />
   )
@@ -193,10 +199,10 @@ export function ImageUpload(props: Omit<FileUploadProps, 'bucket'>) {
 // Specific component for audio uploads
 export function AudioUpload(props: Omit<FileUploadProps, 'bucket'>) {
   return (
-    <FileUpload
+      <FileUpload
       {...props}
-      bucket="audio-samples"
-      accept={{ 'audio/*': ['.mp3', '.wav', '.ogg', '.m4a'] }}
+        bucket="audio-samples"
+      accept={{ 'audio/*': ['.wav'] }}
       maxSize={10 * 1024 * 1024} // 10MB for audio
     />
   )

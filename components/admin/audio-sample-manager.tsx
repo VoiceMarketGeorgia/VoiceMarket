@@ -50,7 +50,7 @@ export function AudioSampleManager({ actorId, samples, onSamplesChange }: AudioS
     if (!newSample.name || !newSample.audio_url) return
 
     const sample: AudioSample = {
-      sample_id: `${actorId}-${samples.length + 1}`,
+      sample_id: `${actorId}.${samples.length + 1}`,
       name: newSample.name,
       audio_url: newSample.audio_url,
       category: newSample.category || 'კომერციული'
@@ -154,7 +154,9 @@ export function AudioSampleManager({ actorId, samples, onSamplesChange }: AudioS
                 currentUrl={newSample.audio_url}
                 onUpload={(url) => setNewSample({ ...newSample, audio_url: url })}
                 onRemove={() => setNewSample({ ...newSample, audio_url: '' })}
-                folder={`actor-${actorId}`}
+                folder={`${actorId}`}
+                dirOverride="audios"
+                fileName={`${actorId}.${samples.length + 1}.wav`}
                 placeholder="აუდიო ფაილის ატვირთვა"
               />
             </div>
@@ -305,7 +307,9 @@ function EditSampleForm({
           currentUrl={editedSample.audio_url}
           onUpload={(url) => setEditedSample({ ...editedSample, audio_url: url })}
           onRemove={() => setEditedSample({ ...editedSample, audio_url: '' })}
-          folder={`actor-${sample.sample_id?.split('-')[0]}`}
+          folder={`${sample.sample_id?.split('.')[0]}`}
+          dirOverride="audios"
+          fileName={`${sample.sample_id}.wav`}
           placeholder="აუდიო ფაილის შეცვლა"
         />
       </div>

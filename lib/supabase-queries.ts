@@ -1,4 +1,5 @@
-import { supabase, VoiceActor, ActorPricing, AudioSample, ContactSubmission, QuoteRequest, VoiceActorWithPricing } from './supabase'
+import { createSupabaseClient, VoiceActor, ActorPricing, AudioSample, ContactSubmission, QuoteRequest, VoiceActorWithPricing } from './supabase'
+const supabase = createSupabaseClient()
 
 // Voice Actors Queries
 export async function getAllVoiceActors(): Promise<VoiceActorWithPricing[]> {
