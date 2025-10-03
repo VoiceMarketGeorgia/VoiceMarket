@@ -1,130 +1,153 @@
-'use client'
+"use client";
 
-import { useEffect, useRef, useState } from 'react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { AudioUpload } from '@/components/ui/file-upload'
-import { Music, Play, Pause, Edit, Trash2, Plus } from 'lucide-react'
+import { useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { AudioUpload } from "@/components/ui/file-upload";
+import { Music, Play, Pause, Edit, Trash2, Plus } from "lucide-react";
 
 export interface AudioSample {
-  id?: number
-  sample_id: string
-  name: string
-  audio_url: string
-  category: string
-  duration?: number
+  id?: number;
+  sample_id: string;
+  name: string;
+  audio_url: string;
+  category: string;
+  duration?: number;
 }
 
 interface AudioSampleManagerProps {
-  actorId: string
-  samples: AudioSample[]
-  onSamplesChange: (samples: AudioSample[]) => void
+  actorId: string;
+  samples: AudioSample[];
+  onSamplesChange: (samples: AudioSample[]) => void;
 }
 
 const AUDIO_CATEGORIES = [
-  { value: 'კომერციული', label: 'კომერციული' },
-  { value: 'გახმოვანება', label: 'გახმოვანება' },
-  { value: 'დოკუმენტური', label: 'დოკუმენტური' },
-  { value: 'პერსონაჟი', label: 'პერსონაჟი' },
-  { value: 'ელექტრონული სწავლება', label: 'ელექტრონული სწავლება' },
-  { value: 'ანიმაცია', label: 'ანიმაცია' },
-  { value: 'სარეკლამო', label: 'სარეკლამო' },
-  { value: 'ავტომოპასუხე', label: 'ავტომოპასუხე' }
-]
+  { value: "კომერციული", label: "კომერციული" },
+  { value: "გახმოვანება", label: "გახმოვანება" },
+  { value: "დოკუმენტური", label: "დოკუმენტური" },
+  { value: "პერსონაჟი", label: "პერსონაჟი" },
+  { value: "ელექტრონული სწავლება", label: "ელექტრონული სწავლება" },
+  { value: "ანიმაცია", label: "ანიმაცია" },
+  { value: "სარეკლამო", label: "სარეკლამო" },
+  { value: "ავტომოპასუხე", label: "ავტომოპასუხე" },
+];
 
-export function AudioSampleManager({ actorId, samples, onSamplesChange }: AudioSampleManagerProps) {
-  const [editingIndex, setEditingIndex] = useState<number | null>(null)
-  const [isAddingNew, setIsAddingNew] = useState(false)
-  const [playingIndex, setPlayingIndex] = useState<number | null>(null)
-  const audioRefs = useRef<Record<number, HTMLAudioElement | null>>({})
+export function AudioSampleManager({
+  actorId,
+  samples,
+  onSamplesChange,
+}: AudioSampleManagerProps) {
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const [isAddingNew, setIsAddingNew] = useState(false);
+  const [playingIndex, setPlayingIndex] = useState<number | null>(null);
+  const audioRefs = useRef<Record<number, HTMLAudioElement | null>>({});
   const [newSample, setNewSample] = useState<Partial<AudioSample>>({
-    name: '',
-    category: 'კომერციული',
-    audio_url: ''
-  })
+    name: "სარეკლამო რგოლი",
+    category: "კომერციული",
+    audio_url: "",
+  });
 
   const handleAddSample = () => {
-    if (!newSample.name || !newSample.audio_url) return
+    if (!newSample.name || !newSample.audio_url) return;
 
     const sample: AudioSample = {
       sample_id: `${actorId}.${samples.length + 1}`,
       name: newSample.name,
       audio_url: newSample.audio_url,
-      category: newSample.category || 'კომერციული'
-    }
+      category: newSample.category || "კომერციული",
+    };
 
-    onSamplesChange([...samples, sample])
-    setNewSample({ name: '', category: 'კომერციული', audio_url: '' })
-    setIsAddingNew(false)
-  }
+    onSamplesChange([...samples, sample]);
+    setNewSample({ name: "სარეკლამო რგოლი", category: "კომერციული", audio_url: "" });
+    setIsAddingNew(false);
+  };
 
-  const handleUpdateSample = (index: number, updatedSample: Partial<AudioSample>) => {
-    const updatedSamples = [...samples]
-    updatedSamples[index] = { ...updatedSamples[index], ...updatedSample }
-    onSamplesChange(updatedSamples)
-    setEditingIndex(null)
-  }
+  const handleUpdateSample = (
+    index: number,
+    updatedSample: Partial<AudioSample>
+  ) => {
+    const updatedSamples = [...samples];
+    updatedSamples[index] = { ...updatedSamples[index], ...updatedSample };
+    onSamplesChange(updatedSamples);
+    setEditingIndex(null);
+  };
 
   const handleDeleteSample = (index: number) => {
-    const updatedSamples = samples.filter((_, i) => i !== index)
-    onSamplesChange(updatedSamples)
-  }
+    const updatedSamples = samples.filter((_, i) => i !== index);
+    onSamplesChange(updatedSamples);
+  };
 
   const stopAll = () => {
     Object.values(audioRefs.current).forEach((audio) => {
       if (audio) {
-        audio.pause()
-        audio.currentTime = 0
+        audio.pause();
+        audio.currentTime = 0;
       }
-    })
-  }
+    });
+  };
 
   const handlePlayPause = (index: number) => {
-    const audio = audioRefs.current[index]
-    if (!audio) return
+    const audio = audioRefs.current[index];
+    if (!audio) return;
 
     // Pause any other playing audio first
     Object.entries(audioRefs.current).forEach(([key, a]) => {
-      const k = parseInt(key)
+      const k = parseInt(key);
       if (a && k !== index) {
-        a.pause()
-        a.currentTime = 0
+        a.pause();
+        a.currentTime = 0;
       }
-    })
+    });
 
     if (playingIndex === index && !audio.paused) {
-      audio.pause()
-      setPlayingIndex(null)
+      audio.pause();
+      setPlayingIndex(null);
     } else {
-      audio.play().catch(() => {})
-      setPlayingIndex(index)
+      audio.play().catch(() => {});
+      setPlayingIndex(index);
     }
-  }
+  };
 
   useEffect(() => {
     return () => {
       // Cleanup on unmount
-      stopAll()
-    }
-  }, [])
+      stopAll();
+    };
+  }, []);
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
-      'კომერციული': 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400',
-      'გახმოვანება': 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400',
-      'დოკუმენტური': 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400',
-      'პერსონაჟი': 'bg-pink-100 text-pink-800 dark:bg-pink-900/20 dark:text-pink-400',
-      'ელექტრონული სწავლება': 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400',
-      'ანიმაცია': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400',
-      'სარეკლამო': 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400',
-      'ავტომოპასუხე': 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
-    }
-    return colors[category] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400'
-  }
+      კომერციული:
+        "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400",
+      გახმოვანება:
+        "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400",
+      დოკუმენტური:
+        "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400",
+      პერსონაჟი:
+        "bg-pink-100 text-pink-800 dark:bg-pink-900/20 dark:text-pink-400",
+      "ელექტრონული სწავლება":
+        "bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400",
+      ანიმაცია:
+        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400",
+      სარეკლამო: "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400",
+      ავტომოპასუხე:
+        "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400",
+    };
+    return (
+      colors[category] ||
+      "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400"
+    );
+  };
 
   return (
     <div className="space-y-4">
@@ -152,16 +175,20 @@ export function AudioSampleManager({ actorId, samples, onSamplesChange }: AudioS
               <div className="space-y-2">
                 <Label>ნიმუშის სახელი</Label>
                 <Input
-                  value={newSample.name || ''}
-                  onChange={(e) => setNewSample({ ...newSample, name: e.target.value })}
+                  value={newSample.name || ""}
+                  onChange={(e) =>
+                    setNewSample({ ...newSample, name: e.target.value })
+                  }
                   placeholder="მაგ: სარეკლამო რგოლი"
                 />
               </div>
               <div className="space-y-2">
                 <Label>კატეგორია</Label>
-                <Select 
-                  value={newSample.category} 
-                  onValueChange={(value) => setNewSample({ ...newSample, category: value })}
+                <Select
+                  value={newSample.category}
+                  onValueChange={(value) =>
+                    setNewSample({ ...newSample, category: value })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -181,8 +208,10 @@ export function AudioSampleManager({ actorId, samples, onSamplesChange }: AudioS
               <Label>აუდიო ფაილი</Label>
               <AudioUpload
                 currentUrl={newSample.audio_url}
-                onUpload={(url) => setNewSample({ ...newSample, audio_url: url })}
-                onRemove={() => setNewSample({ ...newSample, audio_url: '' })}
+                onUpload={(url) =>
+                  setNewSample({ ...newSample, audio_url: url })
+                }
+                onRemove={() => setNewSample({ ...newSample, audio_url: "" })}
                 folder={`${actorId}`}
                 dirOverride="audios"
                 fileName={`${actorId}.${samples.length + 1}.wav`}
@@ -191,7 +220,10 @@ export function AudioSampleManager({ actorId, samples, onSamplesChange }: AudioS
             </div>
 
             <div className="flex gap-2">
-              <Button onClick={handleAddSample} disabled={!newSample.name || !newSample.audio_url}>
+              <Button
+                onClick={handleAddSample}
+                disabled={(newSample.name || "").trim().length === 0 || !newSample.audio_url}
+              >
                 დამატება
               </Button>
               <Button variant="outline" onClick={() => setIsAddingNew(false)}>
@@ -210,16 +242,21 @@ export function AudioSampleManager({ actorId, samples, onSamplesChange }: AudioS
               {editingIndex === index ? (
                 <EditSampleForm
                   sample={sample}
-                  onSave={(updatedSample) => handleUpdateSample(index, updatedSample)}
+                  onSave={(updatedSample) =>
+                    handleUpdateSample(index, updatedSample)
+                  }
                   onCancel={() => setEditingIndex(null)}
                 />
               ) : (
                 <div className="flex items-center gap-4">
                   <audio
                     ref={(el) => {
-                      audioRefs.current[index] = el
+                      audioRefs.current[index] = el;
                       if (el) {
-                        el.onended = () => setPlayingIndex((curr) => (curr === index ? null : curr))
+                        el.onended = () =>
+                          setPlayingIndex((curr) =>
+                            curr === index ? null : curr
+                          );
                       }
                     }}
                     src={sample.audio_url}
@@ -241,7 +278,9 @@ export function AudioSampleManager({ actorId, samples, onSamplesChange }: AudioS
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <Music className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium truncate">{sample.name}</span>
+                      <span className="font-medium truncate">
+                        {sample.name}
+                      </span>
                       <Badge className={getCategoryColor(sample.category)}>
                         {sample.category}
                       </Badge>
@@ -291,24 +330,24 @@ export function AudioSampleManager({ actorId, samples, onSamplesChange }: AudioS
         </Card>
       )}
     </div>
-  )
+  );
 }
 
 // Edit form component
-function EditSampleForm({ 
-  sample, 
-  onSave, 
-  onCancel 
-}: { 
-  sample: AudioSample
-  onSave: (sample: Partial<AudioSample>) => void
-  onCancel: () => void
+function EditSampleForm({
+  sample,
+  onSave,
+  onCancel,
+}: {
+  sample: AudioSample;
+  onSave: (sample: Partial<AudioSample>) => void;
+  onCancel: () => void;
 }) {
   const [editedSample, setEditedSample] = useState<Partial<AudioSample>>({
     name: sample.name,
     category: sample.category,
-    audio_url: sample.audio_url
-  })
+    audio_url: sample.audio_url,
+  });
 
   return (
     <div className="space-y-4">
@@ -316,15 +355,19 @@ function EditSampleForm({
         <div className="space-y-2">
           <Label>ნიმუშის სახელი</Label>
           <Input
-            value={editedSample.name || ''}
-            onChange={(e) => setEditedSample({ ...editedSample, name: e.target.value })}
+            value={editedSample.name || ""}
+            onChange={(e) =>
+              setEditedSample({ ...editedSample, name: e.target.value })
+            }
           />
         </div>
         <div className="space-y-2">
           <Label>კატეგორია</Label>
-          <Select 
-            value={editedSample.category} 
-            onValueChange={(value) => setEditedSample({ ...editedSample, category: value })}
+          <Select
+            value={editedSample.category}
+            onValueChange={(value) =>
+              setEditedSample({ ...editedSample, category: value })
+            }
           >
             <SelectTrigger>
               <SelectValue />
@@ -344,9 +387,11 @@ function EditSampleForm({
         <Label>აუდიო ფაილი</Label>
         <AudioUpload
           currentUrl={editedSample.audio_url}
-          onUpload={(url) => setEditedSample({ ...editedSample, audio_url: url })}
-          onRemove={() => setEditedSample({ ...editedSample, audio_url: '' })}
-          folder={`${sample.sample_id?.split('.')[0]}`}
+          onUpload={(url) =>
+            setEditedSample({ ...editedSample, audio_url: url })
+          }
+          onRemove={() => setEditedSample({ ...editedSample, audio_url: "" })}
+          folder={`${sample.sample_id?.split(".")[0]}`}
           dirOverride="audios"
           fileName={`${sample.sample_id}.wav`}
           placeholder="აუდიო ფაილის შეცვლა"
@@ -354,14 +399,11 @@ function EditSampleForm({
       </div>
 
       <div className="flex gap-2">
-        <Button onClick={() => onSave(editedSample)}>
-          შენახვა
-        </Button>
+        <Button onClick={() => onSave(editedSample)}>შენახვა</Button>
         <Button variant="outline" onClick={onCancel}>
           გაუქმება
         </Button>
       </div>
     </div>
-  )
+  );
 }
-
