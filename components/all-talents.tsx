@@ -396,9 +396,6 @@ export function AllTalents() {
             </h1>
             <p className="text-gray-600 dark:text-muted-foreground">
               {filteredTalents.length} მსახიობი მოიძებნა
-              <span className="ml-2 text-xs text-gray-400">
-                (იტვირთება {limit} ერთდროულად - {Math.floor((window?.innerWidth || 1200) / 320)} ზედიზედ)
-              </span>
             </p>
           </div>
           
