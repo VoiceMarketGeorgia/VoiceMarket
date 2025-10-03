@@ -408,6 +408,7 @@ export function convertToTalent(voiceActor: VoiceActorWithPricing): any {
 
   return {
     id: voiceActor.actor_id,
+    dbId: voiceActor.id, // Database primary key for foreign key references
     name: voiceActor.name || `Actor ${voiceActor.actor_id}`,
     image: voiceActor.image_url || `/photos/${voiceActor.actor_id}.jpg`,
     samples,

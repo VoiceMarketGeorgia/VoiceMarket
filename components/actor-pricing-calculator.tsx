@@ -15,9 +15,10 @@ import { submitQuoteRequest } from "@/lib/supabase-queries"
 interface ActorPricingCalculatorProps {
   pricing: ActorPricing;
   actorId: string;
+  dbId?: number; // Database primary key for foreign key references
 }
 
-export function ActorPricingCalculator({ pricing, actorId }: ActorPricingCalculatorProps) {
+export function ActorPricingCalculator({ pricing, actorId, dbId }: ActorPricingCalculatorProps) {
   const [script, setScript] = useState("")
   const [wordCount, setWordCount] = useState(0)
   const [revisions, setRevisions] = useState([2])
@@ -102,7 +103,7 @@ export function ActorPricingCalculator({ pricing, actorId }: ActorPricingCalcula
 
     try {
       const result = await submitQuoteRequest({
-        voice_actor_id: parseInt(actorId),
+        voice_actor_id: dbId, // Use database ID for foreign key
         client_name: clientName,
         client_email: clientEmail,
         client_phone: clientPhone,

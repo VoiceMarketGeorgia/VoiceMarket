@@ -23,6 +23,7 @@ import { getAllVoiceActors, convertToTalent } from "@/lib/supabase-queries"
 
 interface ActorData {
   id: string;
+  dbId: number; // Database primary key for foreign key references
   pricing: ActorPricing;
   rating: number;
   tags: string[];
@@ -58,6 +59,7 @@ export function PricingPageCalculator() {
         const talent = convertToTalent(actor)
         return {
           id: talent.id,
+          dbId: talent.dbId,
           pricing: talent.pricing,
           rating: 0,
           tags: talent.tags || []
@@ -141,7 +143,7 @@ export function PricingPageCalculator() {
 
     try {
       const result = await submitQuoteRequest({
-        voice_actor_id: parseInt(selectedActorId),
+        voice_actor_id: selectedActor?.dbId, // Use database ID for foreign key
         client_name: clientName,
         client_email: clientEmail,
         client_phone: clientPhone,
