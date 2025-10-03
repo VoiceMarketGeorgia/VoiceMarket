@@ -208,11 +208,11 @@ export default function ActorsPage() {
       photo_url: actor.photo_url || actor.image_url || '',
       is_featured: actor.is_featured || false,
       is_active: actor.is_active || true,
-      base_price_per_word: actor.pricing?.[0]?.base_price_per_word || 0.05,
-      rush_multiplier: actor.pricing?.[0]?.rush_multiplier || 1.5,
-      revision_price: actor.pricing?.[0]?.revision_price || 50,
-      background_music_price: actor.pricing?.[0]?.background_music_price || 25,
-      sound_effects_price: actor.pricing?.[0]?.sound_effects_price || 30,
+      base_price_per_word: (actor.pricing?.[0] as any)?.base_price_per_word ?? (actor.pricing?.[0] as any)?.price_per_word ?? 0.05,
+      rush_multiplier: (actor.pricing?.[0] as any)?.rush_multiplier ?? 1.5,
+      revision_price: (actor.pricing?.[0] as any)?.revision_price ?? (actor.pricing?.[0] as any)?.revision_fee ?? 50,
+      background_music_price: (actor.pricing?.[0] as any)?.background_music_price ?? (actor.pricing?.[0] as any)?.background_music_fee ?? 25,
+      sound_effects_price: (actor.pricing?.[0] as any)?.sound_effects_price ?? (actor.pricing?.[0] as any)?.sound_effects_fee ?? 30,
       audio_samples: audioSamples
     })
     setIsEditDialogOpen(true)
@@ -228,7 +228,8 @@ export default function ActorsPage() {
 
     setFormData({
       ...INITIAL_FORM_DATA,
-      actor_id: nextId
+      actor_id: nextId,
+      name: `Actor ${nextId}`
     })
     setEditingActor(null)
   }
@@ -306,10 +307,10 @@ export default function ActorsPage() {
             <CardHeader className="pb-3">
               <div className="flex items-start gap-3">
                 <div className="w-16 h-16 rounded-full overflow-hidden bg-muted flex-shrink-0">
-                  {(actor.photo_url || actor.image_url) ? (
+                  {((actor as any).photo_url || actor.image_url) ? (
                     <img 
-                      src={actor.photo_url || actor.image_url} 
-                      alt={actor.name}
+                      src={(actor as any).photo_url || actor.image_url || ''} 
+                      alt={actor.name || ''}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -346,7 +347,7 @@ export default function ActorsPage() {
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  <span>${actor.pricing?.[0]?.base_price_per_word || 0.05}/სიტყვა</span>
+                  <span>${(actor.pricing?.[0] as any)?.base_price_per_word ?? (actor.pricing?.[0] as any)?.price_per_word ?? 0.05}/სიტყვა</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <FileAudio className="h-4 w-4 text-muted-foreground" />
@@ -491,7 +492,16 @@ function ActorForm({ formData, setFormData, onSubmit, isSubmitting, submitLabel 
             required
           />
         </div>
-        {/* Name field removed as requested */}
+        <div className="space-y-2">
+          <Label htmlFor="name">სახელი</Label>
+          <Input
+            id="name"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            placeholder="მსახიობის სახელი"
+            required
+          />
+        </div>
       </div>
 
       <div className="space-y-2">

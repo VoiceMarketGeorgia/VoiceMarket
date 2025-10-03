@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -40,6 +40,7 @@ export function AudioSampleManager({ actorId, samples, onSamplesChange }: AudioS
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [isAddingNew, setIsAddingNew] = useState(false)
   const [playingIndex, setPlayingIndex] = useState<number | null>(null)
+  const audioRefs = useRef<Record<number, HTMLAudioElement | null>>({})
   const [newSample, setNewSample] = useState<Partial<AudioSample>>({
     name: '',
     category: 'კომერციული',
@@ -73,15 +74,43 @@ export function AudioSampleManager({ actorId, samples, onSamplesChange }: AudioS
     onSamplesChange(updatedSamples)
   }
 
+  const stopAll = () => {
+    Object.values(audioRefs.current).forEach((audio) => {
+      if (audio) {
+        audio.pause()
+        audio.currentTime = 0
+      }
+    })
+  }
+
   const handlePlayPause = (index: number) => {
-    if (playingIndex === index) {
+    const audio = audioRefs.current[index]
+    if (!audio) return
+
+    // Pause any other playing audio first
+    Object.entries(audioRefs.current).forEach(([key, a]) => {
+      const k = parseInt(key)
+      if (a && k !== index) {
+        a.pause()
+        a.currentTime = 0
+      }
+    })
+
+    if (playingIndex === index && !audio.paused) {
+      audio.pause()
       setPlayingIndex(null)
-      // Pause audio logic here
     } else {
+      audio.play().catch(() => {})
       setPlayingIndex(index)
-      // Play audio logic here
     }
   }
+
+  useEffect(() => {
+    return () => {
+      // Cleanup on unmount
+      stopAll()
+    }
+  }, [])
 
   const getCategoryColor = (category: string) => {
     const colors: Record<string, string> = {
@@ -186,6 +215,16 @@ export function AudioSampleManager({ actorId, samples, onSamplesChange }: AudioS
                 />
               ) : (
                 <div className="flex items-center gap-4">
+                  <audio
+                    ref={(el) => {
+                      audioRefs.current[index] = el
+                      if (el) {
+                        el.onended = () => setPlayingIndex((curr) => (curr === index ? null : curr))
+                      }
+                    }}
+                    src={sample.audio_url}
+                    preload="none"
+                  />
                   <Button
                     variant="ghost"
                     size="sm"
@@ -325,3 +364,4 @@ function EditSampleForm({
     </div>
   )
 }
+
