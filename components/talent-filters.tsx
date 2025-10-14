@@ -143,8 +143,8 @@ export function TalentFilters() {
               <div className="space-y-4">
                 <Slider value={priceRange} max={1000} step={10} onValueChange={setPriceRange} />
                 <div className="flex items-center justify-between">
-                  <span>${priceRange[0]}</span>
-                  <span>${priceRange[1]}</span>
+                  <span>₾{priceRange[0]}</span>
+                  <span>₾{priceRange[1]}</span>
                 </div>
               </div>
             </AccordionContent>

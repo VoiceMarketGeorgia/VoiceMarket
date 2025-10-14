@@ -135,7 +135,7 @@ export function PricingCalculator() {
               </div>
               <div>
                 <p className="text-sm font-medium">Estimated Price</p>
-                <p className="text-2xl font-bold">${price}</p>
+                <p className="text-2xl font-bold">₾{price}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">

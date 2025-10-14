@@ -170,7 +170,7 @@ export function ActorPricingCalculator({
             <div className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-orange-600" />
               <span className="text-sm font-medium text-orange-800 dark:text-orange-200">
-                This actor uses fixed pricing: ${pricing.fixedPriceAmount} (base
+                This actor uses fixed pricing: ₾{pricing.fixedPriceAmount} (base
                 rate)
               </span>
             </div>
@@ -249,7 +249,7 @@ export function ActorPricingCalculator({
             <CardContent className="p-6">
               <div className="text-center">
                 <div className="text-3xl font-bold text-orange-500 mb-2">
-                  ${price}
+                  ₾{price}
                 </div>
                 <p className="text-muted-foreground">
                   პროექტის სრული ღირებულება
@@ -265,22 +265,22 @@ export function ActorPricingCalculator({
                 {pricing.isFixedPrice ? (
                   <div className="flex justify-between">
                     <span>ფიქსირებული ტარიფი:</span>
-                    <span>${pricing.fixedPriceAmount}</span>
+                    <span>₾{pricing.fixedPriceAmount}</span>
                   </div>
                 ) : (
                   <>
                     <div className="flex justify-between">
                       <span>საბაზისო ფასი:</span>
-                      <span>${pricing.basePrice}</span>
+                      <span>₾{pricing.basePrice}</span>
                     </div>
                     {wordCount > 0 && (
                       <div className="flex justify-between">
                         <span>
-                          სიტყვები ({wordCount} × $
+                          სიტყვები ({wordCount} × ₾
                           {pricing.pricePerWord.toFixed(2)}):
                         </span>
                         <span>
-                          ${(wordCount * pricing.pricePerWord).toFixed(0)}
+                          ₾{(wordCount * pricing.pricePerWord).toFixed(0)}
                         </span>
                       </div>
                     )}
@@ -290,43 +290,43 @@ export function ActorPricingCalculator({
                 {revisions[0] > 0 && (
                   <div className="flex justify-between">
                     <span>
-                      შესწორებები ({revisions[0]} × ${pricing.revisionFee}):
+                      შესწორებები ({revisions[0]} × ₾{pricing.revisionFee}):
                     </span>
-                    <span>${revisions[0] * pricing.revisionFee}</span>
+                    <span>₾{revisions[0] * pricing.revisionFee}</span>
                   </div>
                 )}
 
                 {expressDelivery && (
                   <div className="flex justify-between">
                     <span>სწრაფი მიწოდება:</span>
-                    <span>${pricing.expressDeliveryFee}</span>
+                    <span>₾{pricing.expressDeliveryFee}</span>
                   </div>
                 )}
 
                 {backgroundMusic && (
                   <div className="flex justify-between">
                     <span>ფონური მუსიკა:</span>
-                    <span>${pricing.backgroundMusicFee}</span>
+                    <span>₾{pricing.backgroundMusicFee}</span>
                   </div>
                 )}
 
                 {soundEffects && (
                   <div className="flex justify-between">
                     <span>ხმოვანი ეფექტები:</span>
-                    <span>${pricing.soundEffectsFee}</span>
+                    <span>₾{pricing.soundEffectsFee}</span>
                   </div>
                 )}
 
                 <div className="border-t pt-2 mt-2">
                   <div className="flex justify-between font-medium">
                     <span>სულ:</span>
-                    <span>${price}</span>
+                    <span>₾{price}</span>
                   </div>
                 </div>
 
                 {price === pricing.minOrder && (
                   <p className="text-xs text-muted-foreground mt-2">
-                    * Minimum order: ${pricing.minOrder}
+                    * Minimum order: ₾{pricing.minOrder}
                   </p>
                 )}
               </div>
@@ -483,7 +483,7 @@ export function ActorPricingCalculator({
                           <strong>შესწორებები:</strong> {revisions[0]}
                         </p>
                         <p>
-                          <strong>ფასი:</strong> ${price}
+                          <strong>ფასი:</strong> ₾{price}
                         </p>
                         {expressDelivery && (
                           <p>

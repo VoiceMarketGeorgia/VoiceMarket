@@ -70,8 +70,8 @@ export function TalentProfile({ id }: TalentProfileProps) {
                 .join(", ")
                 .toLowerCase()} work with a distinctive and engaging voice style.`,
             priceRange: talentData.pricing.isFixedPrice
-              ? `Fixed: $${talentData.pricing.fixedPriceAmount}`
-              : `$${talentData.pricing.basePrice}-${
+              ? `Fixed: ₾${talentData.pricing.fixedPriceAmount}`
+              : `₾${talentData.pricing.basePrice}-${
                   talentData.pricing.basePrice + 200
                 }`,
             turnaround: voiceActor.turnaround_time || "24-48 hours",

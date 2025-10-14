@@ -237,8 +237,8 @@ export function PricingPageCalculator() {
                       </span>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         {actor.pricing.isFixedPrice
-                          ? `Fixed: $${actor.pricing.fixedPriceAmount}`
-                          : `$${actor.pricing.basePrice}+`}
+                          ? `Fixed: ₾${actor.pricing.fixedPriceAmount}`
+                          : `₾${actor.pricing.basePrice}+`}
                       </div>
                     </div>
                     <div className="flex items-center gap-1 mt-0.5">
@@ -281,7 +281,7 @@ export function PricingPageCalculator() {
                 <div className="flex items-center gap-2">
                   <AlertCircle className="h-4 w-4 text-orange-600" />
                   <span className="text-sm font-medium text-orange-800 dark:text-orange-200">
-                    Actor #{selectedActorId} uses fixed pricing: $
+                    Actor #{selectedActorId} uses fixed pricing: ₾
                     {selectedActor.pricing.fixedPriceAmount} (base rate)
                   </span>
                 </div>
@@ -360,7 +360,7 @@ export function PricingPageCalculator() {
                 <CardContent className="p-6">
                   <div className="text-center">
                     <div className="text-4xl font-bold text-orange-500 mb-2">
-                      ${price}
+                      ₾{price}
                     </div>
                     <p className="text-muted-foreground">
                       პროექტის სრული ღირებულება
@@ -379,22 +379,22 @@ export function PricingPageCalculator() {
                     {selectedActor.pricing.isFixedPrice ? (
                       <div className="flex justify-between">
                         <span>ფიქსირებული ტარიფი:</span>
-                        <span>${selectedActor.pricing.fixedPriceAmount}</span>
+                        <span>₾{selectedActor.pricing.fixedPriceAmount}</span>
                       </div>
                     ) : (
                       <>
                         <div className="flex justify-between">
                           <span>საბაზისო ფასი:</span>
-                          <span>${selectedActor.pricing.basePrice}</span>
+                          <span>₾{selectedActor.pricing.basePrice}</span>
                         </div>
                         {wordCount > 0 && (
                           <div className="flex justify-between">
                             <span>
-                              სიტყვები ({wordCount} × $
+                              სიტყვები ({wordCount} × ₾
                               {selectedActor.pricing.pricePerWord.toFixed(2)}):
                             </span>
                             <span>
-                              $
+                              ₾
                               {(
                                 wordCount * selectedActor.pricing.pricePerWord
                               ).toFixed(0)}
@@ -407,11 +407,11 @@ export function PricingPageCalculator() {
                     {revisions[0] > 0 && (
                       <div className="flex justify-between">
                         <span>
-                          შესწორებები ({revisions[0]} × $
+                          შესწორებები ({revisions[0]} × ₾
                           {selectedActor.pricing.revisionFee}):
                         </span>
                         <span>
-                          ${revisions[0] * selectedActor.pricing.revisionFee}
+                          ₾{revisions[0] * selectedActor.pricing.revisionFee}
                         </span>
                       </div>
                     )}
@@ -419,34 +419,34 @@ export function PricingPageCalculator() {
                     {expressDelivery && (
                       <div className="flex justify-between">
                         <span>სწრაფი მიწოდება:</span>
-                        <span>${selectedActor.pricing.expressDeliveryFee}</span>
+                        <span>₾{selectedActor.pricing.expressDeliveryFee}</span>
                       </div>
                     )}
 
                     {backgroundMusic && (
                       <div className="flex justify-between">
                         <span>ფონური მუსიკა:</span>
-                        <span>${selectedActor.pricing.backgroundMusicFee}</span>
+                        <span>₾{selectedActor.pricing.backgroundMusicFee}</span>
                       </div>
                     )}
 
                     {soundEffects && (
                       <div className="flex justify-between">
                         <span>ხმოვანი ეფექტები:</span>
-                        <span>${selectedActor.pricing.soundEffectsFee}</span>
+                        <span>₾{selectedActor.pricing.soundEffectsFee}</span>
                       </div>
                     )}
 
                     <div className="border-t pt-2 mt-2">
                       <div className="flex justify-between font-medium">
                         <span>სულ:</span>
-                        <span>${price}</span>
+                        <span>₾{price}</span>
                       </div>
                     </div>
 
                     {price === selectedActor.pricing.minOrder && (
                       <p className="text-xs text-muted-foreground mt-2">
-                        * მინიმალური შეკვეთა: ${selectedActor.pricing.minOrder}
+                        * მინიმალური შეკვეთა: ₾{selectedActor.pricing.minOrder}
                       </p>
                     )}
                   </div>
@@ -613,7 +613,7 @@ export function PricingPageCalculator() {
                               <strong>შესწორებები:</strong> {revisions[0]}
                             </p>
                             <p>
-                              <strong>ფასი:</strong> ${price}
+                              <strong>ფასი:</strong> ₾{price}
                             </p>
                             {expressDelivery && (
                               <p>
