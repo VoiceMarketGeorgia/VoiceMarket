@@ -1,7 +1,32 @@
-import { Card, CardContent } from "@/components/ui/card"
-import { MapPin, Phone, Mail, Clock, Globe2 } from "lucide-react"
+"use client";
+
+import { Card, CardContent } from "@/components/ui/card";
+import { MapPin, Phone, Mail, Clock, Globe2 } from "lucide-react";
+import dynamic from "next/dynamic";
+import { useMemo } from "react";
+
+// Dynamically import map to avoid SSR issues
+const MapComponent = dynamic<{ position: { lat: number; lng: number } }>(
+  () => import("./map"),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-full w-full bg-muted flex items-center justify-center">
+        <p className="text-muted-foreground">რუკის ჩატვირთვა...</p>
+      </div>
+    ),
+  }
+);
 
 export function ContactInfo() {
+  const position = useMemo(
+    () => ({
+      lat: 41.72794,
+      lng: 44.74566,
+    }),
+    []
+  );
+
   return (
     <div className="space-y-6">
       <Card>
@@ -25,7 +50,9 @@ export function ContactInfo() {
               <Phone className="h-5 w-5 text-orange-500 mt-0.5" />
               <div>
                 <h3 className="font-medium">ტელეფონი</h3>
-                <p className="text-sm text-muted-foreground">(+995) 597 81 81 88</p>
+                <p className="text-sm text-muted-foreground">
+                  (+995) 597 81 81 88
+                </p>
               </div>
             </div>
 
@@ -33,7 +60,9 @@ export function ContactInfo() {
               <Mail className="h-5 w-5 text-orange-500 mt-0.5" />
               <div>
                 <h3 className="font-medium">ელ-ფოსტა</h3>
-                <p className="text-sm text-muted-foreground">voicemarket.ge@gmail.com</p>
+                <p className="text-sm text-muted-foreground">
+                  voicemarket.ge@gmail.com
+                </p>
               </div>
             </div>
 
@@ -56,7 +85,8 @@ export function ContactInfo() {
               <div>
                 <h3 className="font-medium">მხარდაჭერა</h3>
                 <p className="text-sm text-muted-foreground">
-                  ჩვენ გვაქვს მხარდაჭერა ქართულად და ინგლისურად, რომ ვმსახუროთ ჩვენი კლიენტები პროფესიონალური გახმოვანების სერვისებით.
+                  ჩვენ გვაქვს მხარდაჭერა ქართულად და ინგლისურად, რომ ვმსახუროთ
+                  ჩვენი კლიენტები პროფესიონალური გახმოვანების სერვისებით.
                 </p>
               </div>
             </div>
@@ -67,13 +97,10 @@ export function ContactInfo() {
       <Card>
         <CardContent className="p-0">
           <div className="aspect-video w-full overflow-hidden rounded-lg">
-            {/* In a real implementation, you would use a proper map component or embed a Google Map */}
-            <div className="h-full w-full bg-muted flex items-center justify-center">
-              <p className="text-muted-foreground">ინტერაქტიული რუკა იქნება აქ</p>
-            </div>
+            <MapComponent position={position} />
           </div>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
