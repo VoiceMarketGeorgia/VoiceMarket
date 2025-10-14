@@ -1,55 +1,61 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Card, CardContent } from "@/components/ui/card"
-import { CheckCircle2, Loader2 } from "lucide-react"
-import { submitContactForm } from "@/lib/supabase-queries"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
+import { CheckCircle2, Loader2 } from "lucide-react";
+import { submitContactForm } from "@/lib/supabase-queries";
 
 export function ContactForm() {
-  const [name, setName] = useState("")
-  const [email, setEmail] = useState("")
-  const [subject, setSubject] = useState("")
-  const [message, setMessage] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSubmitted, setIsSubmitted] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
-    setError(null)
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
 
     try {
       const result = await submitContactForm({
         name,
         email,
         subject,
-        message
-      })
+        message,
+      });
 
       if (result.success) {
-        setIsSubmitted(true)
+        setIsSubmitted(true);
         // Reset form after submission
-        setName("")
-        setEmail("")
-        setSubject("")
-        setMessage("")
+        setName("");
+        setEmail("");
+        setSubject("");
+        setMessage("");
       } else {
-        setError(result.error || 'შეტყობინების გაგზავნა ვერ მოხერხდა')
+        setError(result.error || "შეტყობინების გაგზავნა ვერ მოხერხდა");
       }
     } catch (err) {
-      setError('შეტყობინების გაგზავნა ვერ მოხერხდა')
+      setError("შეტყობინების გაგზავნა ვერ მოხერხდა");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <Card>
@@ -59,7 +65,9 @@ export function ContactForm() {
             <div className="rounded-full bg-green-100 p-3 dark:bg-green-900">
               <CheckCircle2 className="h-10 w-10 text-green-600 dark:text-green-400" />
             </div>
-            <h3 className="mt-4 text-xl font-semibold">შეტყობინება წარმატებით გაიგზავნა</h3>
+            <h3 className="mt-4 text-xl font-semibold">
+              შეტყობინება წარმატებით გაიგზავნა
+            </h3>
             <p className="mt-2 text-muted-foreground">
               მადლობა, რომ მიმართეთ! ჩვენ მალე უპასუხებთ.
             </p>
@@ -71,12 +79,20 @@ export function ContactForm() {
           <form onSubmit={handleSubmit} className="space-y-6">
             {error && (
               <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-                <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
+                <p className="text-red-600 dark:text-red-400 text-sm">
+                  {error}
+                </p>
               </div>
             )}
             <div className="space-y-2">
               <Label htmlFor="name">თქვენი სახელი</Label>
-              <Input id="name" placeholder="John Doe" required value={name} onChange={(e) => setName(e.target.value)} />
+              <Input
+                id="name"
+                placeholder="გიორგი გიორგაძე"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
             </div>
 
             <div className="space-y-2">
@@ -84,7 +100,7 @@ export function ContactForm() {
               <Input
                 id="email"
                 type="email"
-                placeholder="john@example.com"
+                placeholder="giorgi@gmail.com"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -99,10 +115,16 @@ export function ContactForm() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="general">ზოგადი კითხვა</SelectItem>
-                  <SelectItem value="support">მომხმარებელთა მხარდაჭერა</SelectItem>
+                  <SelectItem value="support">
+                    მომხმარებელთა მხარდაჭერა
+                  </SelectItem>
                   <SelectItem value="billing">ფასდაკლების კითხვა</SelectItem>
-                  <SelectItem value="partnership">პარტნიორობის შესაძლებლობა</SelectItem>
-                  <SelectItem value="talent">ხმოვანი მსახიობის გახდომა</SelectItem>
+                  <SelectItem value="partnership">
+                    პარტნიორობის შესაძლებლობა
+                  </SelectItem>
+                  <SelectItem value="talent">
+                    ხმოვანი მსახიობის გახდომა
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -119,7 +141,11 @@ export function ContactForm() {
               />
             </div>
 
-            <Button type="submit" className="w-full bg-orange-500 hover:bg-orange-600" disabled={isSubmitting}>
+            <Button
+              type="submit"
+              className="w-full bg-orange-500 hover:bg-orange-600"
+              disabled={isSubmitting}
+            >
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -133,5 +159,5 @@ export function ContactForm() {
         )}
       </CardContent>
     </Card>
-  )
+  );
 }
