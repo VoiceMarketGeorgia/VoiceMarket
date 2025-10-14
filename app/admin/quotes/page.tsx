@@ -131,7 +131,9 @@ export default function AdminQuotesPage() {
     return (
       <div className="container py-10">
         <div className="text-center">
-          <p className="text-lg text-muted-foreground">Loading quotes...</p>
+          <p className="text-lg text-muted-foreground">
+            იტვირთება შეკვეთები...
+          </p>
         </div>
       </div>
     );

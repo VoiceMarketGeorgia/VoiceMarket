@@ -123,10 +123,10 @@ export default function AdminContactsPage() {
   if (loading) {
     return (
       <div className="space-y-4 md:space-y-6 px-2 md:px-0">
-        <h1 className="text-2xl md:text-3xl font-bold">Contact Submissions</h1>
+        <h1 className="text-2xl md:text-3xl font-bold">შეტყობინებები</h1>
         <div className="text-center py-8">
           <p className="text-muted-foreground text-sm md:text-base">
-            Loading contacts...
+            იტვირთება შეტყობინებები...
           </p>
         </div>
       </div>
