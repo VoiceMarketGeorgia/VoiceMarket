@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect, ChangeEvent } from "react";
-
+import { useState } from "react";
+import AudioPlayer from "react-h5-audio-player";
+import "react-h5-audio-player/lib/styles.css";
 import {
   ChevronDown,
   Mic2,
@@ -8,6 +9,104 @@ import {
   GraduationCap,
   Star,
 } from "lucide-react";
+
+// Custom styles for the audio player
+const customAudioPlayerStyles = `
+  .custom-audio-player .rhap_container {
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+  
+  .custom-audio-player .rhap_main-controls-button {
+    background: white !important;
+    border-radius: 50% !important;
+    width: 48px !important;
+    height: 48px !important;
+    margin: 0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    border: none !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  /* Make play/pause icon orange and large */
+  .custom-audio-player .rhap_main-controls-button svg {
+    fill: #f97316 !important;
+    color: #f97316 !important;
+    width: 100px !important;
+    height: 100px !important;
+  }
+  
+  .custom-audio-player .rhap_main-controls-button svg path {
+    fill: #f97316 !important;
+    color: #f97316 !important;
+  }
+  
+  /* Ensure button stays white on hover */
+  .custom-audio-player .rhap_main-controls-button:hover {
+    background: white !important;
+    transform: scale(1.05) !important;
+    transition: transform 0.2s ease !important;
+  }
+  
+  /* Make sure the triangle is orange */
+  .custom-audio-player .rhap_main-controls-button svg polygon,
+  .custom-audio-player .rhap_main-controls-button svg circle,
+  .custom-audio-player .rhap_main-controls-button svg rect {
+    fill: #f97316 !important;
+    color: #f97316 !important;
+  }
+  
+  .custom-audio-player .rhap_progress-filled {
+    background: linear-gradient(to right, #fb923c, #f97316) !important;
+  }
+  
+  .custom-audio-player .rhap_progress-indicator {
+    background: linear-gradient(to right, #fb923c, #f97316) !important;
+  }
+  
+  /* Hide time displays */
+  .custom-audio-player .rhap_time {
+    display: none !important;
+  }
+  
+  /* Hide volume controls */
+  .custom-audio-player .rhap_volume-container {
+    display: none !important;
+  }
+  
+  /* Hide repeat/loop button */
+  .custom-audio-player .rhap_repeat-button {
+    display: none !important;
+  }
+  
+  /* Hide jump controls */
+  .custom-audio-player .rhap_jump-button {
+    display: none !important;
+  }
+  
+  /* Hide download progress */
+  .custom-audio-player .rhap_download-progress {
+    display: none !important;
+  }
+
+  /* Remove margin and padding from all audio player elements */
+  .custom-audio-player,
+  .custom-audio-player *,
+  .rhap_container,
+  .rhap_container * {
+    margin: 0, 0, 20px, 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Remove padding from controls section and its children */
+  .custom-audio-player .rhap_controls-section,
+  .custom-audio-player .rhap_controls-section * {
+    margin: 0 !important;
+  }
+`;
 
 interface AudioSample {
   id: string;
@@ -33,93 +132,10 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
   className = "",
   showTimeDisplay = true,
 }) => {
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
   const [selectedSample, setSelectedSample] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isAudioLoaded, setIsAudioLoaded] = useState(false);
-  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
+  
   const currentSample = audioSamples[selectedSample];
-
-  // Function to load audio lazily when play button is clicked
-  const loadAudio = async () => {
-    if (isAudioLoaded || isLoadingAudio) return;
-    
-    setIsLoadingAudio(true);
-    
-    try {
-      if (!audioRef.current) {
-        audioRef.current = new Audio();
-      }
-
-      const audio = audioRef.current;
-      audio.src = currentSample.url;
-      audio.loop = true;
-      audio.preload = 'metadata';
-
-      const updateCurrentTime = () => setCurrentTime(audio.currentTime);
-      const setAudioData = () => {
-        setDuration(audio.duration);
-        setCurrentTime(audio.currentTime);
-        setIsAudioLoaded(true);
-        setIsLoadingAudio(false);
-      };
-
-      const handleError = () => {
-        console.error('Error loading audio:', currentSample.url);
-        setIsLoadingAudio(false);
-      };
-
-      audio.addEventListener("timeupdate", updateCurrentTime);
-      audio.addEventListener("loadedmetadata", setAudioData);
-      audio.addEventListener("error", handleError);
-
-      // Load the audio
-      await audio.load();
-      
-    } catch (error) {
-      console.error('Error loading audio:', error);
-      setIsLoadingAudio(false);
-    }
-  };
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio || !isAudioLoaded) return;
-
-    if (isPlaying) audio.play().catch(console.error);
-    else audio.pause();
-  }, [isPlaying, isAudioLoaded]);
-
-  const togglePlayPause = async () => {
-    // Load audio first if not loaded
-    if (!isAudioLoaded && !isLoadingAudio) {
-      await loadAudio();
-      // Wait a bit for audio to be ready
-      setTimeout(() => {
-        onTogglePlay(playerId);
-      }, 100);
-    } else {
-      onTogglePlay(playerId);
-    }
-  };
-
-  const handleProgressChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const newTime = (Number(event.target.value) / 100) * duration;
-    audio.currentTime = newTime;
-    setCurrentTime(newTime);
-  };
-
-  const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-  };
 
   const handleSampleChange = (index: number) => {
     if (isPlaying) {
@@ -127,37 +143,15 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
     }
     setSelectedSample(index);
     setIsDropdownOpen(false);
-    // Reset audio loaded state when changing samples
-    setIsAudioLoaded(false);
-    setCurrentTime(0);
-    setDuration(0);
   };
 
-  const PlayIcon = (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      className="w-5 h-5 fill-current"
-      viewBox="0 0 24 24"
-      style={{ transform: "translateX(1px)" }}
-    >
-      <path d="M3 22v-20l18 10-18 10z" />
-    </svg>
-  );
 
-  const PauseIcon = (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      className="w-5 h-5 fill-current"
-      viewBox="0 0 24 24"
-    >
-      <path d="M6 22h4v-20h-4v20zm8-20v20h4v-20h-4z" />
-    </svg>
-  );
+
 
   return (
-    <div
-      className={`bg-white dark:bg-card rounded-xl shadow-lg p-4 ${className}`}
-    >
+    <>
+      <style>{customAudioPlayerStyles}</style>
+      <div className={`bg-white dark:bg-card rounded-xl shadow-lg p-4 ${className}`}>
       {/* Category Dropdown */}
       <div className="relative mb-3">
         <button
@@ -205,56 +199,26 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
         )}
       </div>
 
-      {/* Audio Player Controls */}
-      <div className="flex items-center gap-4">
-        {/* Play/Pause Button */}
-        <button
-          onClick={togglePlayPause}
-          disabled={isLoadingAudio}
-          className={`w-12 h-12 flex items-center justify-center rounded-full bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-offset-2 flex-shrink-0 ${
-            isLoadingAudio ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-        >
-          {isLoadingAudio ? (
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          ) : isPlaying ? (
-            PauseIcon
-          ) : (
-            PlayIcon
-          )}
-        </button>
-
-        {/* Progress Bar */}
-        <div className="relative h-2 bg-gray-200 dark:bg-muted rounded-full overflow-hidden flex-1">
-          <div
-            className="absolute top-0 left-0 h-full bg-gradient-to-r from-orange-400 to-orange-500 rounded-full transition-all duration-200"
-            style={{ width: `${isAudioLoaded ? (currentTime / duration) * 100 : 0}%` }}
-          />
-          <input
-            type="range"
-            min="0"
-            max="100"
-            value={isAudioLoaded ? (currentTime / duration) * 100 : 0}
-            onChange={handleProgressChange}
-            disabled={!isAudioLoaded}
-            className={`absolute top-0 left-0 w-full h-full opacity-0 ${
-              isAudioLoaded ? 'cursor-pointer' : 'cursor-not-allowed'
-            }`}
-          />
-        </div>
-
-        {/* Time Display */}
-        {showTimeDisplay && (
-          <div className="text-xs text-gray-500 dark:text-muted-foreground font-mono whitespace-nowrap flex-shrink-0">
-            {isAudioLoaded ? (
-              `${formatTime(currentTime)} / ${formatTime(duration)}`
-            ) : (
-              '0:00 / 0:00'
-            )}
-          </div>
-        )}
-      </div>
+      {/* Audio Player */}
+      <AudioPlayer
+        src={currentSample.url}
+        autoPlay={false}
+        loop={true}
+        showJumpControls={false}
+        showDownloadProgress={false}
+        showFilledProgress={true}
+        showFilledVolume={false}
+        volume={0.8}
+        layout="horizontal-reverse"
+        style={{
+          backgroundColor: 'transparent',
+          boxShadow: 'none',
+        }}
+        className="custom-audio-player"
+      />
     </div>
+    </>
   );
 };
+
 export default CardAudioPlayer;
