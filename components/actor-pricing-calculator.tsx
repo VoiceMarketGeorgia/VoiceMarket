@@ -1,16 +1,24 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Textarea } from "@/components/ui/textarea"
-import { Slider } from "@/components/ui/slider"
-import { Switch } from "@/components/ui/switch"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Calculator, Clock, DollarSign, AlertCircle, Send, CheckCircle2, Loader2 } from "lucide-react"
-import { ActorPricing } from "./voice-card"
-import { submitQuoteRequest } from "@/lib/supabase-queries"
+import { useState, useEffect } from "react";
+import { Textarea } from "@/components/ui/textarea";
+import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Calculator,
+  Clock,
+  DollarSign,
+  AlertCircle,
+  Send,
+  CheckCircle2,
+  Loader2,
+} from "lucide-react";
+import { ActorPricing } from "./voice-card";
+import { submitQuoteRequest } from "@/lib/supabase-queries";
 
 interface ActorPricingCalculatorProps {
   pricing: ActorPricing;
@@ -18,35 +26,39 @@ interface ActorPricingCalculatorProps {
   dbId?: number; // Database primary key for foreign key references
 }
 
-export function ActorPricingCalculator({ pricing, actorId, dbId }: ActorPricingCalculatorProps) {
-  const [script, setScript] = useState("")
-  const [wordCount, setWordCount] = useState(0)
-  const [revisions, setRevisions] = useState([2])
-  const [expressDelivery, setExpressDelivery] = useState(false)
-  const [backgroundMusic, setBackgroundMusic] = useState(false)
-  const [soundEffects, setSoundEffects] = useState(false)
-  const [price, setPrice] = useState(0)
-  const [deliveryTime, setDeliveryTime] = useState("48 hours")
-  
+export function ActorPricingCalculator({
+  pricing,
+  actorId,
+  dbId,
+}: ActorPricingCalculatorProps) {
+  const [script, setScript] = useState("");
+  const [wordCount, setWordCount] = useState(0);
+  const [revisions, setRevisions] = useState([2]);
+  const [expressDelivery, setExpressDelivery] = useState(false);
+  const [backgroundMusic, setBackgroundMusic] = useState(false);
+  const [soundEffects, setSoundEffects] = useState(false);
+  const [price, setPrice] = useState(0);
+  const [deliveryTime, setDeliveryTime] = useState("48 hours");
+
   // Quote request form states
-  const [showQuoteForm, setShowQuoteForm] = useState(false)
-  const [clientName, setClientName] = useState("")
-  const [clientEmail, setClientEmail] = useState("")
-  const [clientPhone, setClientPhone] = useState("")
-  const [specialRequirements, setSpecialRequirements] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isSubmitted, setIsSubmitted] = useState(false)
-  const [submitError, setSubmitError] = useState<string | null>(null)
+  const [showQuoteForm, setShowQuoteForm] = useState(false);
+  const [clientName, setClientName] = useState("");
+  const [clientEmail, setClientEmail] = useState("");
+  const [clientPhone, setClientPhone] = useState("");
+  const [specialRequirements, setSpecialRequirements] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Calculate word count
   useEffect(() => {
     if (script.trim() === "") {
-      setWordCount(0)
+      setWordCount(0);
     } else {
-      const words = script.trim().split(/\s+/)
-      setWordCount(words.length)
+      const words = script.trim().split(/\s+/);
+      setWordCount(words.length);
     }
-  }, [script])
+  }, [script]);
 
   // Calculate price based on actor's specific pricing
   useEffect(() => {
@@ -58,7 +70,7 @@ export function ActorPricingCalculator({ pricing, actorId, dbId }: ActorPricingC
     } else {
       // Variable pricing model
       calculatedPrice = pricing.basePrice;
-      
+
       // Add per-word pricing
       if (wordCount > 0) {
         calculatedPrice += wordCount * pricing.pricePerWord;
@@ -90,7 +102,15 @@ export function ActorPricingCalculator({ pricing, actorId, dbId }: ActorPricingC
     calculatedPrice = Math.max(calculatedPrice, pricing.minOrder);
 
     setPrice(Math.round(calculatedPrice));
-  }, [script, wordCount, revisions, expressDelivery, backgroundMusic, soundEffects, pricing]);
+  }, [
+    script,
+    wordCount,
+    revisions,
+    expressDelivery,
+    backgroundMusic,
+    soundEffects,
+    pricing,
+  ]);
 
   const handleSubmitQuote = async () => {
     if (!clientName || !clientEmail || !script) {
@@ -114,7 +134,7 @@ export function ActorPricingCalculator({ pricing, actorId, dbId }: ActorPricingC
         background_music: backgroundMusic,
         sound_effects: soundEffects,
         estimated_price: price,
-        special_requirements: specialRequirements
+        special_requirements: specialRequirements,
       });
 
       if (result.success) {
@@ -139,7 +159,9 @@ export function ActorPricingCalculator({ pricing, actorId, dbId }: ActorPricingC
     <div className="space-y-6">
       <div className="flex items-center gap-2 mb-4">
         <Calculator className="h-5 w-5 text-orange-500" />
-        <h3 className="text-lg font-semibold">Actor #{actorId} Pricing Calculator</h3>
+        <h3 className="text-lg font-semibold">
+          Actor #{actorId} Pricing Calculator
+        </h3>
       </div>
 
       {pricing.isFixedPrice && (
@@ -148,7 +170,8 @@ export function ActorPricingCalculator({ pricing, actorId, dbId }: ActorPricingC
             <div className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-orange-600" />
               <span className="text-sm font-medium text-orange-800 dark:text-orange-200">
-                This actor uses fixed pricing: ${pricing.fixedPriceAmount} (base rate)
+                This actor uses fixed pricing: ${pricing.fixedPriceAmount} (base
+                rate)
               </span>
             </div>
           </CardContent>
@@ -173,7 +196,9 @@ export function ActorPricingCalculator({ pricing, actorId, dbId }: ActorPricingC
           </div>
 
           <div>
-            <Label htmlFor="revisions">შესწორებების რაოდენობა: {revisions[0]}</Label>
+            <Label htmlFor="revisions">
+              შესწორებების რაოდენობა: {revisions[0]}
+            </Label>
             <Slider
               id="revisions"
               min={0}
@@ -226,7 +251,9 @@ export function ActorPricingCalculator({ pricing, actorId, dbId }: ActorPricingC
                 <div className="text-3xl font-bold text-orange-500 mb-2">
                   ${price}
                 </div>
-                <p className="text-muted-foreground">პროექტის სრული ღირებულება</p>
+                <p className="text-muted-foreground">
+                  პროექტის სრული ღირებულება
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -248,48 +275,55 @@ export function ActorPricingCalculator({ pricing, actorId, dbId }: ActorPricingC
                     </div>
                     {wordCount > 0 && (
                       <div className="flex justify-between">
-                        <span>სიტყვები ({wordCount} × ${pricing.pricePerWord.toFixed(2)}):</span>
-                        <span>${(wordCount * pricing.pricePerWord).toFixed(0)}</span>
+                        <span>
+                          სიტყვები ({wordCount} × $
+                          {pricing.pricePerWord.toFixed(2)}):
+                        </span>
+                        <span>
+                          ${(wordCount * pricing.pricePerWord).toFixed(0)}
+                        </span>
                       </div>
                     )}
                   </>
                 )}
-                
+
                 {revisions[0] > 0 && (
                   <div className="flex justify-between">
-                    <span>შესწორებები ({revisions[0]} × ${pricing.revisionFee}):</span>
+                    <span>
+                      შესწორებები ({revisions[0]} × ${pricing.revisionFee}):
+                    </span>
                     <span>${revisions[0] * pricing.revisionFee}</span>
                   </div>
                 )}
-                
+
                 {expressDelivery && (
                   <div className="flex justify-between">
                     <span>სწრაფი მიწოდება:</span>
                     <span>${pricing.expressDeliveryFee}</span>
                   </div>
                 )}
-                
+
                 {backgroundMusic && (
                   <div className="flex justify-between">
                     <span>ფონური მუსიკა:</span>
                     <span>${pricing.backgroundMusicFee}</span>
                   </div>
                 )}
-                
+
                 {soundEffects && (
                   <div className="flex justify-between">
                     <span>ხმოვანი ეფექტები:</span>
                     <span>${pricing.soundEffectsFee}</span>
                   </div>
                 )}
-                
+
                 <div className="border-t pt-2 mt-2">
                   <div className="flex justify-between font-medium">
                     <span>სულ:</span>
                     <span>${price}</span>
                   </div>
                 </div>
-                
+
                 {price === pricing.minOrder && (
                   <p className="text-xs text-muted-foreground mt-2">
                     * Minimum order: ${pricing.minOrder}
@@ -319,10 +353,11 @@ export function ActorPricingCalculator({ pricing, actorId, dbId }: ActorPricingC
               <CheckCircle2 className="h-6 w-6 text-green-600" />
               <div>
                 <h3 className="font-semibold text-green-800 dark:text-green-200">
-                  მოთხოვნა წარმატებით გაიგზავნა!
+                  შეკვეთა წარმატებით გაიგზავნა!
                 </h3>
                 <p className="text-sm text-green-600 dark:text-green-300">
-                  ჩვენ განვიხილავთ თქვენს პროექტს და 24 საათში გამოგიგზავნით ზუსტ ფასს.
+                  ჩვენ განვიხილავთ თქვენს პროექტს და 24 საათში გამოგიგზავნით
+                  ზუსტ ფასს.
                 </p>
               </div>
             </div>
@@ -338,9 +373,10 @@ export function ActorPricingCalculator({ pricing, actorId, dbId }: ActorPricingC
               <div className="text-center">
                 <h3 className="text-lg font-semibold mb-2">მომწონს ეს ფასი?</h3>
                 <p className="text-muted-foreground mb-4">
-                  გაგზავნეთ მოთხოვნა Actor #{actorId}-ისთვის და მიიღეთ ზუსტი ფასი
+                  გაგზავნეთ შეკვეთა მსახიობი #{actorId}-ისთვის და მიიღეთ ზუსტი
+                  ფასი
                 </p>
-                <Button 
+                <Button
                   onClick={() => setShowQuoteForm(true)}
                   className="bg-orange-500 hover:bg-orange-600"
                   size="lg"
@@ -358,9 +394,11 @@ export function ActorPricingCalculator({ pricing, actorId, dbId }: ActorPricingC
             ) : (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">კონტაქტის ინფორმაცია</h3>
-                  <Button 
-                    variant="outline" 
+                  <h3 className="text-lg font-semibold">
+                    კონტაქტის ინფორმაცია
+                  </h3>
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => setShowQuoteForm(false)}
                   >
@@ -370,7 +408,9 @@ export function ActorPricingCalculator({ pricing, actorId, dbId }: ActorPricingC
 
                 {submitError && (
                   <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-                    <p className="text-red-600 dark:text-red-400 text-sm">{submitError}</p>
+                    <p className="text-red-600 dark:text-red-400 text-sm">
+                      {submitError}
+                    </p>
                   </div>
                 )}
 
@@ -410,7 +450,9 @@ export function ActorPricingCalculator({ pricing, actorId, dbId }: ActorPricingC
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="specialRequirements">დამატებითი მოთხოვნები</Label>
+                  <Label htmlFor="specialRequirements">
+                    დამატებითი მოთხოვნები
+                  </Label>
                   <Textarea
                     id="specialRequirements"
                     placeholder="სპეციალური ინსტრუქციები, ტონალობა, მიწოდების მოთხოვნები..."
@@ -426,20 +468,34 @@ export function ActorPricingCalculator({ pricing, actorId, dbId }: ActorPricingC
                     <h4 className="font-medium mb-2">მოთხოვნის შეჯამება</h4>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
-                        <p><strong>მსახიობი:</strong> Actor #{actorId}</p>
-                        <p><strong>სიტყვები:</strong> {wordCount}</p>
-                        <p><strong>მიწოდება:</strong> {deliveryTime}</p>
+                        <p>
+                          <strong>მსახიობი:</strong> Actor #{actorId}
+                        </p>
+                        <p>
+                          <strong>სიტყვები:</strong> {wordCount}
+                        </p>
+                        <p>
+                          <strong>მიწოდება:</strong> {deliveryTime}
+                        </p>
                       </div>
                       <div>
-                        <p><strong>შესწორებები:</strong> {revisions[0]}</p>
-                        <p><strong>ფასი:</strong> ${price}</p>
-                        {expressDelivery && <p><strong>სწრაფი მიწოდება:</strong> ✓</p>}
+                        <p>
+                          <strong>შესწორებები:</strong> {revisions[0]}
+                        </p>
+                        <p>
+                          <strong>ფასი:</strong> ${price}
+                        </p>
+                        {expressDelivery && (
+                          <p>
+                            <strong>სწრაფი მიწოდება:</strong> ✓
+                          </p>
+                        )}
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                <Button 
+                <Button
                   onClick={handleSubmitQuote}
                   className="w-full bg-orange-500 hover:bg-orange-600"
                   disabled={isSubmitting || !clientName || !clientEmail}
@@ -462,5 +518,5 @@ export function ActorPricingCalculator({ pricing, actorId, dbId }: ActorPricingC
         </Card>
       )}
     </div>
-  )
+  );
 }
