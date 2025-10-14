@@ -24,11 +24,7 @@ export function Header() {
       label: "მსახიობები",
       active: pathname === "/talents",
     },
-    {
-      href: "/pricing",
-      label: "ფასები",
-      active: pathname === "/pricing",
-    },
+
     {
       href: "/contact",
       label: "კონტაქტი",
@@ -63,9 +59,12 @@ export function Header() {
 
         <div className="flex items-center gap-4">
           <ModeToggle />
-          <Button className="hidden md:inline-flex bg-orange-500 hover:bg-orange-600">
-            შეკვეთა
-          </Button>
+
+          <Link href="/pricing">
+            <Button className="hidden md:inline-flex bg-orange-500 hover:bg-orange-600">
+              შეკვეთა
+            </Button>
+          </Link>
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild className="md:hidden">
               <Button variant="ghost" size="icon">

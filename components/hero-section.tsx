@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
+import Link from "next/link";
 
 export function HeroSection() {
   return (
@@ -22,8 +23,7 @@ export function HeroSection() {
       {/* Content Container */}
       <div className="relative z-10 container mx-auto px-4 pt-16 pb-20 text-center">
         <div className="max-w-4xl mx-auto">
-          {/* Main Heading - Using Dachi Font */}
-          <h1 className="font-dachi text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl">
+          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl">
             Voice Market
             {/* <span className="text-orange-400 drop-shadow-lg bg-gradient-to-r from-orange-400 to-orange-500 bg-clip-text text-transparent">
               
@@ -32,26 +32,33 @@ export function HeroSection() {
 
           {/* Subtitle */}
           <p className="mt-6 text-lg sm:text-xl md:text-2xl text-gray-200 drop-shadow-md font-medium">
-🎙️ ყველა ხმა, ერთ სივრცეში!
+            🎙️ ყველა ხმა, ერთ სივრცეში!
           </p>
 
           {/* Call to Action Buttons */}
           <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button
-              size="lg"
-              className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-8 py-3 text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
-            >
-              <Search className="mr-2 h-5 w-5" />
-ხმების ძიება
-            </Button>
+            <Link href="/talents">
+              <Button
+                asChild
+                size="lg"
+                className="bg-orange-500 hover:bg-orange-600 text-white font-semibold px-8 py-3 text-lg shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+              >
+                <span>
+                  <Search className="mr-2 h-5 w-5" />
+                  ხმების ძიება
+                </span>
+              </Button>
+            </Link>
 
-            <Button
-              variant="outline"
-              size="lg"
-              className="border-2 border-white/80 text-white hover:bg-white hover:text-gray-900 font-semibold px-8 py-3 text-lg backdrop-blur-sm bg-white/10 transition-all duration-300"
-            >
-მეტის ნახვა
-            </Button>
+            <Link href="/contact">
+              <Button
+                variant="outline"
+                size="lg"
+                className="border-2 border-white/80 text-white hover:bg-white hover:text-gray-900 font-semibold px-8 py-3 text-lg backdrop-blur-sm bg-white/10 transition-all duration-300"
+              >
+                დაკავშირება
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
