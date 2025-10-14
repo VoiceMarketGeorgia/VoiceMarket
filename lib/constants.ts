@@ -62,7 +62,20 @@ export const GENDER_OPTIONS = [
 ]
 
 // Helper function to get Georgian label for a value
-export function getGeorgianLabel(value: string, type: 'language' | 'accent' | 'voiceStyle' | 'gender'): string {
+export function getGeorgianLabel(value: string, type?: 'language' | 'accent' | 'voiceStyle' | 'gender' | 'audioCategory'): string {
+  if (!type) {
+    // Try all types to find a match
+    const allOptions = [
+      ...LANGUAGE_OPTIONS,
+      ...ACCENT_OPTIONS,
+      ...VOICE_STYLE_OPTIONS,
+      ...GENDER_OPTIONS,
+      ...AUDIO_CATEGORIES,
+    ]
+    const found = allOptions.find(opt => opt.value === value)
+    return found?.label || value
+  }
+  
   let options: Array<{ value: string; label: string }> = []
   
   switch (type) {
@@ -77,6 +90,9 @@ export function getGeorgianLabel(value: string, type: 'language' | 'accent' | 'v
       break
     case 'gender':
       options = GENDER_OPTIONS
+      break
+    case 'audioCategory':
+      options = AUDIO_CATEGORIES
       break
   }
   

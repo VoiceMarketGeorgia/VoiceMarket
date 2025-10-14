@@ -3,11 +3,10 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { VoiceCard, AudioSample, Talent, ActorPricing } from "./voice-card";
 import { useRouter } from "next/navigation";
-import { Mic2, Headphones, BookOpen, Filter, X } from "lucide-react";
+import { Mic2, Headphones, BookOpen, Filter, X, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MultiSelect } from "@/components/ui/multi-select";
 import { getAllVoiceActors, convertToTalent } from "@/lib/supabase-queries";
 import { supabase } from "@/lib/supabase";
 import { VOICE_STYLE_OPTIONS, LANGUAGE_OPTIONS, GENDER_OPTIONS, AUDIO_CATEGORIES } from "@/lib/constants";
@@ -29,12 +28,23 @@ export function AllTalents() {
     null
   );
   const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState({
+  
+  // Temporary filters (what user is currently selecting)
+  const [tempFilters, setTempFilters] = useState({
     voiceStyles: [] as string[],
     languages: [] as string[],
     genders: [] as string[],
     audioCategories: [] as string[],
   });
+  
+  // Applied filters (what's actually filtering the results)
+  const [appliedFilters, setAppliedFilters] = useState({
+    voiceStyles: [] as string[],
+    languages: [] as string[],
+    genders: [] as string[],
+    audioCategories: [] as string[],
+  });
+  
   const [talents, setTalents] = useState<TalentWithDuration[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -288,35 +298,35 @@ export function AllTalents() {
     }
   };
 
-  // Filter talents based on selected filters
+  // Filter talents based on applied filters
   const filteredTalents = useMemo(() => {
     return talents.filter((talent) => {
-      // Filter by voice styles
-      if (filters.voiceStyles.length > 0) {
-        const hasMatchingStyle = filters.voiceStyles.some(style => 
+      // Filter by voice styles (multi-select)
+      if (appliedFilters.voiceStyles.length > 0) {
+        const hasMatchingStyle = appliedFilters.voiceStyles.some(style => 
           (talent as any).voice_style?.includes(style)
         );
         if (!hasMatchingStyle) return false;
       }
 
-      // Filter by languages
-      if (filters.languages.length > 0) {
-        const hasMatchingLanguage = filters.languages.some(lang => 
+      // Filter by languages (multi-select)
+      if (appliedFilters.languages.length > 0) {
+        const hasMatchingLanguage = appliedFilters.languages.some(lang => 
           talent.languages?.includes(lang)
         );
         if (!hasMatchingLanguage) return false;
       }
 
-      // Filter by genders
-      if (filters.genders.length > 0) {
-        const hasMatchingGender = filters.genders.includes((talent as any).gender);
+      // Filter by genders (multi-select)
+      if (appliedFilters.genders.length > 0) {
+        const hasMatchingGender = appliedFilters.genders.includes((talent as any).gender);
         if (!hasMatchingGender) return false;
       }
 
-      // Filter by audio categories (from samples)
-      if (filters.audioCategories.length > 0) {
+      // Filter by audio categories (multi-select)
+      if (appliedFilters.audioCategories.length > 0) {
         const sampleCategories = talent.samples.map((s: any) => s.category).filter(Boolean);
-        const hasMatchingCategory = filters.audioCategories.some(cat => 
+        const hasMatchingCategory = appliedFilters.audioCategories.some(cat => 
           sampleCategories.includes(cat)
         );
         if (!hasMatchingCategory) return false;
@@ -324,7 +334,7 @@ export function AllTalents() {
 
       return true;
     });
-  }, [talents, filters]);
+  }, [talents, appliedFilters]);
 
   const handleTogglePlay = (playerId: string) => {
     setCurrentlyPlayingId(currentlyPlayingId === playerId ? null : playerId);
@@ -334,44 +344,18 @@ export function AllTalents() {
     router.push(`/talents/${talentId}`);
   };
 
-  const toggleVoiceStyleFilter = (style: string) => {
-    setFilters(prev => ({
-      ...prev,
-      voiceStyles: prev.voiceStyles.includes(style)
-        ? prev.voiceStyles.filter(s => s !== style)
-        : [...prev.voiceStyles, style]
-    }));
-  };
-
-  const toggleLanguageFilter = (language: string) => {
-    setFilters(prev => ({
-      ...prev,
-      languages: prev.languages.includes(language)
-        ? prev.languages.filter(l => l !== language)
-        : [...prev.languages, language]
-    }));
-  };
-
-  const toggleGenderFilter = (gender: string) => {
-    setFilters(prev => ({
-      ...prev,
-      genders: prev.genders.includes(gender)
-        ? prev.genders.filter(g => g !== gender)
-        : [...prev.genders, gender]
-    }));
-  };
-
-  const toggleAudioCategoryFilter = (category: string) => {
-    setFilters(prev => ({
-      ...prev,
-      audioCategories: prev.audioCategories.includes(category)
-        ? prev.audioCategories.filter(c => c !== category)
-        : [...prev.audioCategories, category]
-    }));
+  const applyFilters = () => {
+    setAppliedFilters(tempFilters);
   };
 
   const resetFilters = () => {
-    setFilters({
+    setTempFilters({
+      voiceStyles: [],
+      languages: [],
+      genders: [],
+      audioCategories: [],
+    });
+    setAppliedFilters({
       voiceStyles: [],
       languages: [],
       genders: [],
@@ -380,10 +364,10 @@ export function AllTalents() {
   };
 
   const activeFilterCount = 
-    filters.voiceStyles.length + 
-    filters.languages.length + 
-    filters.genders.length + 
-    filters.audioCategories.length;
+    appliedFilters.voiceStyles.length +
+    appliedFilters.languages.length +
+    appliedFilters.genders.length +
+    appliedFilters.audioCategories.length;
 
   return (
     <div className="bg-white dark:bg-background">
@@ -428,99 +412,66 @@ export function AllTalents() {
               </Button>
             </div>
 
-            <div className="space-y-6">
-              {/* Voice Styles Filter */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Voice Style Filter - Multi-select */}
               <div>
-                <h4 className="font-medium mb-3">ხმის სტილი</h4>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {VOICE_STYLE_OPTIONS.map((style) => (
-                    <div key={style.value} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`voice-${style.value}`}
-                        checked={filters.voiceStyles.includes(style.value)}
-                        onCheckedChange={() => toggleVoiceStyleFilter(style.value)}
-                      />
-                      <Label htmlFor={`voice-${style.value}`} className="text-sm">
-                        {style.label}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
+                <Label htmlFor="voice-style" className="mb-2 block">ხმის სტილი</Label>
+                <MultiSelect
+                  options={VOICE_STYLE_OPTIONS}
+                  selected={tempFilters.voiceStyles}
+                  onChange={(values) => setTempFilters(prev => ({ ...prev, voiceStyles: values }))}
+                  placeholder="აირჩიეთ სტილი"
+                />
               </div>
 
-              {/* Languages Filter */}
+              {/* Language Filter - Multi-select */}
               <div>
-                <h4 className="font-medium mb-3">ენები</h4>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {LANGUAGE_OPTIONS.map((language) => (
-                    <div key={language.value} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`lang-${language.value}`}
-                        checked={filters.languages.includes(language.value)}
-                        onCheckedChange={() => toggleLanguageFilter(language.value)}
-                      />
-                      <Label htmlFor={`lang-${language.value}`} className="text-sm">
-                        {language.label}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
+                <Label htmlFor="language" className="mb-2 block">ენა</Label>
+                <MultiSelect
+                  options={LANGUAGE_OPTIONS}
+                  selected={tempFilters.languages}
+                  onChange={(values) => setTempFilters(prev => ({ ...prev, languages: values }))}
+                  placeholder="აირჩიეთ ენა"
+                />
               </div>
 
-              {/* Gender Filter */}
+              {/* Gender Filter - Multi-select */}
               <div>
-                <h4 className="font-medium mb-3">სქესი</h4>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {GENDER_OPTIONS.map((gender) => (
-                    <div key={gender.value} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`gender-${gender.value}`}
-                        checked={filters.genders.includes(gender.value)}
-                        onCheckedChange={() => toggleGenderFilter(gender.value)}
-                      />
-                      <Label htmlFor={`gender-${gender.value}`} className="text-sm">
-                        {gender.label}
-                      </Label>
-                    </div>
-                  ))}
-                </div>
+                <Label htmlFor="gender" className="mb-2 block">სქესი</Label>
+                <MultiSelect
+                  options={GENDER_OPTIONS}
+                  selected={tempFilters.genders}
+                  onChange={(values) => setTempFilters(prev => ({ ...prev, genders: values }))}
+                  placeholder="აირჩიეთ სქესი"
+                />
               </div>
 
-              {/* Audio Category Filter - Dropdown */}
+              {/* Audio Category Filter - Multi-select */}
               <div>
-                <h4 className="font-medium mb-3">აუდიო კატეგორია</h4>
-                <Select 
-                  value={filters.audioCategories[0] || "all"} 
-                  onValueChange={(value) => {
-                    if (value && value !== "all") {
-                      setFilters(prev => ({ ...prev, audioCategories: [value] }));
-                    } else {
-                      setFilters(prev => ({ ...prev, audioCategories: [] }));
-                    }
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="აირჩიეთ კატეგორია" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">ყველა კატეგორია</SelectItem>
-                    {AUDIO_CATEGORIES.map((category) => (
-                      <SelectItem key={category.value} value={category.value}>
-                        {category.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="audio-category" className="mb-2 block">აუდიო კატეგორია</Label>
+                <MultiSelect
+                  options={AUDIO_CATEGORIES}
+                  selected={tempFilters.audioCategories}
+                  onChange={(values) => setTempFilters(prev => ({ ...prev, audioCategories: values }))}
+                  placeholder="აირჩიეთ კატეგორია"
+                />
               </div>
             </div>
 
-            <div className="flex gap-2 mt-6">
+            <div className="flex gap-3 mt-6">
+              <Button
+                onClick={applyFilters}
+                className="flex-1 bg-orange-500 hover:bg-orange-600"
+              >
+                <Search className="h-4 w-4 mr-2" />
+                ფილტრაცია
+              </Button>
               <Button
                 variant="outline"
                 onClick={resetFilters}
                 className="flex-1"
               >
-გადატვირთვა
+                გადატვირთვა
               </Button>
             </div>
           </div>

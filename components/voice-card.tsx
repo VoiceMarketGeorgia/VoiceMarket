@@ -1,5 +1,6 @@
 import { Star, Headphones, Mic2, BookOpen, GraduationCap } from "lucide-react";
 import CardAudioPlayer from "./card-audio-player";
+import { getGeorgianLabel } from "@/lib/constants";
 
 export interface AudioSample {
   id: string;
@@ -77,7 +78,7 @@ export function VoiceCard({
                 key={tag}
                 className="bg-white/20 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full"
               >
-                {tag}
+                {getGeorgianLabel(tag)}
               </span>
             ))}
           </div>
