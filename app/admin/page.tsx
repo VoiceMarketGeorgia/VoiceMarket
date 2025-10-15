@@ -61,9 +61,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              სულ ფასის მოთხოვნები
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">სულ შეკვეთები</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -119,9 +117,9 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <h3 className="font-medium">ფასის მოთხოვნების მართვა</h3>
+              <h3 className="font-medium">შეკვეთების მართვა</h3>
               <p className="text-sm text-muted-foreground">
-                მომხმარებლების ფასის მოთხოვნების განხილვა და პასუხი
+                მომხმარებლების შეკვეთების განხილვა და პასუხი
               </p>
             </div>
             <div className="space-y-2">
@@ -148,7 +146,7 @@ export default function AdminDashboard() {
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
                 <span className="text-sm">
-                  {stats.pendingQuotes} ფასის მოთხოვნა მოლოდინშია
+                  {stats.pendingQuotes} შეკვეთა მოლოდინშია
                 </span>
               </div>
               <div className="flex items-center gap-3">

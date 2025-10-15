@@ -5,14 +5,14 @@ export function PricingPlans() {
   const plans = [
     {
       name: "Basic",
-      price: "$99",
+      price: "₾99",
       description: "Perfect for small projects and quick turnarounds.",
       features: ["Up to 150 words", "1 voice talent", "Commercial license", "1 revision", "48-hour delivery"],
       popular: false,
     },
     {
       name: "Professional",
-      price: "$199",
+      price: "₾199",
       description: "Ideal for medium-sized projects requiring more flexibility.",
       features: [
         "Up to 500 words",
@@ -26,7 +26,7 @@ export function PricingPlans() {
     },
     {
       name: "Premium",
-      price: "$349",
+      price: "₾349",
       description: "Complete solution for professional and complex projects.",
       features: [
         "Up to 1000 words",

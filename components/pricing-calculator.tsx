@@ -53,9 +53,9 @@ export function PricingCalculator() {
     // Add express delivery fee
     if (expressDelivery) {
       calculatedPrice += EXPRESS_DELIVERY_FEE
-      setDeliveryTime("24 hours")
+      setDeliveryTime("24 საათში")
     } else {
-      setDeliveryTime("48 hours")
+      setDeliveryTime("48 საათში")
     }
 
     // Add background music fee
@@ -135,7 +135,7 @@ export function PricingCalculator() {
               </div>
               <div>
                 <p className="text-sm font-medium">Estimated Price</p>
-                <p className="text-2xl font-bold">${price}</p>
+                <p className="text-2xl font-bold">₾{price}</p>
               </div>
             </div>
             <div className="flex items-center gap-3">

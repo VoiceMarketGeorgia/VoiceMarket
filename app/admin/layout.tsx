@@ -32,7 +32,7 @@ export default function AdminLayout({
                   <Link href="/admin/quotes">
                     <Button variant="ghost" className="w-full justify-start">
                       <FileText className="mr-2 h-4 w-4" />
-                      ფასის მოთხოვნები
+                      შეკვეთები
                     </Button>
                   </Link>
                   <Link href="/admin/contacts">
@@ -44,7 +44,7 @@ export default function AdminLayout({
                   <Link href="/admin/actors">
                     <Button variant="ghost" className="w-full justify-start">
                       <Users className="mr-2 h-4 w-4" />
-                      გახმოვანების მსახიობები
+                      მსახიობები
                     </Button>
                   </Link>
                 </nav>
