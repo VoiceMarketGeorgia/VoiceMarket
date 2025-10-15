@@ -18,6 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { getGeorgianLabel } from "@/lib/constants"
 
 export function TalentDirectory() {
   const [activeAudio, setActiveAudio] = useState<string | null>(null)
@@ -400,7 +401,7 @@ export function TalentDirectory() {
                   <div className="flex flex-wrap gap-2 mt-2">
                     {talent.tags.map((tag) => (
                       <Badge key={tag} variant="secondary" className="bg-white/20 text-white hover:bg-white/30">
-                        {tag}
+                        {getGeorgianLabel(tag)}
                       </Badge>
                     ))}
                   </div>

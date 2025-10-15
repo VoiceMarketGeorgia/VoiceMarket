@@ -83,9 +83,9 @@ export function ActorPricingCalculator({
     // Add express delivery fee
     if (expressDelivery) {
       calculatedPrice += pricing.expressDeliveryFee;
-      setDeliveryTime("24 hours");
+      setDeliveryTime("24 საათში");
     } else {
-      setDeliveryTime("48 hours");
+      setDeliveryTime("48 საათში");
     }
 
     // Add background music fee

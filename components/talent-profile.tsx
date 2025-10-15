@@ -28,6 +28,7 @@ import { ActorPricingCalculator } from "@/components/actor-pricing-calculator";
 import { ActorPricing } from "@/components/voice-card";
 import { getVoiceActorById, convertToTalent } from "@/lib/supabase-queries";
 import CardAudioPlayer from "@/components/card-audio-player";
+import { getGeorgianLabel } from "@/lib/constants";
 
 interface TalentProfileProps {
   id: string;
@@ -74,7 +75,7 @@ export function TalentProfile({ id }: TalentProfileProps) {
               : `₾${talentData.pricing.basePrice}-${
                   talentData.pricing.basePrice + 200
                 }`,
-            turnaround: voiceActor.turnaround_time || "24-48 hours",
+            turnaround: voiceActor.turnaround_time || "24-48 საათში",
             categories: talentData.tags,
             samples: samplesWithIcons,
             rating: voiceActor.rating || 4.5,
@@ -174,7 +175,7 @@ export function TalentProfile({ id }: TalentProfileProps) {
                     variant="secondary"
                     className="bg-white/20 text-white hover:bg-white/30"
                   >
-                    {category}
+                    {getGeorgianLabel(category)}
                   </Badge>
                 ))}
               </div>
@@ -193,7 +194,7 @@ export function TalentProfile({ id }: TalentProfileProps) {
                   <div>
                     <h3 className="font-medium">ენები</h3>
                     <p className="text-sm text-muted-foreground">
-                      {talent.languages.join(", ")}
+                      {talent.languages.map((lang: string) => getGeorgianLabel(lang, 'language')).join(", ")}
                     </p>
                   </div>
                 </div>
@@ -222,14 +223,7 @@ export function TalentProfile({ id }: TalentProfileProps) {
           </Card>
 
           {/* Removed Performance Stats section as requested */}
-
-          <div className="flex flex-col gap-3">
-            {/* Removed Save, Hire, Performance Stats buttons as requested */}
-            <Button variant="outline" className="w-full">
-              <MessageCircle className="h-4 w-4 mr-2" />
-              მსახიობთან კონტაქტი
-            </Button>
-          </div>
+          {/* Removed Contact button as requested */}
         </div>
 
         <div className="space-y-8">

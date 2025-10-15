@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import Image from "next/image";
 import { getAllVoiceActors, convertToTalent } from "@/lib/supabase-queries";
+import { getGeorgianLabel } from "@/lib/constants";
 
 interface ActorData {
   id: string;
@@ -121,9 +122,9 @@ export function PricingPageCalculator() {
     // Add express delivery fee
     if (expressDelivery) {
       calculatedPrice += pricing.expressDeliveryFee;
-      setDeliveryTime("24 hours");
+      setDeliveryTime("24 საათში");
     } else {
-      setDeliveryTime("48 hours");
+      setDeliveryTime("48 საათში");
     }
 
     // Add background music fee
@@ -247,7 +248,7 @@ export function PricingPageCalculator() {
                           key={tag}
                           className="inline-block bg-orange-100 text-orange-800 text-xs px-1.5 py-0.5 rounded"
                         >
-                          {tag}
+                          {getGeorgianLabel(tag)}
                         </span>
                       ))}
                     </div>
