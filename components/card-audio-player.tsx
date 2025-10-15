@@ -1,13 +1,11 @@
-import { useState, useRef, useEffect, ChangeEvent } from "react";
+"use client";
 
-import {
-  ChevronDown,
-  Mic2,
-  Headphones,
-  BookOpen,
-  GraduationCap,
-  Star,
-} from "lucide-react";
+import type React from "react";
+
+import { useState, useRef, useEffect } from "react";
+import AudioPlayer from "react-h5-audio-player";
+import "react-h5-audio-player/lib/styles.css";
+import { ChevronDown } from "lucide-react";
 
 interface AudioSample {
   id: string;
@@ -33,228 +31,259 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
   className = "",
   showTimeDisplay = true,
 }) => {
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
   const [selectedSample, setSelectedSample] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isAudioLoaded, setIsAudioLoaded] = useState(false);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [audioSrc, setAudioSrc] = useState<string>("");
+  const [progress, setProgress] = useState(0);
+  const audioPlayerRef = useRef<AudioPlayer>(null);
 
   const currentSample = audioSamples[selectedSample];
 
-  // Function to load audio lazily when play button is clicked
+  // Lazy load audio function
   const loadAudio = async () => {
-    if (isAudioLoaded || isLoadingAudio) return;
-    
+    if (isAudioLoaded || isLoadingAudio || audioSrc) return;
+
     setIsLoadingAudio(true);
-    
-    try {
-      if (!audioRef.current) {
-        audioRef.current = new Audio();
-      }
 
-      const audio = audioRef.current;
-      audio.src = currentSample.url;
-      audio.loop = true;
-      audio.preload = 'metadata';
-
-      const updateCurrentTime = () => setCurrentTime(audio.currentTime);
-      const setAudioData = () => {
-        setDuration(audio.duration);
-        setCurrentTime(audio.currentTime);
-        setIsAudioLoaded(true);
-        setIsLoadingAudio(false);
-      };
-
-      const handleError = () => {
-        console.error('Error loading audio:', currentSample.url);
-        setIsLoadingAudio(false);
-      };
-
-      audio.addEventListener("timeupdate", updateCurrentTime);
-      audio.addEventListener("loadedmetadata", setAudioData);
-      audio.addEventListener("error", handleError);
-
-      // Load the audio
-      await audio.load();
-      
-    } catch (error) {
-      console.error('Error loading audio:', error);
+    // Simulate loading and then set the source
+    setTimeout(() => {
+      setAudioSrc(currentSample.url);
       setIsLoadingAudio(false);
-    }
+    }, 100);
   };
 
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio || !isAudioLoaded) return;
-
-    if (isPlaying) audio.play().catch(console.error);
-    else audio.pause();
-  }, [isPlaying, isAudioLoaded]);
-
+  // Toggle play/pause with lazy loading
   const togglePlayPause = async () => {
-    // Load audio first if not loaded
-    if (!isAudioLoaded && !isLoadingAudio) {
+    if (!audioSrc && !isLoadingAudio) {
+      // Load audio first if not loaded
       await loadAudio();
-      // Wait a bit for audio to be ready
       setTimeout(() => {
-        onTogglePlay(playerId);
-      }, 100);
-    } else {
-      onTogglePlay(playerId);
+        if (audioPlayerRef.current?.audio.current) {
+          audioPlayerRef.current.audio.current.play();
+        }
+      }, 200);
+    } else if (audioPlayerRef.current?.audio.current) {
+      // Toggle play/pause
+      if (audioPlayerRef.current.audio.current.paused) {
+        audioPlayerRef.current.audio.current.play();
+      } else {
+        audioPlayerRef.current.audio.current.pause();
+      }
     }
   };
 
-  const handleProgressChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const newTime = (Number(event.target.value) / 100) * duration;
-    audio.currentTime = newTime;
-    setCurrentTime(newTime);
-  };
-
-  const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-  };
-
+  // Handle sample change
   const handleSampleChange = (index: number) => {
+    // Stop current audio
+    if (audioPlayerRef.current?.audio.current) {
+      audioPlayerRef.current.audio.current.pause();
+      audioPlayerRef.current.audio.current.currentTime = 0;
+    }
+
     if (isPlaying) {
       onTogglePlay(playerId);
     }
+
     setSelectedSample(index);
     setIsDropdownOpen(false);
+
     // Reset audio loaded state when changing samples
     setIsAudioLoaded(false);
-    setCurrentTime(0);
-    setDuration(0);
+    setIsLoadingAudio(false);
+    setAudioSrc("");
+    setProgress(0);
   };
 
-  const PlayIcon = (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      className="w-5 h-5 fill-current"
-      viewBox="0 0 24 24"
-      style={{ transform: "translateX(1px)" }}
-    >
-      <path d="M3 22v-20l18 10-18 10z" />
-    </svg>
-  );
+  // Audio event handlers
+  const handleCanPlay = () => {
+    setIsAudioLoaded(true);
+    setIsLoadingAudio(false);
+  };
 
-  const PauseIcon = (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      className="w-5 h-5 fill-current"
-      viewBox="0 0 24 24"
-    >
-      <path d="M6 22h4v-20h-4v20zm8-20v20h4v-20h-4z" />
-    </svg>
-  );
+  const handlePause = () => {
+    if (isPlaying) {
+      onTogglePlay(playerId);
+    }
+  };
+
+  const handlePlay = () => {
+    if (!isPlaying) {
+      onTogglePlay(playerId);
+    }
+  };
+
+  const handleListen = () => {
+    if (audioPlayerRef.current?.audio.current) {
+      const audio = audioPlayerRef.current.audio.current;
+      const progressPercent = (audio.currentTime / audio.duration) * 100 || 0;
+      setProgress(progressPercent);
+    }
+  };
+
+  // Handle progress bar click to seek
+  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const audio = audioPlayerRef.current?.audio.current;
+    if (!audio || !audioSrc) return;
+
+    const progressBar = e.currentTarget;
+    const rect = progressBar.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const percentage = Math.max(0, Math.min(1, clickX / rect.width));
+
+    // Wait for audio to be ready
+    if (audio.duration && !isNaN(audio.duration)) {
+      const newTime = percentage * audio.duration;
+      audio.currentTime = newTime;
+      setProgress(percentage * 100);
+    }
+  };
+
+  // Sync isPlaying state with audio
+  useEffect(() => {
+    const audio = audioPlayerRef.current?.audio.current;
+    if (!audio || !audioSrc) return;
+
+    if (isPlaying) {
+      audio.play().catch(console.error);
+    } else {
+      audio.pause();
+    }
+  }, [isPlaying, audioSrc]);
+
+  // Stop audio when tab is hidden
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && isPlaying) {
+        onTogglePlay(playerId);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, [isPlaying, playerId, onTogglePlay]);
 
   return (
-    <div
-      className={`bg-white dark:bg-card rounded-xl shadow-lg p-4 ${className}`}
-    >
-      {/* Category Dropdown */}
-      <div className="relative mb-3">
-        <button
-          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="w-full flex items-center justify-between p-3 bg-gray-50 dark:bg-muted rounded-lg border border-gray-200 dark:border-border hover:bg-gray-100 dark:hover:bg-muted/80 transition-colors duration-200"
-        >
-          <div className="flex items-center gap-2">
-            <span className="text-orange-500">{currentSample.icon}</span>
-            <span className="font-medium text-gray-700 dark:text-foreground">
-              {currentSample.name}
-            </span>
-          </div>
-          <ChevronDown
-            className={`h-4 w-4 text-gray-500 dark:text-muted-foreground transition-transform duration-200 ${
-              isDropdownOpen ? "rotate-0" : "-rotate-180"
-            }`}
-          />
-        </button>
+    <>
+      <style jsx global>{`
+        /* Hide the H5 player completely - we'll use custom controls */
+        .custom-audio-player {
+          display: none !important;
+        }
+      `}</style>
 
-        {isDropdownOpen && (
-          <div className="absolute bottom-full left-0 right-0 mb-1 bg-white dark:bg-card border border-gray-200 dark:border-border rounded-lg shadow-lg z-[9999] overflow-hidden">
-            {audioSamples.map((sample, index) => (
-              <button
-                key={sample.id}
-                onClick={() => handleSampleChange(index)}
-                className={`w-full flex items-center gap-2 p-3 text-left hover:bg-gray-50 dark:hover:bg-muted/50 transition-colors duration-150 ${
-                  index === selectedSample
-                    ? "bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400"
-                    : "text-gray-700 dark:text-foreground"
-                }`}
-              >
-                <span
-                  className={
+      <div
+        className={`bg-white dark:bg-card rounded-xl shadow-lg p-4 ${className}`}
+      >
+        {/* Category Dropdown */}
+        <div className="relative mb-3">
+          <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="w-full flex items-center justify-between p-3 bg-gray-50 dark:bg-muted rounded-lg border border-gray-200 dark:border-border hover:bg-gray-100 dark:hover:bg-muted/80 transition-colors duration-200"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-orange-500">{currentSample.icon}</span>
+              <span className="font-medium text-gray-700 dark:text-foreground">
+                {currentSample.name}
+              </span>
+            </div>
+            <ChevronDown
+              className={`h-4 w-4 text-gray-500 dark:text-muted-foreground transition-transform duration-200 ${
+                isDropdownOpen ? "rotate-0" : "-rotate-180"
+              }`}
+            />
+          </button>
+
+          {isDropdownOpen && (
+            <div className="absolute bottom-full left-0 right-0 mb-1 bg-white dark:bg-card border border-gray-200 dark:border-border rounded-lg shadow-lg z-[9999] overflow-hidden">
+              {audioSamples.map((sample, index) => (
+                <button
+                  key={sample.id}
+                  onClick={() => handleSampleChange(index)}
+                  className={`w-full flex items-center gap-2 p-3 text-left hover:bg-gray-50 dark:hover:bg-muted/50 transition-colors duration-150 ${
                     index === selectedSample
-                      ? "text-orange-500 dark:text-orange-400"
-                      : "text-gray-400 dark:text-muted-foreground"
-                  }
+                      ? "bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400"
+                      : "text-gray-700 dark:text-foreground"
+                  }`}
                 >
-                  {sample.icon}
-                </span>
-                <span className="font-medium">{sample.name}</span>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Audio Player Controls */}
-      <div className="flex items-center gap-4">
-        {/* Play/Pause Button */}
-        <button
-          onClick={togglePlayPause}
-          disabled={isLoadingAudio}
-          className={`w-12 h-12 flex items-center justify-center rounded-full bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-offset-2 flex-shrink-0 ${
-            isLoadingAudio ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-        >
-          {isLoadingAudio ? (
-            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-          ) : isPlaying ? (
-            PauseIcon
-          ) : (
-            PlayIcon
+                  <span
+                    className={
+                      index === selectedSample
+                        ? "text-orange-500 dark:text-orange-400"
+                        : "text-gray-400 dark:text-muted-foreground"
+                    }
+                  >
+                    {sample.icon}
+                  </span>
+                  <span className="font-medium">{sample.name}</span>
+                </button>
+              ))}
+            </div>
           )}
-        </button>
-
-        {/* Progress Bar */}
-        <div className="relative h-2 bg-gray-200 dark:bg-muted rounded-full overflow-hidden flex-1">
-          <div
-            className="absolute top-0 left-0 h-full bg-gradient-to-r from-orange-400 to-orange-500 rounded-full transition-all duration-200"
-            style={{ width: `${isAudioLoaded ? (currentTime / duration) * 100 : 0}%` }}
-          />
-          <input
-            type="range"
-            min="0"
-            max="100"
-            value={isAudioLoaded ? (currentTime / duration) * 100 : 0}
-            onChange={handleProgressChange}
-            disabled={!isAudioLoaded}
-            className={`absolute top-0 left-0 w-full h-full opacity-0 ${
-              isAudioLoaded ? 'cursor-pointer' : 'cursor-not-allowed'
-            }`}
-          />
         </div>
 
-        {/* Time Display */}
-        {showTimeDisplay && (
-          <div className="text-xs text-gray-500 dark:text-muted-foreground font-mono whitespace-nowrap flex-shrink-0">
-            {isAudioLoaded ? (
-              `${formatTime(currentTime)} / ${formatTime(duration)}`
+        {/* Audio Player Controls */}
+        <div className="flex items-center gap-4">
+          {/* Play/Pause Button */}
+          <button
+            onClick={togglePlayPause}
+            disabled={isLoadingAudio}
+            className={`w-12 h-12 flex items-center justify-center rounded-full bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-offset-2 flex-shrink-0 ${
+              isLoadingAudio ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
+            {isLoadingAudio ? (
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+            ) : isPlaying ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-5 h-5 fill-current"
+                viewBox="0 0 24 24"
+              >
+                <path d="M6 22h4v-20h-4v20zm8-20v20h4v-20h-4z" />
+              </svg>
             ) : (
-              '0:00 / 0:00'
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="w-5 h-5 fill-current"
+                viewBox="0 0 24 24"
+                style={{ transform: "translateX(1px)" }}
+              >
+                <path d="M3 22v-20l18 10-18 10z" />
+              </svg>
             )}
+          </button>
+
+          {/* Progress Bar */}
+          <div
+            className="relative h-2 bg-gray-200 dark:bg-muted rounded-full overflow-hidden flex-1 cursor-pointer"
+            onClick={handleProgressClick}
+          >
+            <div
+              className="absolute top-0 left-0 h-full bg-gradient-to-r from-orange-400 to-orange-500 rounded-full transition-all duration-200 pointer-events-none"
+              style={{ width: `${progress}%` }}
+            />
           </div>
-        )}
+        </div>
+
+        {/* Hidden H5 Audio Player for functionality */}
+        <AudioPlayer
+          ref={audioPlayerRef}
+          src={audioSrc}
+          autoPlay={false}
+          loop={true}
+          onCanPlay={handleCanPlay}
+          onPlay={handlePlay}
+          onPause={handlePause}
+          onListen={handleListen}
+          className="custom-audio-player"
+        />
       </div>
-    </div>
+    </>
   );
 };
+
 export default CardAudioPlayer;

@@ -49,34 +49,34 @@ export function VoiceCard({
   return (
     <div
       key={talent.id}
-      className="bg-white dark:bg-card rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300"
+      className="bg-white dark:bg-gray-900 rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300 group"
     >
       {/* Image Section */}
       <div
         onClick={onClick}
         className={`relative aspect-[3/4] overflow-hidden bg-gradient-to-br ${talent.gradient} ${
-          onClick ? 'cursor-pointer hover:opacity-90 transition-opacity duration-200' : ''
+          onClick ? 'cursor-pointer hover:opacity-95 transition-opacity duration-200' : ''
         }`}
       >
-        <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+        <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
         <img
           src={talent.image}
           alt={talent.id}
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        <div className="absolute bottom-0 left-0 z-20 p-4">
-          <div className="text-3xl font-bold text-white mb-1">
+        <div className="absolute bottom-0 left-0 z-20 p-5">
+          <div className="text-4xl font-bold text-white mb-2 drop-shadow-lg">
             {talent.id.padStart(2, "0")}
           </div>
           {/* <h3 className="text-white font-semibold text-lg mb-2">
             {talent.name}
           </h3> */}
 
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-wrap gap-1.5">
             {talent.tags.map((tag) => (
               <span
                 key={tag}
-                className="bg-white/20 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full"
+                className="bg-white/25 backdrop-blur-md text-white text-xs px-2.5 py-1 rounded-full border border-white/20 shadow-sm font-medium"
               >
                 {getGeorgianLabel(tag)}
               </span>
