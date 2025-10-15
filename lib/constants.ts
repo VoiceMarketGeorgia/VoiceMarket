@@ -100,3 +100,11 @@ export function getGeorgianLabel(value: string, type?: 'language' | 'accent' | '
   return found?.label || value
 }
 
+// Helper function to translate time/hours to Georgian
+export function translateToGeorgian(text: string): string {
+  return text
+    .replace(/24 hours?/gi, '24 საათში')
+    .replace(/48 hours?/gi, '48 საათში')
+    .replace(/24-48 hours?/gi, '24-48 საათში')
+}
+
