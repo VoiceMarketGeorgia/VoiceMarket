@@ -88,11 +88,11 @@ export function TalentProfile({ id }: TalentProfileProps) {
 
           setTalent({
             ...talentData,
-            title: "Professional Voice Actor",
+            title: "პროფესიონალი ხმის მსახიობი",
             coverImage: talentData.image,
             bio:
               voiceActor.bio ||
-              `Professional voice actor with extensive experience in various voice-over projects. Specializes in ${talentData.tags
+              `პროფესიონალი ხმის მსახიობი მოქმედებით მრავალფორმული ხმის დამყარების პროექტების გამოცდილებით. სპეციალიზირებულია ${talentData.tags
                 .join(", ")
                 .toLowerCase()} work with a distinctive and engaging voice style.`,
             priceRange: talentData.pricing.isFixedPrice
@@ -107,11 +107,11 @@ export function TalentProfile({ id }: TalentProfileProps) {
             reviewCount: voiceActor.review_count || 0,
           });
         } else {
-          setError("Voice actor not found");
+          setError("მსახიობი ვერ მოიძებნა");
         }
       } catch (err) {
         console.error("Error loading talent:", err);
-        setError("Failed to load voice actor profile");
+        setError("მსახიობის პროფილის ჩატვირთვა ვერ მოხერხდა");
       } finally {
         setLoading(false);
       }
@@ -154,7 +154,7 @@ export function TalentProfile({ id }: TalentProfileProps) {
     return (
       <div className="text-center py-12">
         <p className="text-red-500 text-lg">
-          {error || "Voice actor not found"}
+          {error || "მსახიობი ვერ მოიძებნა"}
         </p>
         <Button
           variant="outline"
@@ -189,7 +189,7 @@ export function TalentProfile({ id }: TalentProfileProps) {
             </div>
             <div className="text-white">
               <h1 className="text-3xl md:text-4xl font-bold">
-                Actor #{talent.id}
+                მსახიობი #{talent.id}
               </h1>
               <p className="text-white/80">{talent.title}</p>
               {/* Removed rating system as requested */}
@@ -253,7 +253,7 @@ export function TalentProfile({ id }: TalentProfileProps) {
 
         <div className="space-y-8">
           <div>
-            <h2 className="text-xl font-semibold mb-4">შესახებ</h2>
+            <h2 className="text-xl font-semibold mb-4">მსახიობის შესახებ</h2>
             <p className="text-muted-foreground">{talent.bio}</p>
           </div>
 
@@ -277,9 +277,6 @@ export function TalentProfile({ id }: TalentProfileProps) {
                       </div>
                       <div className="flex-1">
                         <h3 className="font-semibold text-lg">{sample.name}</h3>
-                        <p className="text-muted-foreground">
-                          {sample.description}
-                        </p>
                       </div>
                     </div>
                     {/* Use CardAudioPlayer for proper audio functionality */}

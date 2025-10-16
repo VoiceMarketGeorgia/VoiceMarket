@@ -182,7 +182,7 @@ const talent = {
   reviews: 124,
   languages: ["English", "Spanish"],
   price: "$150-$300",
-  turnaround: "24-48 hours",
+  turnaround: "24-48 საათი",
   categories: ["Commercial", "Narration", "Character", "E-Learning"],
   samples: [
     {
