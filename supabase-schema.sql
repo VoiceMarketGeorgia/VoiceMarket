@@ -18,7 +18,7 @@ CREATE TABLE public.voice_actors (
     gradient_colors VARCHAR(100) DEFAULT 'from-orange-500 to-cyan-600',
     is_featured BOOLEAN DEFAULT false,
     is_active BOOLEAN DEFAULT true,
-    turnaround_time VARCHAR(50) DEFAULT '24-48 hours',
+    turnaround_time VARCHAR(50) DEFAULT '24-48 საათი',
     rating DECIMAL(3,2) DEFAULT 4.5,
     review_count INTEGER DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,

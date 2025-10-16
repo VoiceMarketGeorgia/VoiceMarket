@@ -105,6 +105,6 @@ export function translateToGeorgian(text: string): string {
   return text
     .replace(/24 hours?/gi, '24 საათში')
     .replace(/48 hours?/gi, '48 საათში')
-    .replace(/24-48 hours?/gi, '24-48 საათში')
+    .replace(/24-48 hours?/gi, '24-48 საათი')
 }
 
