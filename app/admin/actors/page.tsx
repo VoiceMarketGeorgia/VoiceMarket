@@ -192,15 +192,18 @@ export default function ActorsPage() {
       // Create the actor first
       const newActor = await createVoiceActor(formData);
 
-      // Create audio samples if any
+      // Create audio samples if any with correct order
       if (formData.audio_samples.length > 0) {
-        for (const sample of formData.audio_samples) {
+        console.log('Saving audio samples in order:', formData.audio_samples.map((s, i) => ({ name: s.name, order_index: i })));
+        for (let i = 0; i < formData.audio_samples.length; i++) {
+          const sample = formData.audio_samples[i];
           await createAudioSample({
             voice_actor_id: newActor.id,
             sample_id: sample.sample_id,
             name: sample.name,
             audio_url: sample.audio_url,
             category: sample.category,
+            order_index: i, // Preserve order
           });
         }
       }
@@ -235,15 +238,18 @@ export default function ActorsPage() {
         }
       }
 
-      // Create new samples
+      // Create new samples with correct order
       if (formData.audio_samples.length > 0) {
-        for (const sample of formData.audio_samples) {
+        console.log('Saving audio samples in order:', formData.audio_samples.map((s, i) => ({ name: s.name, order_index: i })));
+        for (let i = 0; i < formData.audio_samples.length; i++) {
+          const sample = formData.audio_samples[i];
           await createAudioSample({
             voice_actor_id: editingActor.id,
             sample_id: sample.sample_id,
             name: sample.name,
             audio_url: sample.audio_url,
             category: sample.category,
+            order_index: i, // Preserve order
           });
         }
       }
@@ -271,7 +277,7 @@ export default function ActorsPage() {
   const openEditDialog = async (actor: VoiceActorWithPricing) => {
     setEditingActor(actor);
 
-    // Load audio samples for this actor
+    // Load audio samples for this actor (already sorted by order_index from DB)
     const audioSamples =
       actor.samples?.map((sample) => ({
         id: sample.id,
@@ -280,6 +286,8 @@ export default function ActorsPage() {
         audio_url: sample.audio_url || "",
         category: sample.category || "კომერციული",
       })) || [];
+    
+    console.log('Opening edit dialog with audio samples:', audioSamples.map((s, i) => ({ position: i + 1, name: s.name, id: s.sample_id })));
 
     // Load pricing data from database (use actual DB column names)
     const pricing = actor.pricing?.[0] as any;
@@ -856,7 +864,7 @@ function ActorForm({
           actorId={formData.actor_id || "new"}
           samples={formData.audio_samples}
           onSamplesChange={(samples) =>
-            setFormData({ ...formData, audio_samples: samples })
+            setFormData((prev) => ({ ...prev, audio_samples: samples }))
           }
         />
       </div>

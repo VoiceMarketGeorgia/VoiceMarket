@@ -175,6 +175,8 @@ export function AllTalents() {
         `)
         .eq('is_active', true)
         .order('id', { ascending: true })
+        .order('order_index', { foreignTable: 'audio_samples', ascending: true })
+        .order('id', { foreignTable: 'audio_samples', ascending: true })
         .range(offset, offset + limit - 1);
       
       if (error) {
@@ -183,6 +185,20 @@ export function AllTalents() {
       }
       
       if (data && data.length > 0) {
+        // Ensure audio samples are sorted by order_index for each actor (backup sorting)
+        data.forEach(actor => {
+          if (actor.samples && Array.isArray(actor.samples)) {
+            actor.samples.sort((a: any, b: any) => {
+              const orderA = a.order_index ?? 999999
+              const orderB = b.order_index ?? 999999
+              if (orderA !== orderB) return orderA - orderB
+              return (a.id ?? 0) - (b.id ?? 0)
+            })
+            // Debug: Log the order for verification
+            console.log(`Actor ${actor.actor_id} samples order:`, actor.samples.map((s: any) => ({ name: s.name, order_index: s.order_index })))
+          }
+        })
+        
         // Convert to TalentWithDuration format
         const newTalents: TalentWithDuration[] = data.map(actor => {
           const talent = convertToTalent(actor, categoryIconMap);
@@ -263,6 +279,8 @@ export function AllTalents() {
           `)
           .eq('is_active', true)
           .order('id', { ascending: true })
+          .order('order_index', { foreignTable: 'audio_samples', ascending: true })
+          .order('id', { foreignTable: 'audio_samples', ascending: true })
           .range(0, limit - 1);
         
         if (error) {
@@ -272,6 +290,20 @@ export function AllTalents() {
         }
         
         if (data && data.length > 0) {
+          // Ensure audio samples are sorted by order_index for each actor (backup sorting)
+          data.forEach(actor => {
+            if (actor.samples && Array.isArray(actor.samples)) {
+              actor.samples.sort((a: any, b: any) => {
+                const orderA = a.order_index ?? 999999
+                const orderB = b.order_index ?? 999999
+                if (orderA !== orderB) return orderA - orderB
+                return (a.id ?? 0) - (b.id ?? 0)
+              })
+              // Debug: Log the order for verification
+              console.log(`Actor ${actor.actor_id} samples order:`, actor.samples.map((s: any) => ({ name: s.name, order_index: s.order_index })))
+            }
+          })
+          
           const talentsWithDuration: TalentWithDuration[] = data.map(actor => {
             const talent = convertToTalent(actor, categoryIconMap);
             

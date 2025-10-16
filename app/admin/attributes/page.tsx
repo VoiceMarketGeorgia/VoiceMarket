@@ -69,19 +69,19 @@ import {
 } from "@/lib/supabase-queries";
 import { clearAttributesCache } from "@/lib/dynamic-attributes";
 
-// Available Lucide icons for categories
+// Available Lucide icons for categories with Georgian labels
 const ICON_OPTIONS = [
-  { value: "Music", label: "Music", icon: Music },
-  { value: "Megaphone", label: "Megaphone", icon: Megaphone },
-  { value: "Mic2", label: "Microphone", icon: Mic2 },
-  { value: "FileText", label: "Document", icon: FileText },
-  { value: "User", label: "User", icon: User },
-  { value: "GraduationCap", label: "Education", icon: GraduationCap },
-  { value: "Film", label: "Film", icon: Film },
-  { value: "Newspaper", label: "News", icon: Newspaper },
-  { value: "Briefcase", label: "Business", icon: Briefcase },
-  { value: "Sparkles", label: "Sparkles", icon: Sparkles },
-  { value: "Phone", label: "Phone", icon: Phone },
+  { value: "Music", label: "მუსიკა", icon: Music },
+  { value: "Megaphone", label: "მეგაფონი", icon: Megaphone },
+  { value: "Mic2", label: "მიკროფონი", icon: Mic2 },
+  { value: "FileText", label: "დოკუმენტი", icon: FileText },
+  { value: "User", label: "მომხმარებელი", icon: User },
+  { value: "GraduationCap", label: "განათლება", icon: GraduationCap },
+  { value: "Film", label: "ფილმი", icon: Film },
+  { value: "Newspaper", label: "გაზეთი", icon: Newspaper },
+  { value: "Briefcase", label: "ბიზნესი", icon: Briefcase },
+  { value: "Sparkles", label: "ბრწყინვალება", icon: Sparkles },
+  { value: "Phone", label: "ტელეფონი", icon: Phone },
 ];
 
 // Color options for categories
