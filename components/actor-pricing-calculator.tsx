@@ -160,7 +160,7 @@ export function ActorPricingCalculator({
       <div className="flex items-center gap-2 mb-4">
         <Calculator className="h-5 w-5 text-orange-500" />
         <h3 className="text-lg font-semibold">
-          Actor #{actorId} Pricing Calculator
+          ფასის კალკულატორი
         </h3>
       </div>
 
@@ -170,7 +170,7 @@ export function ActorPricingCalculator({
             <div className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-orange-600" />
               <span className="text-sm font-medium text-orange-800 dark:text-orange-200">
-                This actor uses fixed pricing: ₾{pricing.fixedPriceAmount} (base
+                ეს მსახიობი გამოიყენებს ფიქსირებულ ფასს: ₾{pricing.fixedPriceAmount} (base
                 rate)
               </span>
             </div>
@@ -181,10 +181,10 @@ export function ActorPricingCalculator({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
           <div>
-            <Label htmlFor="script">თქვენი სკრიპტი</Label>
+            <Label htmlFor="script">თქვენი ტექსტი</Label>
             <Textarea
               id="script"
-              placeholder="ჩასვით თქვენი სკრიპტი აქ ზუსტი ფასის გამოსათვლელად..."
+              placeholder="ჩასვით თქვენი ტექსტი აქ ზუსტი ფასის გამოსათვლელად..."
               value={script}
               onChange={(e) => setScript(e.target.value)}
               rows={6}
