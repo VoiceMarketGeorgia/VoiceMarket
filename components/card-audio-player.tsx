@@ -178,7 +178,7 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
       `}</style>
 
       <div
-        className={`bg-white dark:bg-card rounded-xl shadow-lg pl-0 pr-4 pt-4 pb-4 ${className}`}
+        className={`bg-white dark:bg-card rounded-xl shadow-lg pl-2.5 pr-4 pt-4 pb-4 ${className}`}
       >
 
         {/* Audio Player Controls */}
