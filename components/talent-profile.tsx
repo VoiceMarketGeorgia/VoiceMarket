@@ -293,6 +293,7 @@ export function TalentProfile({ id }: TalentProfileProps) {
                       isPlaying={currentlyPlayingId === `profile-${sample.id}`}
                       onTogglePlay={handleTogglePlay}
                       showTimeDisplay={true}
+                      showDropdown={false}
                     />
                   </CardContent>
                 </Card>

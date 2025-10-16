@@ -23,6 +23,7 @@ interface AudioPlayerProps {
   onTogglePlay: (playerId: string) => void;
   className?: string;
   showTimeDisplay?: boolean;
+  showDropdown?: boolean;
 }
 
 const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
@@ -32,6 +33,7 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
   onTogglePlay,
   className = "",
   showTimeDisplay = true,
+  showDropdown = true,
 }) => {
   const [selectedSample, setSelectedSample] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -180,6 +182,64 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
       <div
         className={`bg-white dark:bg-card rounded-xl shadow-lg pl-2.5 pr-4 pt-4 pb-4 ${className}`}
       >
+        {/* Category Dropdown */}
+        {showDropdown && (
+          <div className="relative mb-3">
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="w-full flex items-center justify-between p-3 bg-gray-50 dark:bg-muted rounded-lg border border-gray-200 dark:border-border hover:bg-gray-100 dark:hover:bg-muted/80 transition-colors duration-200"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-orange-500">
+                  {currentSample.iconName
+                    ? getIconElement(currentSample.iconName, {
+                        className: "h-5 w-5",
+                      })
+                    : currentSample.icon}
+                </span>
+                <span className="font-medium text-gray-700 dark:text-foreground">
+                  {currentSample.name}
+                </span>
+              </div>
+              <ChevronDown
+                className={`h-4 w-4 text-gray-500 dark:text-muted-foreground transition-transform duration-200 ${
+                  isDropdownOpen ? "rotate-0" : "-rotate-180"
+                }`}
+              />
+            </button>
+
+            {isDropdownOpen && (
+              <div className="absolute bottom-full left-0 right-0 mb-1 bg-white dark:bg-card border border-gray-200 dark:border-border rounded-lg shadow-lg z-[9999] overflow-hidden">
+                {audioSamples.map((sample, index) => (
+                  <button
+                    key={sample.id}
+                    onClick={() => handleSampleChange(index)}
+                    className={`w-full flex items-center gap-2 p-3 text-left hover:bg-gray-50 dark:hover:bg-muted/50 transition-colors duration-150 ${
+                      index === selectedSample
+                        ? "bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400"
+                        : "text-gray-700 dark:text-foreground"
+                    }`}
+                  >
+                    <span
+                      className={
+                        index === selectedSample
+                          ? "text-orange-500 dark:text-orange-400"
+                          : "text-gray-400 dark:text-muted-foreground"
+                      }
+                    >
+                      {sample.iconName
+                        ? getIconElement(sample.iconName, {
+                            className: "h-5 w-5",
+                          })
+                        : sample.icon}
+                    </span>
+                    <span className="font-medium">{sample.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Audio Player Controls */}
         <div className="flex items-center gap-4">
