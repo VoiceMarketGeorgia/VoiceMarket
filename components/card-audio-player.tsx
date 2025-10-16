@@ -41,9 +41,19 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const [audioSrc, setAudioSrc] = useState<string>("");
   const [progress, setProgress] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const audioPlayerRef = useRef<AudioPlayer>(null);
 
   const currentSample = audioSamples[selectedSample];
+
+  // Format time in MM:SS
+  const formatTime = (seconds: number): string => {
+    if (isNaN(seconds) || !isFinite(seconds)) return "0:00";
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
 
   // Lazy load audio function
   const loadAudio = async () => {
@@ -98,12 +108,17 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
     setIsLoadingAudio(false);
     setAudioSrc("");
     setProgress(0);
+    setCurrentTime(0);
+    setDuration(0);
   };
 
   // Audio event handlers
   const handleCanPlay = () => {
     setIsAudioLoaded(true);
     setIsLoadingAudio(false);
+    if (audioPlayerRef.current?.audio.current) {
+      setDuration(audioPlayerRef.current.audio.current.duration);
+    }
   };
 
   const handlePause = () => {
@@ -123,6 +138,10 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
       const audio = audioPlayerRef.current.audio.current;
       const progressPercent = (audio.currentTime / audio.duration) * 100 || 0;
       setProgress(progressPercent);
+      setCurrentTime(audio.currentTime);
+      if (audio.duration && !isNaN(audio.duration)) {
+        setDuration(audio.duration);
+      }
     }
   };
 
@@ -274,14 +293,27 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
           </button>
 
           {/* Progress Bar */}
-          <div
-            className="relative h-2 bg-gray-200 dark:bg-muted rounded-full overflow-hidden flex-1 cursor-pointer"
-            onClick={handleProgressClick}
-          >
+          <div className="flex-1">
             <div
-              className="absolute top-0 left-0 h-full bg-gradient-to-r from-orange-400 to-orange-500 rounded-full transition-all duration-200 pointer-events-none"
-              style={{ width: `${progress}%` }}
-            />
+              className="relative h-2 bg-gray-200 dark:bg-muted rounded-full overflow-hidden cursor-pointer"
+              onClick={handleProgressClick}
+            >
+              <div
+                className="absolute top-0 left-0 h-full bg-gradient-to-r from-orange-400 to-orange-500 rounded-full transition-all duration-200 pointer-events-none"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            {/* Time Display */}
+            {showTimeDisplay && (
+              <div className="flex justify-between items-center mt-1.5 px-1">
+                <span className="text-xs text-gray-600 dark:text-gray-400 font-mono">
+                  {formatTime(currentTime)}
+                </span>
+                <span className="text-xs text-gray-600 dark:text-gray-400 font-mono">
+                  {formatTime(duration)}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
