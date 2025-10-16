@@ -205,7 +205,7 @@ export function PricingPageCalculator() {
 
       {/* Actor Selection */}
       <div className="space-y-4">
-        <Label htmlFor="actor-select">აირჩიეთ ხმოვანი მსახიობი</Label>
+        <Label htmlFor="actor-select"></Label>
         <Select value={selectedActorId} onValueChange={setSelectedActorId}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="აირჩიეთ მსახიობი მათი ფასების სანახავად..." />
@@ -234,11 +234,11 @@ export function PricingPageCalculator() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <span className="font-medium text-sm">
-                        Actor #{actor.id}
+                        მსახიობი #{actor.id}
                       </span>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         {actor.pricing.isFixedPrice
-                          ? `Fixed: ₾${actor.pricing.fixedPriceAmount}`
+                          ? `ფიქს: ₾${actor.pricing.fixedPriceAmount}`
                           : `₾${actor.pricing.basePrice}+`}
                       </div>
                     </div>
@@ -268,7 +268,7 @@ export function PricingPageCalculator() {
               გთხოვთ აირჩიოთ მსახიობი ფასების სანახავად
             </p>
             <p className="text-sm text-gray-500">
-              აირჩიეთ ჩვენი 47 პროფესიონალი ხმოვანი მსახიობიდან
+              აირჩიეთ ჩვენი პროფესიონალი მსახიობებიდან
             </p>
           </CardContent>
         </Card>
@@ -282,7 +282,7 @@ export function PricingPageCalculator() {
                 <div className="flex items-center gap-2">
                   <AlertCircle className="h-4 w-4 text-orange-600" />
                   <span className="text-sm font-medium text-orange-800 dark:text-orange-200">
-                    Actor #{selectedActorId} uses fixed pricing: ₾
+                    მსახიობი #{selectedActorId} იყენებს ფიქსირებულ ფასს: ₾
                     {selectedActor.pricing.fixedPriceAmount} (base rate)
                   </span>
                 </div>
@@ -367,7 +367,7 @@ export function PricingPageCalculator() {
                       პროექტის სრული ღირებულება
                     </p>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Actor #{selectedActorId}
+                      მსახიობი #{selectedActorId}
                     </p>
                   </div>
                 </CardContent>
@@ -599,8 +599,7 @@ export function PricingPageCalculator() {
                         <div className="grid grid-cols-2 gap-4 text-sm">
                           <div>
                             <p>
-                              <strong>მსახიობი:</strong> Actor #
-                              {selectedActorId}
+                              <strong>მსახიობი:</strong> #{selectedActorId}
                             </p>
                             <p>
                               <strong>სიტყვები:</strong> {wordCount}

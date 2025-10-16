@@ -122,9 +122,7 @@ export function ContactForm() {
                   <SelectItem value="partnership">
                     პარტნიორობის შესაძლებლობა
                   </SelectItem>
-                  <SelectItem value="talent">
-                    ხმოვანი მსახიობის გახდომა
-                  </SelectItem>
+                  <SelectItem value="talent">მსახიობობა მსურს</SelectItem>
                 </SelectContent>
               </Select>
             </div>

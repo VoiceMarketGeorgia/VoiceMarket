@@ -59,6 +59,7 @@ import {
   FileAudio,
   Eye,
   EyeOff,
+  Coins,
 } from "lucide-react";
 
 interface ActorFormData {
@@ -104,7 +105,10 @@ import {
   GENDER_OPTIONS,
   getGeorgianLabel,
 } from "@/lib/constants";
-import { getDynamicLanguages, getDynamicVoiceStyles } from "@/lib/dynamic-attributes";
+import {
+  getDynamicLanguages,
+  getDynamicVoiceStyles,
+} from "@/lib/dynamic-attributes";
 
 export default function ActorsPage() {
   const [actors, setActors] = useState<VoiceActorWithPricing[]>([]);
@@ -119,10 +123,14 @@ export default function ActorsPage() {
     useState<VoiceActorWithPricing | null>(null);
   const [formData, setFormData] = useState<ActorFormData>(INITIAL_FORM_DATA);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Dynamic attributes
-  const [languageOptions, setLanguageOptions] = useState<Array<{ value: string; label: string }>>([]);
-  const [voiceStyleOptions, setVoiceStyleOptions] = useState<Array<{ value: string; label: string }>>([]);
+  const [languageOptions, setLanguageOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([]);
+  const [voiceStyleOptions, setVoiceStyleOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([]);
 
   const loadActors = async () => {
     try {
@@ -150,7 +158,7 @@ export default function ActorsPage() {
       setLanguageOptions(languages);
       setVoiceStyleOptions(voiceStyles);
     } catch (error) {
-      console.error('Error loading dynamic attributes:', error);
+      console.error("Error loading dynamic attributes:", error);
     }
   };
 
@@ -163,10 +171,10 @@ export default function ActorsPage() {
       loadDynamicAttributes();
     };
 
-    window.addEventListener('attributesUpdated', handleAttributesUpdate);
-    
+    window.addEventListener("attributesUpdated", handleAttributesUpdate);
+
     return () => {
-      window.removeEventListener('attributesUpdated', handleAttributesUpdate);
+      window.removeEventListener("attributesUpdated", handleAttributesUpdate);
     };
   }, []);
 
@@ -194,7 +202,13 @@ export default function ActorsPage() {
 
       // Create audio samples if any with correct order
       if (formData.audio_samples.length > 0) {
-        console.log('Saving audio samples in order:', formData.audio_samples.map((s, i) => ({ name: s.name, order_index: i })));
+        console.log(
+          "Saving audio samples in order:",
+          formData.audio_samples.map((s, i) => ({
+            name: s.name,
+            order_index: i,
+          }))
+        );
         for (let i = 0; i < formData.audio_samples.length; i++) {
           const sample = formData.audio_samples[i];
           await createAudioSample({
@@ -240,7 +254,13 @@ export default function ActorsPage() {
 
       // Create new samples with correct order
       if (formData.audio_samples.length > 0) {
-        console.log('Saving audio samples in order:', formData.audio_samples.map((s, i) => ({ name: s.name, order_index: i })));
+        console.log(
+          "Saving audio samples in order:",
+          formData.audio_samples.map((s, i) => ({
+            name: s.name,
+            order_index: i,
+          }))
+        );
         for (let i = 0; i < formData.audio_samples.length; i++) {
           const sample = formData.audio_samples[i];
           await createAudioSample({
@@ -286,8 +306,15 @@ export default function ActorsPage() {
         audio_url: sample.audio_url || "",
         category: sample.category || "კომერციული",
       })) || [];
-    
-    console.log('Opening edit dialog with audio samples:', audioSamples.map((s, i) => ({ position: i + 1, name: s.name, id: s.sample_id })));
+
+    console.log(
+      "Opening edit dialog with audio samples:",
+      audioSamples.map((s, i) => ({
+        position: i + 1,
+        name: s.name,
+        id: s.sample_id,
+      }))
+    );
 
     // Load pricing data from database (use actual DB column names)
     const pricing = actor.pricing?.[0] as any;
@@ -362,7 +389,7 @@ export default function ActorsPage() {
             <DialogHeader>
               <DialogTitle>ახალი მსახიობის დამატება</DialogTitle>
               <DialogDescription>
-                შეავსეთ ფორმა ახალი ხმოვანი მსახიობის დასამატებლად სისტემაში
+                შეავსეთ ფორმა ახალი მსახიობის დასამატებლად სისტემაში
               </DialogDescription>
             </DialogHeader>
             <ActorForm
@@ -465,9 +492,9 @@ export default function ActorsPage() {
                   <span>{actor.age_range} წლის</span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  <Coins className="h-4 w-4 text-muted-foreground" />
                   <span>
-                    ${(actor.pricing?.[0] as any)?.price_per_word ?? 0.05}
+                    ₾{(actor.pricing?.[0] as any)?.price_per_word ?? 0.05}
                     /სიტყვა
                   </span>
                 </div>

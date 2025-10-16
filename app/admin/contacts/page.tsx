@@ -114,7 +114,7 @@ export default function AdminContactsPage() {
       case "partnership":
         return "პარტნიორობის შესაძლებლობა";
       case "talent":
-        return "ხმოვანი მსახიობის გახდომა";
+        return "მსახიობობა მსურს";
       default:
         return subject;
     }

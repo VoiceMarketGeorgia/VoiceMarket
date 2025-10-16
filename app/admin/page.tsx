@@ -157,7 +157,7 @@ export default function AdminDashboard() {
               </div>
               <div className="flex items-center gap-3">
                 <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                <span className="text-sm">47 ხმოვანი მსახიობი აქტიურია</span>
+                <span className="text-sm">47  მსახიობი აქტიურია</span>
               </div>
             </div>
           </CardContent>

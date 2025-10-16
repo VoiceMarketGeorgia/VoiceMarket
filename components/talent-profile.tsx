@@ -44,25 +44,30 @@ export function TalentProfile({ id }: TalentProfileProps) {
   const [talent, setTalent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [categoryIconMap, setCategoryIconMap] = useState<Map<string, { icon_name: string; color_class: string }>>(new Map());
+  const [categoryIconMap, setCategoryIconMap] = useState<
+    Map<string, { icon_name: string; color_class: string }>
+  >(new Map());
 
   // Load category icons
   useEffect(() => {
     const loadCategoryIcons = async () => {
       try {
         const categories = await getDynamicAudioCategories();
-        const map = new Map<string, { icon_name: string; color_class: string }>();
-        categories.forEach(cat => {
+        const map = new Map<
+          string,
+          { icon_name: string; color_class: string }
+        >();
+        categories.forEach((cat) => {
           if (cat.icon_name && cat.color_class) {
             map.set(cat.value, {
               icon_name: cat.icon_name,
-              color_class: cat.color_class
+              color_class: cat.color_class,
             });
           }
         });
         setCategoryIconMap(map);
       } catch (error) {
-        console.error('Error loading category icons:', error);
+        console.error("Error loading category icons:", error);
       }
     };
     loadCategoryIcons();
@@ -81,7 +86,11 @@ export function TalentProfile({ id }: TalentProfileProps) {
           // Add proper icons to samples using dynamic iconName
           const samplesWithIcons = talentData.samples.map((sample: any) => ({
             ...sample,
-            icon: sample.iconName ? getIconElement(sample.iconName, { className: "h-4 w-4" }) : <Mic2 className="h-4 w-4" />,
+            icon: sample.iconName ? (
+              getIconElement(sample.iconName, { className: "h-4 w-4" })
+            ) : (
+              <Mic2 className="h-4 w-4" />
+            ),
             category: sample.name,
             description: `Professional ${sample.name.toLowerCase()} voice sample.`,
           }));
@@ -96,7 +105,7 @@ export function TalentProfile({ id }: TalentProfileProps) {
                 .join(", ")
                 .toLowerCase()} work with a distinctive and engaging voice style.`,
             priceRange: talentData.pricing.isFixedPrice
-              ? `Fixed: ₾${talentData.pricing.fixedPriceAmount}`
+              ? `ფიქსირებული: ₾${talentData.pricing.fixedPriceAmount}`
               : `₾${talentData.pricing.basePrice}-${
                   talentData.pricing.basePrice + 200
                 }`,
@@ -219,7 +228,11 @@ export function TalentProfile({ id }: TalentProfileProps) {
                   <div>
                     <h3 className="font-medium">ენები</h3>
                     <p className="text-sm text-muted-foreground">
-                      {talent.languages.map((lang: string) => getGeorgianLabel(lang, 'language')).join(", ")}
+                      {talent.languages
+                        .map((lang: string) =>
+                          getGeorgianLabel(lang, "language")
+                        )
+                        .join(", ")}
                     </p>
                   </div>
                 </div>

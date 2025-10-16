@@ -159,9 +159,7 @@ export function ActorPricingCalculator({
     <div className="space-y-6">
       <div className="flex items-center gap-2 mb-4">
         <Calculator className="h-5 w-5 text-orange-500" />
-        <h3 className="text-lg font-semibold">
-          ფასის კალკულატორი
-        </h3>
+        <h3 className="text-lg font-semibold">ფასის კალკულატორი</h3>
       </div>
 
       {pricing.isFixedPrice && (
@@ -170,8 +168,8 @@ export function ActorPricingCalculator({
             <div className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-orange-600" />
               <span className="text-sm font-medium text-orange-800 dark:text-orange-200">
-                ეს მსახიობი გამოიყენებს ფიქსირებულ ფასს: ₾{pricing.fixedPriceAmount} (base
-                rate)
+                ეს მსახიობი გამოიყენებს ფიქსირებულ ფასს: ₾
+                {pricing.fixedPriceAmount} (base rate)
               </span>
             </div>
           </CardContent>
@@ -469,7 +467,7 @@ export function ActorPricingCalculator({
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <p>
-                          <strong>მსახიობი:</strong> Actor #{actorId}
+                          <strong>მსახიობი:</strong> #{actorId}
                         </p>
                         <p>
                           <strong>სიტყვები:</strong> {wordCount}
