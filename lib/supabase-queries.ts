@@ -385,14 +385,24 @@ export async function getQuoteRequests(status?: string): Promise<QuoteRequest[]>
 }
 
 // Utility function to convert database records to legacy Talent interface
-export function convertToTalent(voiceActor: VoiceActorWithPricing): any {
-  const samples = voiceActor.samples?.map(sample => ({
-    id: sample.sample_id,
-    name: sample.name,
-    url: sample.audio_url,
-    category: sample.category,
-    icon: null // You'll need to map this based on category
-  })) || []
+export function convertToTalent(voiceActor: VoiceActorWithPricing, categoryIconMap?: Map<string, { icon_name: string; color_class: string }>): any {
+  const samples = voiceActor.samples?.map(sample => {
+    // Get icon info from map or use default
+    const categoryInfo = categoryIconMap?.get(sample.category || '') || {
+      icon_name: 'Music',
+      color_class: 'bg-gray-100'
+    }
+    
+    return {
+      id: sample.sample_id,
+      name: sample.name,
+      url: sample.audio_url,
+      category: sample.category,
+      icon: null, // Will be set by component using getIconElement from category-icons
+      iconName: categoryInfo.icon_name, // Store icon name for components to use
+      colorClass: categoryInfo.color_class
+    }
+  }) || []
 
   const p = voiceActor.pricing && voiceActor.pricing[0] ? voiceActor.pricing[0] as any : {}
   // Map admin-saved fields with safe defaults (no hidden base added)
@@ -793,4 +803,240 @@ export async function getAudioSamplesByActor(actorId: number): Promise<AudioSamp
   }
 
   return data || []
+}
+
+// ============================================================================
+// ATTRIBUTE MANAGEMENT QUERIES
+// ============================================================================
+
+// Language Attributes
+export async function getAllLanguages() {
+  const { data, error } = await supabase
+    .from('attribute_languages')
+    .select('*')
+    .order('sort_order', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching languages:', error)
+    throw error
+  }
+
+  return data || []
+}
+
+export async function getActiveLanguages() {
+  const { data, error } = await supabase
+    .from('attribute_languages')
+    .select('*')
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching active languages:', error)
+    throw error
+  }
+
+  return data || []
+}
+
+export async function createLanguage(language: { value: string; label: string; sort_order?: number }) {
+  const { data, error } = await supabase
+    .from('attribute_languages')
+    .insert(language)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error creating language:', error)
+    throw error
+  }
+
+  return data
+}
+
+export async function updateLanguage(id: number, updates: { value?: string; label?: string; is_active?: boolean; sort_order?: number }) {
+  const { data, error } = await supabase
+    .from('attribute_languages')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error updating language:', error)
+    throw error
+  }
+
+  return data
+}
+
+export async function deleteLanguage(id: number) {
+  const { error } = await supabase
+    .from('attribute_languages')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error deleting language:', error)
+    throw error
+  }
+}
+
+// Voice Style Attributes
+export async function getAllVoiceStyles() {
+  const { data, error } = await supabase
+    .from('attribute_voice_styles')
+    .select('*')
+    .order('sort_order', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching voice styles:', error)
+    throw error
+  }
+
+  return data || []
+}
+
+export async function getActiveVoiceStyles() {
+  const { data, error } = await supabase
+    .from('attribute_voice_styles')
+    .select('*')
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching active voice styles:', error)
+    throw error
+  }
+
+  return data || []
+}
+
+export async function createVoiceStyle(style: { value: string; label: string; sort_order?: number }) {
+  const { data, error } = await supabase
+    .from('attribute_voice_styles')
+    .insert(style)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error creating voice style:', error)
+    throw error
+  }
+
+  return data
+}
+
+export async function updateVoiceStyle(id: number, updates: { value?: string; label?: string; is_active?: boolean; sort_order?: number }) {
+  const { data, error } = await supabase
+    .from('attribute_voice_styles')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error updating voice style:', error)
+    throw error
+  }
+
+  return data
+}
+
+export async function deleteVoiceStyle(id: number) {
+  const { error } = await supabase
+    .from('attribute_voice_styles')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error deleting voice style:', error)
+    throw error
+  }
+}
+
+// Audio Category Attributes
+export async function getAllAudioCategories() {
+  const { data, error } = await supabase
+    .from('attribute_audio_categories')
+    .select('*')
+    .order('sort_order', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching audio categories:', error)
+    throw error
+  }
+
+  return data || []
+}
+
+export async function getActiveAudioCategories() {
+  const { data, error } = await supabase
+    .from('attribute_audio_categories')
+    .select('*')
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching active audio categories:', error)
+    throw error
+  }
+
+  return data || []
+}
+
+export async function createAudioCategory(category: { 
+  value: string
+  label: string
+  icon_name: string
+  color_class?: string
+  sort_order?: number 
+}) {
+  const { data, error } = await supabase
+    .from('attribute_audio_categories')
+    .insert(category)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error creating audio category:', error)
+    throw error
+  }
+
+  return data
+}
+
+export async function updateAudioCategory(id: number, updates: { 
+  value?: string
+  label?: string
+  icon_name?: string
+  color_class?: string
+  is_active?: boolean
+  sort_order?: number 
+}) {
+  const { data, error } = await supabase
+    .from('attribute_audio_categories')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error updating audio category:', error)
+    throw error
+  }
+
+  return data
+}
+
+export async function deleteAudioCategory(id: number) {
+  const { error } = await supabase
+    .from('attribute_audio_categories')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error deleting audio category:', error)
+    throw error
+  }
 }

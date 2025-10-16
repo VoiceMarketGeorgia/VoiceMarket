@@ -7,9 +7,11 @@ import { Mic2, Headphones, BookOpen, Filter, X, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { MultiSelect } from "@/components/ui/multi-select";
-import { getAllVoiceActors, convertToTalent } from "@/lib/supabase-queries";
+import { getAllVoiceActors, convertToTalent, getActiveAudioCategories } from "@/lib/supabase-queries";
 import { supabase } from "@/lib/supabase";
 import { VOICE_STYLE_OPTIONS, LANGUAGE_OPTIONS, GENDER_OPTIONS, AUDIO_CATEGORIES } from "@/lib/constants";
+import { getDynamicLanguages, getDynamicVoiceStyles, getDynamicAudioCategories } from "@/lib/dynamic-attributes";
+import { getIconElement } from "@/lib/category-icons";
 
 interface TalentWithDuration {
   id: string;
@@ -49,6 +51,14 @@ export function AllTalents() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
+  // Category icon map for dynamic icons
+  const [categoryIconMap, setCategoryIconMap] = useState<Map<string, { icon_name: string; color_class: string }>>(new Map());
+  
+  // Dynamic filter options
+  const [languageFilterOptions, setLanguageFilterOptions] = useState<Array<{ value: string; label: string }>>([]);
+  const [voiceStyleFilterOptions, setVoiceStyleFilterOptions] = useState<Array<{ value: string; label: string }>>([]);
+  const [audioCategoryFilterOptions, setAudioCategoryFilterOptions] = useState<Array<{ value: string; label: string }>>([]);
+  
   // Infinite scrolling state
   const [limit, setLimit] = useState(4); // Dynamic limit based on screen size
   const [offset, setOffset] = useState(0);
@@ -78,6 +88,51 @@ export function AllTalents() {
     const maxBatch = 12;
     
     return Math.min(maxBatch, Math.max(minBatch, batchSize));
+  }, []);
+
+  // Load category icon map and filter options on mount
+  useEffect(() => {
+    const loadDynamicData = async () => {
+      try {
+        const [categories, languages, voiceStyles] = await Promise.all([
+          getDynamicAudioCategories(),
+          getDynamicLanguages(),
+          getDynamicVoiceStyles(),
+        ]);
+        
+        // Set category icon map
+        const map = new Map<string, { icon_name: string; color_class: string }>();
+        categories.forEach(cat => {
+          if (cat.icon_name && cat.color_class) {
+            map.set(cat.value, {
+              icon_name: cat.icon_name,
+              color_class: cat.color_class
+            });
+          }
+        });
+        setCategoryIconMap(map);
+        
+        // Set filter options
+        setLanguageFilterOptions(languages);
+        setVoiceStyleFilterOptions(voiceStyles);
+        setAudioCategoryFilterOptions(categories);
+      } catch (error) {
+        console.error('Error loading dynamic data:', error);
+      }
+    };
+    
+    loadDynamicData();
+
+    // Listen for attribute updates
+    const handleAttributesUpdate = () => {
+      loadDynamicData();
+    };
+
+    window.addEventListener('attributesUpdated', handleAttributesUpdate);
+    
+    return () => {
+      window.removeEventListener('attributesUpdated', handleAttributesUpdate);
+    };
   }, []);
 
   // Update limit when screen size changes
@@ -130,12 +185,12 @@ export function AllTalents() {
       if (data && data.length > 0) {
         // Convert to TalentWithDuration format
         const newTalents: TalentWithDuration[] = data.map(actor => {
-          const talent = convertToTalent(actor);
+          const talent = convertToTalent(actor, categoryIconMap);
           
-          // Add proper icons to samples
+          // Add proper icons to samples using dynamic iconName
           const samplesWithIcons = talent.samples.map((sample: any) => ({
             ...sample,
-            icon: getSampleIcon(sample.name)
+            icon: sample.iconName ? getIconElement(sample.iconName, { className: "h-4 w-4" }) : <Mic2 className="h-4 w-4" />
           }));
 
           return {
@@ -161,7 +216,7 @@ export function AllTalents() {
     } finally {
       setIsLoadingMore(false);
     }
-  }, [offset, limit, hasMore, isLoadingMore]);
+  }, [offset, limit, hasMore, isLoadingMore, categoryIconMap]);
 
   // Number of samples per actor (based on actual audio folder structure)
   const samplesPerActor = [
@@ -218,12 +273,12 @@ export function AllTalents() {
         
         if (data && data.length > 0) {
           const talentsWithDuration: TalentWithDuration[] = data.map(actor => {
-            const talent = convertToTalent(actor);
+            const talent = convertToTalent(actor, categoryIconMap);
             
-            // Add proper icons to samples
+            // Add proper icons to samples using dynamic iconName
             const samplesWithIcons = talent.samples.map((sample: any) => ({
               ...sample,
-              icon: getSampleIcon(sample.name)
+              icon: sample.iconName ? getIconElement(sample.iconName, { className: "h-4 w-4" }) : <Mic2 className="h-4 w-4" />
             }));
 
             return {
@@ -251,7 +306,7 @@ export function AllTalents() {
     }
 
     loadInitialTalents();
-  }, [limit, calculateResponsiveLimit]);
+  }, [limit, calculateResponsiveLimit, categoryIconMap]);
 
   // Intersection Observer for infinite scrolling
   useEffect(() => {
@@ -417,7 +472,7 @@ export function AllTalents() {
               <div>
                 <Label htmlFor="voice-style" className="mb-2 block">ხმის სტილი</Label>
                 <MultiSelect
-                  options={VOICE_STYLE_OPTIONS}
+                  options={voiceStyleFilterOptions.length > 0 ? voiceStyleFilterOptions : VOICE_STYLE_OPTIONS}
                   selected={tempFilters.voiceStyles}
                   onChange={(values) => setTempFilters(prev => ({ ...prev, voiceStyles: values }))}
                   placeholder="აირჩიეთ სტილი"
@@ -428,7 +483,7 @@ export function AllTalents() {
               <div>
                 <Label htmlFor="language" className="mb-2 block">ენა</Label>
                 <MultiSelect
-                  options={LANGUAGE_OPTIONS}
+                  options={languageFilterOptions.length > 0 ? languageFilterOptions : LANGUAGE_OPTIONS}
                   selected={tempFilters.languages}
                   onChange={(values) => setTempFilters(prev => ({ ...prev, languages: values }))}
                   placeholder="აირჩიეთ ენა"
@@ -450,7 +505,7 @@ export function AllTalents() {
               <div>
                 <Label htmlFor="audio-category" className="mb-2 block">აუდიო კატეგორია</Label>
                 <MultiSelect
-                  options={AUDIO_CATEGORIES}
+                  options={audioCategoryFilterOptions.length > 0 ? audioCategoryFilterOptions : AUDIO_CATEGORIES}
                   selected={tempFilters.audioCategories}
                   onChange={(values) => setTempFilters(prev => ({ ...prev, audioCategories: values }))}
                   placeholder="აირჩიეთ კატეგორია"

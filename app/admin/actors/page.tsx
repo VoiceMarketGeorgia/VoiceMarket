@@ -100,12 +100,11 @@ const INITIAL_FORM_DATA: ActorFormData = {
 };
 
 import {
-  LANGUAGE_OPTIONS,
   AGE_RANGE_OPTIONS,
-  VOICE_STYLE_OPTIONS,
   GENDER_OPTIONS,
   getGeorgianLabel,
 } from "@/lib/constants";
+import { getDynamicLanguages, getDynamicVoiceStyles } from "@/lib/dynamic-attributes";
 
 export default function ActorsPage() {
   const [actors, setActors] = useState<VoiceActorWithPricing[]>([]);
@@ -120,6 +119,10 @@ export default function ActorsPage() {
     useState<VoiceActorWithPricing | null>(null);
   const [formData, setFormData] = useState<ActorFormData>(INITIAL_FORM_DATA);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Dynamic attributes
+  const [languageOptions, setLanguageOptions] = useState<Array<{ value: string; label: string }>>([]);
+  const [voiceStyleOptions, setVoiceStyleOptions] = useState<Array<{ value: string; label: string }>>([]);
 
   const loadActors = async () => {
     try {
@@ -138,8 +141,33 @@ export default function ActorsPage() {
     }
   };
 
+  const loadDynamicAttributes = async () => {
+    try {
+      const [languages, voiceStyles] = await Promise.all([
+        getDynamicLanguages(),
+        getDynamicVoiceStyles(),
+      ]);
+      setLanguageOptions(languages);
+      setVoiceStyleOptions(voiceStyles);
+    } catch (error) {
+      console.error('Error loading dynamic attributes:', error);
+    }
+  };
+
   useEffect(() => {
     loadActors();
+    loadDynamicAttributes();
+
+    // Listen for attribute updates from the attributes page
+    const handleAttributesUpdate = () => {
+      loadDynamicAttributes();
+    };
+
+    window.addEventListener('attributesUpdated', handleAttributesUpdate);
+    
+    return () => {
+      window.removeEventListener('attributesUpdated', handleAttributesUpdate);
+    };
   }, []);
 
   const filteredActors = actors.filter((actor) => {
@@ -335,6 +363,8 @@ export default function ActorsPage() {
               onSubmit={handleCreateActor}
               isSubmitting={isSubmitting}
               submitLabel="მსახიობის შექმნა"
+              languageOptions={languageOptions}
+              voiceStyleOptions={voiceStyleOptions}
             />
           </DialogContent>
         </Dialog>
@@ -522,6 +552,8 @@ export default function ActorsPage() {
             onSubmit={handleEditActor}
             isSubmitting={isSubmitting}
             submitLabel="ცვლილებების შენახვა"
+            languageOptions={languageOptions}
+            voiceStyleOptions={voiceStyleOptions}
           />
         </DialogContent>
       </Dialog>
@@ -535,6 +567,8 @@ interface ActorFormProps {
   onSubmit: () => void;
   isSubmitting: boolean;
   submitLabel: string;
+  languageOptions: Array<{ value: string; label: string }>;
+  voiceStyleOptions: Array<{ value: string; label: string }>;
 }
 
 function ActorForm({
@@ -543,6 +577,8 @@ function ActorForm({
   onSubmit,
   isSubmitting,
   submitLabel,
+  languageOptions,
+  voiceStyleOptions,
 }: ActorFormProps) {
   const handleLanguageChange = (language: string, checked: boolean) => {
     if (checked) {
@@ -671,7 +707,7 @@ function ActorForm({
       <div className="space-y-2">
         <Label>ენები</Label>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-          {LANGUAGE_OPTIONS.map((language) => (
+          {languageOptions.map((language) => (
             <label
               key={language.value}
               className="flex items-center gap-2 text-sm"
@@ -693,7 +729,7 @@ function ActorForm({
       <div className="space-y-2">
         <Label>ხმის სტილი</Label>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-          {VOICE_STYLE_OPTIONS.map((style) => (
+          {voiceStyleOptions.map((style) => (
             <label
               key={style.value}
               className="flex items-center gap-2 text-sm"

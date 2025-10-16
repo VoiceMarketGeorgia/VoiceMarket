@@ -6,11 +6,13 @@ import { useState, useRef, useEffect } from "react";
 import AudioPlayer from "react-h5-audio-player";
 import "react-h5-audio-player/lib/styles.css";
 import { ChevronDown } from "lucide-react";
+import { getIconElement, getCategoryIconName } from "@/lib/category-icons";
 
 interface AudioSample {
   id: string;
   name: string;
   icon: React.ReactNode;
+  iconName?: string; // Dynamic icon name from database
   url: string;
 }
 
@@ -185,7 +187,9 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
             className="w-full flex items-center justify-between p-3 bg-gray-50 dark:bg-muted rounded-lg border border-gray-200 dark:border-border hover:bg-gray-100 dark:hover:bg-muted/80 transition-colors duration-200"
           >
             <div className="flex items-center gap-2">
-              <span className="text-orange-500">{currentSample.icon}</span>
+              <span className="text-orange-500">
+                {currentSample.iconName ? getIconElement(currentSample.iconName, { className: "h-5 w-5" }) : currentSample.icon}
+              </span>
               <span className="font-medium text-gray-700 dark:text-foreground">
                 {currentSample.name}
               </span>
@@ -216,7 +220,7 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
                         : "text-gray-400 dark:text-muted-foreground"
                     }
                   >
-                    {sample.icon}
+                    {sample.iconName ? getIconElement(sample.iconName, { className: "h-5 w-5" }) : sample.icon}
                   </span>
                   <span className="font-medium">{sample.name}</span>
                 </button>

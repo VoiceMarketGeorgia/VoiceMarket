@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { AudioUpload } from "@/components/ui/file-upload";
 import { Music, Play, Pause, Edit, Trash2, Plus } from "lucide-react";
+import { getDynamicAudioCategories } from "@/lib/dynamic-attributes";
 
 export interface AudioSample {
   id?: number;
@@ -31,8 +32,6 @@ interface AudioSampleManagerProps {
   onSamplesChange: (samples: AudioSample[]) => void;
 }
 
-import { AUDIO_CATEGORIES } from "@/lib/constants";
-
 export function AudioSampleManager({
   actorId,
   samples,
@@ -42,11 +41,41 @@ export function AudioSampleManager({
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [playingIndex, setPlayingIndex] = useState<number | null>(null);
   const audioRefs = useRef<Record<number, HTMLAudioElement | null>>({});
+  const [audioCategories, setAudioCategories] = useState<Array<{ value: string; label: string; color_class?: string }>>([]);
   const [newSample, setNewSample] = useState<Partial<AudioSample>>({
     name: "სარეკლამო რგოლი",
     category: "კომერციული",
     audio_url: "",
   });
+
+  // Load audio categories on mount
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const categories = await getDynamicAudioCategories();
+        setAudioCategories(categories);
+        // Set default category if available
+        if (categories.length > 0 && !newSample.category) {
+          setNewSample(prev => ({ ...prev, category: categories[0].value }));
+        }
+      } catch (error) {
+        console.error('Error loading audio categories:', error);
+      }
+    };
+    
+    loadCategories();
+
+    // Listen for attribute updates
+    const handleAttributesUpdate = () => {
+      loadCategories();
+    };
+
+    window.addEventListener('attributesUpdated', handleAttributesUpdate);
+    
+    return () => {
+      window.removeEventListener('attributesUpdated', handleAttributesUpdate);
+    };
+  }, []);
 
   const handleAddSample = () => {
     if (!newSample.name || !newSample.audio_url) return;
@@ -117,31 +146,8 @@ export function AudioSampleManager({
   }, []);
 
   const getCategoryColor = (category: string) => {
-    const colors: Record<string, string> = {
-      კომერციული:
-        "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400",
-      გახმოვანება:
-        "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400",
-      დოკუმენტური:
-        "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400",
-      პერსონაჟი:
-        "bg-pink-100 text-pink-800 dark:bg-pink-900/20 dark:text-pink-400",
-      "ელექტრონული სწავლება":
-        "bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400",
-      ანიმაცია:
-        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400",
-      "ახალი ამბები":
-        "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-400",
-      კორპორატიული:
-        "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-400",
-      სარეკლამო: "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400",
-      ავტომოპასუხე:
-        "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400",
-    };
-    return (
-      colors[category] ||
-      "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400"
-    );
+    const cat = audioCategories.find(c => c.value === category);
+    return cat?.color_class || "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400";
   };
 
   return (
@@ -189,7 +195,7 @@ export function AudioSampleManager({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {AUDIO_CATEGORIES.map((cat) => (
+                    {audioCategories.map((cat) => (
                       <SelectItem key={cat.value} value={cat.value}>
                         {cat.label}
                       </SelectItem>
@@ -241,6 +247,7 @@ export function AudioSampleManager({
                     handleUpdateSample(index, updatedSample)
                   }
                   onCancel={() => setEditingIndex(null)}
+                  audioCategories={audioCategories}
                 />
               ) : (
                 <div className="flex items-center gap-4">
@@ -333,10 +340,12 @@ function EditSampleForm({
   sample,
   onSave,
   onCancel,
+  audioCategories,
 }: {
   sample: AudioSample;
   onSave: (sample: Partial<AudioSample>) => void;
   onCancel: () => void;
+  audioCategories: Array<{ value: string; label: string }>;
 }) {
   const [editedSample, setEditedSample] = useState<Partial<AudioSample>>({
     name: sample.name,
@@ -368,7 +377,7 @@ function EditSampleForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {AUDIO_CATEGORIES.map((cat) => (
+              {audioCategories.map((cat) => (
                 <SelectItem key={cat.value} value={cat.value}>
                   {cat.label}
                 </SelectItem>
