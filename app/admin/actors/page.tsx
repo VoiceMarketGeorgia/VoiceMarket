@@ -100,12 +100,11 @@ const INITIAL_FORM_DATA: ActorFormData = {
 };
 
 import {
-  LANGUAGE_OPTIONS,
   AGE_RANGE_OPTIONS,
-  VOICE_STYLE_OPTIONS,
   GENDER_OPTIONS,
   getGeorgianLabel,
 } from "@/lib/constants";
+import { getDynamicLanguages, getDynamicVoiceStyles } from "@/lib/dynamic-attributes";
 
 export default function ActorsPage() {
   const [actors, setActors] = useState<VoiceActorWithPricing[]>([]);
@@ -120,6 +119,10 @@ export default function ActorsPage() {
     useState<VoiceActorWithPricing | null>(null);
   const [formData, setFormData] = useState<ActorFormData>(INITIAL_FORM_DATA);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Dynamic attributes
+  const [languageOptions, setLanguageOptions] = useState<Array<{ value: string; label: string }>>([]);
+  const [voiceStyleOptions, setVoiceStyleOptions] = useState<Array<{ value: string; label: string }>>([]);
 
   const loadActors = async () => {
     try {
@@ -138,8 +141,33 @@ export default function ActorsPage() {
     }
   };
 
+  const loadDynamicAttributes = async () => {
+    try {
+      const [languages, voiceStyles] = await Promise.all([
+        getDynamicLanguages(),
+        getDynamicVoiceStyles(),
+      ]);
+      setLanguageOptions(languages);
+      setVoiceStyleOptions(voiceStyles);
+    } catch (error) {
+      console.error('Error loading dynamic attributes:', error);
+    }
+  };
+
   useEffect(() => {
     loadActors();
+    loadDynamicAttributes();
+
+    // Listen for attribute updates from the attributes page
+    const handleAttributesUpdate = () => {
+      loadDynamicAttributes();
+    };
+
+    window.addEventListener('attributesUpdated', handleAttributesUpdate);
+    
+    return () => {
+      window.removeEventListener('attributesUpdated', handleAttributesUpdate);
+    };
   }, []);
 
   const filteredActors = actors.filter((actor) => {
@@ -164,15 +192,18 @@ export default function ActorsPage() {
       // Create the actor first
       const newActor = await createVoiceActor(formData);
 
-      // Create audio samples if any
+      // Create audio samples if any with correct order
       if (formData.audio_samples.length > 0) {
-        for (const sample of formData.audio_samples) {
+        console.log('Saving audio samples in order:', formData.audio_samples.map((s, i) => ({ name: s.name, order_index: i })));
+        for (let i = 0; i < formData.audio_samples.length; i++) {
+          const sample = formData.audio_samples[i];
           await createAudioSample({
             voice_actor_id: newActor.id,
             sample_id: sample.sample_id,
             name: sample.name,
             audio_url: sample.audio_url,
             category: sample.category,
+            order_index: i, // Preserve order
           });
         }
       }
@@ -207,15 +238,18 @@ export default function ActorsPage() {
         }
       }
 
-      // Create new samples
+      // Create new samples with correct order
       if (formData.audio_samples.length > 0) {
-        for (const sample of formData.audio_samples) {
+        console.log('Saving audio samples in order:', formData.audio_samples.map((s, i) => ({ name: s.name, order_index: i })));
+        for (let i = 0; i < formData.audio_samples.length; i++) {
+          const sample = formData.audio_samples[i];
           await createAudioSample({
             voice_actor_id: editingActor.id,
             sample_id: sample.sample_id,
             name: sample.name,
             audio_url: sample.audio_url,
             category: sample.category,
+            order_index: i, // Preserve order
           });
         }
       }
@@ -243,7 +277,7 @@ export default function ActorsPage() {
   const openEditDialog = async (actor: VoiceActorWithPricing) => {
     setEditingActor(actor);
 
-    // Load audio samples for this actor
+    // Load audio samples for this actor (already sorted by order_index from DB)
     const audioSamples =
       actor.samples?.map((sample) => ({
         id: sample.id,
@@ -252,6 +286,8 @@ export default function ActorsPage() {
         audio_url: sample.audio_url || "",
         category: sample.category || "კომერციული",
       })) || [];
+    
+    console.log('Opening edit dialog with audio samples:', audioSamples.map((s, i) => ({ position: i + 1, name: s.name, id: s.sample_id })));
 
     // Load pricing data from database (use actual DB column names)
     const pricing = actor.pricing?.[0] as any;
@@ -335,6 +371,8 @@ export default function ActorsPage() {
               onSubmit={handleCreateActor}
               isSubmitting={isSubmitting}
               submitLabel="მსახიობის შექმნა"
+              languageOptions={languageOptions}
+              voiceStyleOptions={voiceStyleOptions}
             />
           </DialogContent>
         </Dialog>
@@ -522,6 +560,8 @@ export default function ActorsPage() {
             onSubmit={handleEditActor}
             isSubmitting={isSubmitting}
             submitLabel="ცვლილებების შენახვა"
+            languageOptions={languageOptions}
+            voiceStyleOptions={voiceStyleOptions}
           />
         </DialogContent>
       </Dialog>
@@ -535,6 +575,8 @@ interface ActorFormProps {
   onSubmit: () => void;
   isSubmitting: boolean;
   submitLabel: string;
+  languageOptions: Array<{ value: string; label: string }>;
+  voiceStyleOptions: Array<{ value: string; label: string }>;
 }
 
 function ActorForm({
@@ -543,6 +585,8 @@ function ActorForm({
   onSubmit,
   isSubmitting,
   submitLabel,
+  languageOptions,
+  voiceStyleOptions,
 }: ActorFormProps) {
   const handleLanguageChange = (language: string, checked: boolean) => {
     if (checked) {
@@ -671,7 +715,7 @@ function ActorForm({
       <div className="space-y-2">
         <Label>ენები</Label>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-          {LANGUAGE_OPTIONS.map((language) => (
+          {languageOptions.map((language) => (
             <label
               key={language.value}
               className="flex items-center gap-2 text-sm"
@@ -693,7 +737,7 @@ function ActorForm({
       <div className="space-y-2">
         <Label>ხმის სტილი</Label>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-          {VOICE_STYLE_OPTIONS.map((style) => (
+          {voiceStyleOptions.map((style) => (
             <label
               key={style.value}
               className="flex items-center gap-2 text-sm"
@@ -820,7 +864,7 @@ function ActorForm({
           actorId={formData.actor_id || "new"}
           samples={formData.audio_samples}
           onSamplesChange={(samples) =>
-            setFormData({ ...formData, audio_samples: samples })
+            setFormData((prev) => ({ ...prev, audio_samples: samples }))
           }
         />
       </div>

@@ -29,6 +29,8 @@ import { ActorPricing } from "@/components/voice-card";
 import { getVoiceActorById, convertToTalent } from "@/lib/supabase-queries";
 import CardAudioPlayer from "@/components/card-audio-player";
 import { getGeorgianLabel } from "@/lib/constants";
+import { getDynamicAudioCategories } from "@/lib/dynamic-attributes";
+import { getIconElement } from "@/lib/category-icons";
 
 interface TalentProfileProps {
   id: string;
@@ -42,6 +44,29 @@ export function TalentProfile({ id }: TalentProfileProps) {
   const [talent, setTalent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [categoryIconMap, setCategoryIconMap] = useState<Map<string, { icon_name: string; color_class: string }>>(new Map());
+
+  // Load category icons
+  useEffect(() => {
+    const loadCategoryIcons = async () => {
+      try {
+        const categories = await getDynamicAudioCategories();
+        const map = new Map<string, { icon_name: string; color_class: string }>();
+        categories.forEach(cat => {
+          if (cat.icon_name && cat.color_class) {
+            map.set(cat.value, {
+              icon_name: cat.icon_name,
+              color_class: cat.color_class
+            });
+          }
+        });
+        setCategoryIconMap(map);
+      } catch (error) {
+        console.error('Error loading category icons:', error);
+      }
+    };
+    loadCategoryIcons();
+  }, []);
 
   // Load talent data from Supabase
   useEffect(() => {
@@ -51,12 +76,12 @@ export function TalentProfile({ id }: TalentProfileProps) {
         const voiceActor = await getVoiceActorById(id);
 
         if (voiceActor) {
-          const talentData = convertToTalent(voiceActor);
+          const talentData = convertToTalent(voiceActor, categoryIconMap);
 
-          // Add proper icons to samples
+          // Add proper icons to samples using dynamic iconName
           const samplesWithIcons = talentData.samples.map((sample: any) => ({
             ...sample,
-            icon: getSampleIcon(sample.name),
+            icon: sample.iconName ? getIconElement(sample.iconName, { className: "h-4 w-4" }) : <Mic2 className="h-4 w-4" />,
             category: sample.name,
             description: `Professional ${sample.name.toLowerCase()} voice sample.`,
           }));
@@ -93,7 +118,7 @@ export function TalentProfile({ id }: TalentProfileProps) {
     }
 
     loadTalent();
-  }, [id]);
+  }, [id, categoryIconMap]);
 
   // Helper function to get icon for sample type
   const getSampleIcon = (sampleName: string) => {

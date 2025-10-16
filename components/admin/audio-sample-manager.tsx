@@ -14,7 +14,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AudioUpload } from "@/components/ui/file-upload";
-import { Music, Play, Pause, Edit, Trash2, Plus } from "lucide-react";
+import { Music, Play, Pause, Edit, Trash2, Plus, GripVertical } from "lucide-react";
+import { getDynamicAudioCategories } from "@/lib/dynamic-attributes";
+import { getAllAudioCategories } from "@/lib/supabase-queries";
+import { getIconElement } from "@/lib/category-icons";
 
 export interface AudioSample {
   id?: number;
@@ -31,8 +34,6 @@ interface AudioSampleManagerProps {
   onSamplesChange: (samples: AudioSample[]) => void;
 }
 
-import { AUDIO_CATEGORIES } from "@/lib/constants";
-
 export function AudioSampleManager({
   actorId,
   samples,
@@ -42,11 +43,45 @@ export function AudioSampleManager({
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [playingIndex, setPlayingIndex] = useState<number | null>(null);
   const audioRefs = useRef<Record<number, HTMLAudioElement | null>>({});
+  const [audioCategories, setAudioCategories] = useState<Array<{ value: string; label: string; color_class?: string; icon_name?: string; is_active?: boolean }>>([]);
   const [newSample, setNewSample] = useState<Partial<AudioSample>>({
     name: "სარეკლამო რგოლი",
     category: "კომერციული",
     audio_url: "",
   });
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+
+  // Load audio categories on mount (including inactive ones for backward compatibility)
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        // Load ALL categories (including disabled) so existing samples with disabled categories still show
+        const allCategories = await getAllAudioCategories();
+        setAudioCategories(allCategories);
+        
+        // Set default to first ACTIVE category if available
+        const activeCategories = allCategories.filter(cat => cat.is_active);
+        if (activeCategories.length > 0 && !newSample.category) {
+          setNewSample(prev => ({ ...prev, category: activeCategories[0].value }));
+        }
+      } catch (error) {
+        console.error('Error loading audio categories:', error);
+      }
+    };
+    
+    loadCategories();
+
+    // Listen for attribute updates
+    const handleAttributesUpdate = () => {
+      loadCategories();
+    };
+
+    window.addEventListener('attributesUpdated', handleAttributesUpdate);
+    
+    return () => {
+      window.removeEventListener('attributesUpdated', handleAttributesUpdate);
+    };
+  }, []);
 
   const handleAddSample = () => {
     if (!newSample.name || !newSample.audio_url) return;
@@ -76,6 +111,36 @@ export function AudioSampleManager({
   const handleDeleteSample = (index: number) => {
     const updatedSamples = samples.filter((_, i) => i !== index);
     onSamplesChange(updatedSamples);
+  };
+
+  // Drag and drop handlers
+  const handleDragStart = (index: number) => {
+    setDraggedIndex(index);
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      return;
+    }
+
+    const reorderedSamples = [...samples];
+    const [draggedItem] = reorderedSamples.splice(draggedIndex, 1);
+    reorderedSamples.splice(dropIndex, 0, draggedItem);
+    
+    console.log('Audio reordered:', reorderedSamples.map((s, i) => ({ name: s.name, newPosition: i + 1 })));
+    onSamplesChange(reorderedSamples);
+    setDraggedIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
   };
 
   const stopAll = () => {
@@ -117,31 +182,18 @@ export function AudioSampleManager({
   }, []);
 
   const getCategoryColor = (category: string) => {
-    const colors: Record<string, string> = {
-      კომერციული:
-        "bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400",
-      გახმოვანება:
-        "bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400",
-      დოკუმენტური:
-        "bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-400",
-      პერსონაჟი:
-        "bg-pink-100 text-pink-800 dark:bg-pink-900/20 dark:text-pink-400",
-      "ელექტრონული სწავლება":
-        "bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400",
-      ანიმაცია:
-        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400",
-      "ახალი ამბები":
-        "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/20 dark:text-cyan-400",
-      კორპორატიული:
-        "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/20 dark:text-indigo-400",
-      სარეკლამო: "bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400",
-      ავტომოპასუხე:
-        "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400",
-    };
-    return (
-      colors[category] ||
-      "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400"
-    );
+    const cat = audioCategories.find(c => c.value === category);
+    return cat?.color_class || "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400";
+  };
+
+  const getCategoryIcon = (category: string) => {
+    const cat = audioCategories.find(c => c.value === category);
+    return cat?.icon_name;
+  };
+
+  const isCategoryActive = (category: string) => {
+    const cat = audioCategories.find(c => c.value === category);
+    return cat?.is_active ?? true; // Default to true if not found
   };
 
   return (
@@ -189,9 +241,19 @@ export function AudioSampleManager({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {AUDIO_CATEGORIES.map((cat) => (
-                      <SelectItem key={cat.value} value={cat.value}>
-                        {cat.label}
+                    {audioCategories.map((cat) => (
+                      <SelectItem 
+                        key={cat.value} 
+                        value={cat.value}
+                        disabled={!cat.is_active}
+                      >
+                        <div className="flex items-center gap-2">
+                          {cat.icon_name && getIconElement(cat.icon_name, { className: "h-4 w-4" })}
+                          {cat.label}
+                          {!cat.is_active && (
+                            <span className="text-xs text-muted-foreground">(გამორთული)</span>
+                          )}
+                        </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -232,7 +294,15 @@ export function AudioSampleManager({
       {/* Existing samples */}
       <div className="space-y-3">
         {samples.map((sample, index) => (
-          <Card key={sample.sample_id || index}>
+          <Card 
+            key={sample.sample_id || index}
+            draggable={editingIndex !== index}
+            onDragStart={() => handleDragStart(index)}
+            onDragOver={(e) => handleDragOver(e, index)}
+            onDrop={(e) => handleDrop(e, index)}
+            onDragEnd={handleDragEnd}
+            className={`transition-opacity ${draggedIndex === index ? 'opacity-50' : 'opacity-100'} ${editingIndex !== index ? 'cursor-move' : ''}`}
+          >
             <CardContent className="p-4">
               {editingIndex === index ? (
                 <EditSampleForm
@@ -241,9 +311,20 @@ export function AudioSampleManager({
                     handleUpdateSample(index, updatedSample)
                   }
                   onCancel={() => setEditingIndex(null)}
+                  audioCategories={audioCategories}
                 />
               ) : (
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
+                  {/* Drag Handle */}
+                  <div className="cursor-grab active:cursor-grabbing">
+                    <GripVertical className="h-5 w-5 text-muted-foreground" />
+                  </div>
+
+                  {/* Order Number */}
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm shrink-0">
+                    {index + 1}
+                  </div>
+
                   <audio
                     ref={(el) => {
                       audioRefs.current[index] = el;
@@ -271,14 +352,22 @@ export function AudioSampleManager({
                   </Button>
 
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <Music className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {getCategoryIcon(sample.category) ? 
+                        getIconElement(getCategoryIcon(sample.category)!, { className: "h-4 w-4 text-muted-foreground" }) :
+                        <Music className="h-4 w-4 text-muted-foreground" />
+                      }
                       <span className="font-medium truncate">
                         {sample.name}
                       </span>
                       <Badge className={getCategoryColor(sample.category)}>
                         {sample.category}
                       </Badge>
+                      {!isCategoryActive(sample.category) && (
+                        <Badge variant="destructive" className="text-xs">
+                          ⚠ კატეგორია გამორთულია
+                        </Badge>
+                      )}
                     </div>
                     <p className="text-sm text-muted-foreground mt-1">
                       ID: {sample.sample_id}
@@ -333,10 +422,12 @@ function EditSampleForm({
   sample,
   onSave,
   onCancel,
+  audioCategories,
 }: {
   sample: AudioSample;
   onSave: (sample: Partial<AudioSample>) => void;
   onCancel: () => void;
+  audioCategories: Array<{ value: string; label: string }>;
 }) {
   const [editedSample, setEditedSample] = useState<Partial<AudioSample>>({
     name: sample.name,
@@ -368,9 +459,19 @@ function EditSampleForm({
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {AUDIO_CATEGORIES.map((cat) => (
-                <SelectItem key={cat.value} value={cat.value}>
-                  {cat.label}
+              {audioCategories.map((cat) => (
+                <SelectItem 
+                  key={cat.value} 
+                  value={cat.value}
+                  disabled={!cat.is_active}
+                >
+                  <div className="flex items-center gap-2">
+                    {cat.icon_name && getIconElement(cat.icon_name, { className: "h-4 w-4" })}
+                    {cat.label}
+                    {!cat.is_active && (
+                      <span className="text-xs text-muted-foreground">(გამორთული)</span>
+                    )}
+                  </div>
                 </SelectItem>
               ))}
             </SelectContent>

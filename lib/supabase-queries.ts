@@ -12,6 +12,8 @@ export async function getAllVoiceActors(): Promise<VoiceActorWithPricing[]> {
       samples:audio_samples(*)
     `)
     .eq('is_active', true)
+    .order('order_index', { foreignTable: 'audio_samples', ascending: true })
+    .order('id', { foreignTable: 'audio_samples', ascending: true })
 
   // If relationship query works and has pricing, use it
   if (!errorWithRelation && dataWithRelation) {
@@ -23,6 +25,19 @@ export async function getAllVoiceActors(): Promise<VoiceActorWithPricing[]> {
         const numB = parseInt(b.actor_id)
         return numA - numB
       })
+      
+      // Ensure audio samples are sorted by order_index for each actor
+      sortedData.forEach(actor => {
+        if (actor.samples && Array.isArray(actor.samples)) {
+          actor.samples.sort((a: any, b: any) => {
+            const orderA = a.order_index ?? 999999
+            const orderB = b.order_index ?? 999999
+            if (orderA !== orderB) return orderA - orderB
+            return (a.id ?? 0) - (b.id ?? 0)
+          })
+        }
+      })
+      
       return sortedData
     }
   }
@@ -53,6 +68,8 @@ export async function getAllVoiceActors(): Promise<VoiceActorWithPricing[]> {
     .from('audio_samples')
     .select('*')
     .eq('is_active', true)
+    .order('order_index', { ascending: true })
+    .order('id', { ascending: true })
 
   if (samplesError) {
     console.error('Error fetching samples:', samplesError)
@@ -62,7 +79,15 @@ export async function getAllVoiceActors(): Promise<VoiceActorWithPricing[]> {
   // Manually join the data
   const actorsWithData = actors?.map(actor => {
     const pricing = allPricing?.filter(p => p.voice_actor_id === actor.id) || []
-    const samples = allSamples?.filter(s => s.voice_actor_id === actor.id) || []
+    let samples = allSamples?.filter(s => s.voice_actor_id === actor.id) || []
+    
+    // Ensure samples are sorted by order_index
+    samples = samples.sort((a, b) => {
+      const orderA = a.order_index ?? 999999
+      const orderB = b.order_index ?? 999999
+      if (orderA !== orderB) return orderA - orderB
+      return (a.id ?? 0) - (b.id ?? 0)
+    })
     
     return {
       ...actor,
@@ -92,6 +117,8 @@ export async function getFeaturedVoiceActors(): Promise<VoiceActorWithPricing[]>
     `)
     .eq('is_active', true)
     .eq('is_featured', true)
+    .order('order_index', { foreignTable: 'audio_samples', ascending: true })
+    .order('id', { foreignTable: 'audio_samples', ascending: true })
     .limit(6)
 
   // If relationship query works and has pricing, use it
@@ -104,6 +131,19 @@ export async function getFeaturedVoiceActors(): Promise<VoiceActorWithPricing[]>
         const numB = parseInt(b.actor_id)
         return numA - numB
       })
+      
+      // Ensure audio samples are sorted by order_index for each actor
+      sortedData.forEach(actor => {
+        if (actor.samples && Array.isArray(actor.samples)) {
+          actor.samples.sort((a: any, b: any) => {
+            const orderA = a.order_index ?? 999999
+            const orderB = b.order_index ?? 999999
+            if (orderA !== orderB) return orderA - orderB
+            return (a.id ?? 0) - (b.id ?? 0)
+          })
+        }
+      })
+      
       return sortedData
     }
   }
@@ -133,11 +173,21 @@ export async function getFeaturedVoiceActors(): Promise<VoiceActorWithPricing[]>
     .select('*')
     .in('voice_actor_id', actorIds)
     .eq('is_active', true)
+    .order('order_index', { ascending: true })
+    .order('id', { ascending: true })
 
   // Manually join the data
   const actorsWithData = actors?.map(actor => {
     const pricing = allPricing?.filter(p => p.voice_actor_id === actor.id) || []
-    const samples = allSamples?.filter(s => s.voice_actor_id === actor.id) || []
+    let samples = allSamples?.filter(s => s.voice_actor_id === actor.id) || []
+    
+    // Ensure samples are sorted by order_index
+    samples = samples.sort((a, b) => {
+      const orderA = a.order_index ?? 999999
+      const orderB = b.order_index ?? 999999
+      if (orderA !== orderB) return orderA - orderB
+      return (a.id ?? 0) - (b.id ?? 0)
+    })
     
     return {
       ...actor,
@@ -167,6 +217,8 @@ export async function getVoiceActorById(actorId: string): Promise<VoiceActorWith
     `)
     .eq('actor_id', actorId)
     .eq('is_active', true)
+    .order('order_index', { foreignTable: 'audio_samples', ascending: true })
+    .order('id', { foreignTable: 'audio_samples', ascending: true })
     .single()
 
   if (errorWithRelation) {
@@ -178,6 +230,15 @@ export async function getVoiceActorById(actorId: string): Promise<VoiceActorWith
 
   // If relationship query works and has pricing, use it
   if (dataWithRelation && dataWithRelation.pricing && dataWithRelation.pricing.length > 0) {
+    // Ensure audio samples are sorted by order_index
+    if (dataWithRelation.samples && Array.isArray(dataWithRelation.samples)) {
+      dataWithRelation.samples.sort((a: any, b: any) => {
+        const orderA = a.order_index ?? 999999
+        const orderB = b.order_index ?? 999999
+        if (orderA !== orderB) return orderA - orderB
+        return (a.id ?? 0) - (b.id ?? 0)
+      })
+    }
     return dataWithRelation
   }
 
@@ -207,11 +268,22 @@ export async function getVoiceActorById(actorId: string): Promise<VoiceActorWith
     .select('*')
     .eq('voice_actor_id', actor.id)
     .eq('is_active', true)
+    .order('order_index', { ascending: true })
+    .order('id', { ascending: true })
+
+  // Ensure samples are sorted by order_index
+  let sortedSamples = samples || []
+  sortedSamples = sortedSamples.sort((a, b) => {
+    const orderA = a.order_index ?? 999999
+    const orderB = b.order_index ?? 999999
+    if (orderA !== orderB) return orderA - orderB
+    return (a.id ?? 0) - (b.id ?? 0)
+  })
 
   return {
     ...actor,
     pricing: pricing || [],
-    samples: samples || []
+    samples: sortedSamples
   }
 }
 
@@ -226,13 +298,28 @@ export async function getVoiceActorsByTags(tags: string[]): Promise<VoiceActorWi
     .eq('is_active', true)
     .overlaps('tags', tags)
     .order('rating', { ascending: false })
+    .order('order_index', { foreignTable: 'audio_samples', ascending: true })
+    .order('id', { foreignTable: 'audio_samples', ascending: true })
 
   if (error) {
     console.error('Error fetching voice actors by tags:', error)
     throw error
   }
 
-  return data || []
+  // Ensure audio samples are sorted by order_index for each actor
+  const sortedData = data || []
+  sortedData.forEach(actor => {
+    if (actor.samples && Array.isArray(actor.samples)) {
+      actor.samples.sort((a: any, b: any) => {
+        const orderA = a.order_index ?? 999999
+        const orderB = b.order_index ?? 999999
+        if (orderA !== orderB) return orderA - orderB
+        return (a.id ?? 0) - (b.id ?? 0)
+      })
+    }
+  })
+
+  return sortedData
 }
 
 export async function searchVoiceActors(searchTerm: string): Promise<VoiceActorWithPricing[]> {
@@ -246,13 +333,28 @@ export async function searchVoiceActors(searchTerm: string): Promise<VoiceActorW
     .eq('is_active', true)
     .or(`name.ilike.%${searchTerm}%,bio.ilike.%${searchTerm}%,tags.cs.{${searchTerm}}`)
     .order('rating', { ascending: false })
+    .order('order_index', { foreignTable: 'audio_samples', ascending: true })
+    .order('id', { foreignTable: 'audio_samples', ascending: true })
 
   if (error) {
     console.error('Error searching voice actors:', error)
     throw error
   }
 
-  return data || []
+  // Ensure audio samples are sorted by order_index for each actor
+  const sortedData = data || []
+  sortedData.forEach(actor => {
+    if (actor.samples && Array.isArray(actor.samples)) {
+      actor.samples.sort((a: any, b: any) => {
+        const orderA = a.order_index ?? 999999
+        const orderB = b.order_index ?? 999999
+        if (orderA !== orderB) return orderA - orderB
+        return (a.id ?? 0) - (b.id ?? 0)
+      })
+    }
+  })
+
+  return sortedData
 }
 
 // Audio Samples Queries
@@ -271,6 +373,7 @@ export async function getAudioSamplesByActorId(actorId: string): Promise<AudioSa
     .eq('voice_actor_id', actor.id)
     .eq('is_active', true)
     .order('order_index', { ascending: true })
+    .order('id', { ascending: true }) // Fallback to id if order_index is same
 
   if (error) {
     console.error('Error fetching audio samples:', error)
@@ -385,14 +488,24 @@ export async function getQuoteRequests(status?: string): Promise<QuoteRequest[]>
 }
 
 // Utility function to convert database records to legacy Talent interface
-export function convertToTalent(voiceActor: VoiceActorWithPricing): any {
-  const samples = voiceActor.samples?.map(sample => ({
-    id: sample.sample_id,
-    name: sample.name,
-    url: sample.audio_url,
-    category: sample.category,
-    icon: null // You'll need to map this based on category
-  })) || []
+export function convertToTalent(voiceActor: VoiceActorWithPricing, categoryIconMap?: Map<string, { icon_name: string; color_class: string }>): any {
+  const samples = voiceActor.samples?.map(sample => {
+    // Get icon info from map or use default
+    const categoryInfo = categoryIconMap?.get(sample.category || '') || {
+      icon_name: 'Music',
+      color_class: 'bg-gray-100'
+    }
+    
+    return {
+      id: sample.sample_id,
+      name: sample.name,
+      url: sample.audio_url,
+      category: sample.category,
+      icon: null, // Will be set by component using getIconElement from category-icons
+      iconName: categoryInfo.icon_name, // Store icon name for components to use
+      colorClass: categoryInfo.color_class
+    }
+  }) || []
 
   const p = voiceActor.pricing && voiceActor.pricing[0] ? voiceActor.pricing[0] as any : {}
   // Map admin-saved fields with safe defaults (no hidden base added)
@@ -444,6 +557,8 @@ export async function getAllVoiceActorsAdmin(): Promise<VoiceActorWithPricing[]>
       samples:audio_samples(*)
     `)
     .order('created_at', { ascending: false })
+    .order('order_index', { foreignTable: 'audio_samples', ascending: true })
+    .order('id', { foreignTable: 'audio_samples', ascending: true })
 
   // console.log('📊 Relationship query response:', { 
   //   hasError: !!errorWithRelation, 
@@ -457,11 +572,25 @@ export async function getAllVoiceActorsAdmin(): Promise<VoiceActorWithPricing[]>
     // console.log(`💰 Actors with pricing (relationship): ${actorsWithPricing} out of ${dataWithRelation.length}`)
     
     if (actorsWithPricing > 0) {
+      // Sort actors by actor_id
       const sortedData = dataWithRelation.sort((a, b) => {
         const numA = parseInt(a.actor_id)
         const numB = parseInt(b.actor_id)
         return numA - numB
       })
+      
+      // Ensure audio samples are sorted by order_index for each actor
+      sortedData.forEach(actor => {
+        if (actor.samples && Array.isArray(actor.samples)) {
+          actor.samples.sort((a: any, b: any) => {
+            const orderA = a.order_index ?? 999999
+            const orderB = b.order_index ?? 999999
+            if (orderA !== orderB) return orderA - orderB
+            return (a.id ?? 0) - (b.id ?? 0)
+          })
+        }
+      })
+      
       return sortedData
     }
   }
@@ -491,6 +620,8 @@ export async function getAllVoiceActorsAdmin(): Promise<VoiceActorWithPricing[]>
   const { data: allSamples, error: samplesError } = await supabase
     .from('audio_samples')
     .select('*')
+    .order('order_index', { ascending: true })
+    .order('id', { ascending: true })
 
   if (samplesError) {
     console.error('❌ Error fetching samples:', samplesError)
@@ -502,7 +633,15 @@ export async function getAllVoiceActorsAdmin(): Promise<VoiceActorWithPricing[]>
   // Manually join the data
   const actorsWithData = actors?.map(actor => {
     const pricing = allPricing?.filter(p => p.voice_actor_id === actor.id) || []
-    const samples = allSamples?.filter(s => s.voice_actor_id === actor.id) || []
+    let samples = allSamples?.filter(s => s.voice_actor_id === actor.id) || []
+    
+    // Ensure samples are sorted by order_index
+    samples = samples.sort((a, b) => {
+      const orderA = a.order_index ?? 999999
+      const orderB = b.order_index ?? 999999
+      if (orderA !== orderB) return orderA - orderB
+      return (a.id ?? 0) - (b.id ?? 0)
+    })
     
     return {
       ...actor,
@@ -734,6 +873,7 @@ export async function createAudioSample(sample: {
   name: string
   audio_url: string
   category: string
+  order_index?: number
 }): Promise<AudioSample> {
   const { data, error } = await supabase
     .from('audio_samples')
@@ -785,7 +925,8 @@ export async function getAudioSamplesByActor(actorId: number): Promise<AudioSamp
     .from('audio_samples')
     .select('*')
     .eq('voice_actor_id', actorId)
-    .order('created_at', { ascending: true })
+    .order('order_index', { ascending: true })
+    .order('id', { ascending: true }) // Fallback to id if order_index is same
 
   if (error) {
     console.error('Error fetching audio samples:', error)
@@ -793,4 +934,240 @@ export async function getAudioSamplesByActor(actorId: number): Promise<AudioSamp
   }
 
   return data || []
+}
+
+// ============================================================================
+// ATTRIBUTE MANAGEMENT QUERIES
+// ============================================================================
+
+// Language Attributes
+export async function getAllLanguages() {
+  const { data, error } = await supabase
+    .from('attribute_languages')
+    .select('*')
+    .order('sort_order', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching languages:', error)
+    throw error
+  }
+
+  return data || []
+}
+
+export async function getActiveLanguages() {
+  const { data, error } = await supabase
+    .from('attribute_languages')
+    .select('*')
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching active languages:', error)
+    throw error
+  }
+
+  return data || []
+}
+
+export async function createLanguage(language: { value: string; label: string; sort_order?: number }) {
+  const { data, error } = await supabase
+    .from('attribute_languages')
+    .insert(language)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error creating language:', error)
+    throw error
+  }
+
+  return data
+}
+
+export async function updateLanguage(id: number, updates: { value?: string; label?: string; is_active?: boolean; sort_order?: number }) {
+  const { data, error } = await supabase
+    .from('attribute_languages')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error updating language:', error)
+    throw error
+  }
+
+  return data
+}
+
+export async function deleteLanguage(id: number) {
+  const { error } = await supabase
+    .from('attribute_languages')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error deleting language:', error)
+    throw error
+  }
+}
+
+// Voice Style Attributes
+export async function getAllVoiceStyles() {
+  const { data, error } = await supabase
+    .from('attribute_voice_styles')
+    .select('*')
+    .order('sort_order', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching voice styles:', error)
+    throw error
+  }
+
+  return data || []
+}
+
+export async function getActiveVoiceStyles() {
+  const { data, error } = await supabase
+    .from('attribute_voice_styles')
+    .select('*')
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching active voice styles:', error)
+    throw error
+  }
+
+  return data || []
+}
+
+export async function createVoiceStyle(style: { value: string; label: string; sort_order?: number }) {
+  const { data, error } = await supabase
+    .from('attribute_voice_styles')
+    .insert(style)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error creating voice style:', error)
+    throw error
+  }
+
+  return data
+}
+
+export async function updateVoiceStyle(id: number, updates: { value?: string; label?: string; is_active?: boolean; sort_order?: number }) {
+  const { data, error } = await supabase
+    .from('attribute_voice_styles')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error updating voice style:', error)
+    throw error
+  }
+
+  return data
+}
+
+export async function deleteVoiceStyle(id: number) {
+  const { error } = await supabase
+    .from('attribute_voice_styles')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error deleting voice style:', error)
+    throw error
+  }
+}
+
+// Audio Category Attributes
+export async function getAllAudioCategories() {
+  const { data, error } = await supabase
+    .from('attribute_audio_categories')
+    .select('*')
+    .order('sort_order', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching audio categories:', error)
+    throw error
+  }
+
+  return data || []
+}
+
+export async function getActiveAudioCategories() {
+  const { data, error } = await supabase
+    .from('attribute_audio_categories')
+    .select('*')
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true })
+
+  if (error) {
+    console.error('Error fetching active audio categories:', error)
+    throw error
+  }
+
+  return data || []
+}
+
+export async function createAudioCategory(category: { 
+  value: string
+  label: string
+  icon_name: string
+  color_class?: string
+  sort_order?: number 
+}) {
+  const { data, error } = await supabase
+    .from('attribute_audio_categories')
+    .insert(category)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error creating audio category:', error)
+    throw error
+  }
+
+  return data
+}
+
+export async function updateAudioCategory(id: number, updates: { 
+  value?: string
+  label?: string
+  icon_name?: string
+  color_class?: string
+  is_active?: boolean
+  sort_order?: number 
+}) {
+  const { data, error } = await supabase
+    .from('attribute_audio_categories')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error updating audio category:', error)
+    throw error
+  }
+
+  return data
+}
+
+export async function deleteAudioCategory(id: number) {
+  const { error } = await supabase
+    .from('attribute_audio_categories')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error deleting audio category:', error)
+    throw error
+  }
 }

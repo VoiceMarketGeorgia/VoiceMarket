@@ -6,6 +6,8 @@ import { Mic2, Headphones, BookOpen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getAllVoiceActors, convertToTalent } from "@/lib/supabase-queries";
+import { getDynamicAudioCategories } from "@/lib/dynamic-attributes";
+import { getIconElement } from "@/lib/category-icons";
 
 export function FeaturedTalents() {
   const router = useRouter();
@@ -15,6 +17,29 @@ export function FeaturedTalents() {
   const [talents, setTalents] = useState<Talent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [categoryIconMap, setCategoryIconMap] = useState<Map<string, { icon_name: string; color_class: string }>>(new Map());
+
+  // Load category icons
+  useEffect(() => {
+    const loadCategoryIcons = async () => {
+      try {
+        const categories = await getDynamicAudioCategories();
+        const map = new Map<string, { icon_name: string; color_class: string }>();
+        categories.forEach(cat => {
+          if (cat.icon_name && cat.color_class) {
+            map.set(cat.value, {
+              icon_name: cat.icon_name,
+              color_class: cat.color_class
+            });
+          }
+        });
+        setCategoryIconMap(map);
+      } catch (error) {
+        console.error('Error loading category icons:', error);
+      }
+    };
+    loadCategoryIcons();
+  }, []);
 
   // Load talents from Supabase
   useEffect(() => {
@@ -27,12 +52,12 @@ export function FeaturedTalents() {
         const featuredActors = voiceActors.slice(0, 4);
         
         const talentsData: Talent[] = featuredActors.map(actor => {
-          const talent = convertToTalent(actor);
+          const talent = convertToTalent(actor, categoryIconMap);
           
-          // Add proper icons to samples
+          // Add proper icons to samples using dynamic iconName
           const samplesWithIcons = talent.samples.map((sample: any) => ({
             ...sample,
-            icon: getSampleIcon(sample.name)
+            icon: sample.iconName ? getIconElement(sample.iconName, { className: "h-4 w-4" }) : <Mic2 className="h-4 w-4" />
           }));
 
           return {
@@ -52,7 +77,7 @@ export function FeaturedTalents() {
     }
 
     loadTalents();
-  }, []);
+  }, [categoryIconMap]);
 
   // Helper function to get icon for sample type
   const getSampleIcon = (sampleName: string) => {
