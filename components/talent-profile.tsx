@@ -294,6 +294,7 @@ export function TalentProfile({ id }: TalentProfileProps) {
                       onTogglePlay={handleTogglePlay}
                       showTimeDisplay={true}
                       showDropdown={false}
+                      className="border-2 border-gray-100 dark:border-gray-700"
                     />
                   </CardContent>
                 </Card>
