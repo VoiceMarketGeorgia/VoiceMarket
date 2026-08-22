@@ -287,41 +287,6 @@ export async function getVoiceActorById(actorId: string): Promise<VoiceActorWith
   }
 }
 
-export async function getVoiceActorsByTags(tags: string[]): Promise<VoiceActorWithPricing[]> {
-  const { data, error } = await supabase
-    .from('voice_actors')
-    .select(`
-      *,
-      pricing:actor_pricing(*),
-      samples:audio_samples(*)
-    `)
-    .eq('is_active', true)
-    .overlaps('tags', tags)
-    .order('rating', { ascending: false })
-    .order('order_index', { foreignTable: 'audio_samples', ascending: true })
-    .order('id', { foreignTable: 'audio_samples', ascending: true })
-
-  if (error) {
-    console.error('Error fetching voice actors by tags:', error)
-    throw error
-  }
-
-  // Ensure audio samples are sorted by order_index for each actor
-  const sortedData = data || []
-  sortedData.forEach(actor => {
-    if (actor.samples && Array.isArray(actor.samples)) {
-      actor.samples.sort((a: any, b: any) => {
-        const orderA = a.order_index ?? 999999
-        const orderB = b.order_index ?? 999999
-        if (orderA !== orderB) return orderA - orderB
-        return (a.id ?? 0) - (b.id ?? 0)
-      })
-    }
-  })
-
-  return sortedData
-}
-
 export async function searchVoiceActors(searchTerm: string): Promise<VoiceActorWithPricing[]> {
   const { data, error } = await supabase
     .from('voice_actors')
@@ -331,7 +296,7 @@ export async function searchVoiceActors(searchTerm: string): Promise<VoiceActorW
       samples:audio_samples(*)
     `)
     .eq('is_active', true)
-    .or(`name.ilike.%${searchTerm}%,bio.ilike.%${searchTerm}%,tags.cs.{${searchTerm}}`)
+    .or(`name.ilike.%${searchTerm}%,bio.ilike.%${searchTerm}%`)
     .order('rating', { ascending: false })
     .order('order_index', { foreignTable: 'audio_samples', ascending: true })
     .order('id', { foreignTable: 'audio_samples', ascending: true })
@@ -488,22 +453,13 @@ export async function getQuoteRequests(status?: string): Promise<QuoteRequest[]>
 }
 
 // Utility function to convert database records to legacy Talent interface
-export function convertToTalent(voiceActor: VoiceActorWithPricing, categoryIconMap?: Map<string, { icon_name: string; color_class: string }>): any {
+export function convertToTalent(voiceActor: VoiceActorWithPricing): any {
   const samples = voiceActor.samples?.map(sample => {
-    // Get icon info from map or use default
-    const categoryInfo = categoryIconMap?.get(sample.category || '') || {
-      icon_name: 'Music',
-      color_class: 'bg-gray-100'
-    }
-    
     return {
       id: sample.sample_id,
       name: sample.name,
       url: sample.audio_url,
-      category: sample.category,
-      icon: null, // Will be set by component using getIconElement from category-icons
-      iconName: categoryInfo.icon_name, // Store icon name for components to use
-      colorClass: categoryInfo.color_class
+      icon: null
     }
   }) || []
 
@@ -526,10 +482,8 @@ export function convertToTalent(voiceActor: VoiceActorWithPricing, categoryIconM
     image: voiceActor.image_url || `https://szdvrblspjfonkwfamur.supabase.co/storage/v1/object/public/photos/${voiceActor.actor_id}.jpg`,
     samples,
     gradient: voiceActor.gradient_colors || 'from-orange-500 to-cyan-600',
-    languages: voiceActor.languages,
-    tags: voiceActor.tags,
-    voice_style: voiceActor.voice_style || [], // ADDED: Pass voice_style for filtering
-    gender: (voiceActor as any).gender || 'Male', // ADDED: Pass gender for filtering
+    languages: voiceActor.languages || [],
+    gender: voiceActor.gender || 'Male',
     pricing: {
       basePrice,
       pricePerWord,
@@ -667,8 +621,6 @@ export async function createVoiceActor(actorData: {
   name: string
   bio: string
   languages: string[]
-  age_range: string
-  voice_style: string[]
   gender: string
   photo_url: string
   is_featured: boolean
@@ -687,13 +639,10 @@ export async function createVoiceActor(actorData: {
       name: actorData.name,
       bio: actorData.bio,
       languages: actorData.languages,
+      gender: actorData.gender,
       image_url: actorData.photo_url || null, // Use image_url instead of photo_url
-      tags: actorData.voice_style || [], // Use tags instead of voice_style
       is_featured: actorData.is_featured,
-      is_active: actorData.is_active,
-      age_range: actorData.age_range,
-      voice_style: actorData.voice_style,
-      gender: actorData.gender
+      is_active: actorData.is_active
     })
     .select()
     .single()
@@ -733,8 +682,6 @@ export async function updateVoiceActor(
     name: string
     bio: string
     languages: string[]
-    age_range: string
-    voice_style: string[]
     gender: string
     photo_url: string
     is_featured: boolean
@@ -754,13 +701,10 @@ export async function updateVoiceActor(
       name: actorData.name,
       bio: actorData.bio,
       languages: actorData.languages,
+      gender: actorData.gender,
       image_url: actorData.photo_url || null, // Use image_url instead of photo_url
-      tags: actorData.voice_style || [], // Use tags instead of voice_style  
       is_featured: actorData.is_featured,
       is_active: actorData.is_active,
-      age_range: actorData.age_range,
-      voice_style: actorData.voice_style,
-      gender: actorData.gender,
       updated_at: new Date().toISOString()
     })
     .eq('id', actorId)

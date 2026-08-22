@@ -3,21 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { AudioUpload } from "@/components/ui/file-upload";
-import { Music, Play, Pause, Edit, Trash2, Plus, GripVertical } from "lucide-react";
-import { getDynamicAudioCategories } from "@/lib/dynamic-attributes";
-import { getAllAudioCategories } from "@/lib/supabase-queries";
-import { getIconElement } from "@/lib/category-icons";
+import { Edit, GripVertical, Music, Pause, Play, Plus, Trash2 } from "lucide-react";
 
 export interface AudioSample {
   id?: number;
@@ -34,6 +23,11 @@ interface AudioSampleManagerProps {
   onSamplesChange: (samples: AudioSample[]) => void;
 }
 
+const DEFAULT_SAMPLE = {
+  name: "სარეკლამო რგოლი",
+  audio_url: "",
+};
+
 export function AudioSampleManager({
   actorId,
   samples,
@@ -42,106 +36,9 @@ export function AudioSampleManager({
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [playingIndex, setPlayingIndex] = useState<number | null>(null);
-  const audioRefs = useRef<Record<number, HTMLAudioElement | null>>({});
-  const [audioCategories, setAudioCategories] = useState<Array<{ value: string; label: string; color_class?: string; icon_name?: string; is_active?: boolean }>>([]);
-  const [newSample, setNewSample] = useState<Partial<AudioSample>>({
-    name: "სარეკლამო რგოლი",
-    category: "კომერციული",
-    audio_url: "",
-  });
+  const [newSample, setNewSample] = useState(DEFAULT_SAMPLE);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-
-  // Load audio categories on mount (including inactive ones for backward compatibility)
-  useEffect(() => {
-    const loadCategories = async () => {
-      try {
-        // Load ALL categories (including disabled) so existing samples with disabled categories still show
-        const allCategories = await getAllAudioCategories();
-        setAudioCategories(allCategories);
-        
-        // Set default to first ACTIVE category if available
-        const activeCategories = allCategories.filter(cat => cat.is_active);
-        if (activeCategories.length > 0 && !newSample.category) {
-          setNewSample(prev => ({ ...prev, category: activeCategories[0].value }));
-        }
-      } catch (error) {
-        console.error('Error loading audio categories:', error);
-      }
-    };
-    
-    loadCategories();
-
-    // Listen for attribute updates
-    const handleAttributesUpdate = () => {
-      loadCategories();
-    };
-
-    window.addEventListener('attributesUpdated', handleAttributesUpdate);
-    
-    return () => {
-      window.removeEventListener('attributesUpdated', handleAttributesUpdate);
-    };
-  }, []);
-
-  const handleAddSample = () => {
-    if (!newSample.name || !newSample.audio_url) return;
-
-    const sample: AudioSample = {
-      sample_id: `${actorId}.${samples.length + 1}`,
-      name: newSample.name,
-      audio_url: newSample.audio_url,
-      category: newSample.category || "კომერციული",
-    };
-
-    onSamplesChange([...samples, sample]);
-    setNewSample({ name: "სარეკლამო რგოლი", category: "კომერციული", audio_url: "" });
-    setIsAddingNew(false);
-  };
-
-  const handleUpdateSample = (
-    index: number,
-    updatedSample: Partial<AudioSample>
-  ) => {
-    const updatedSamples = [...samples];
-    updatedSamples[index] = { ...updatedSamples[index], ...updatedSample };
-    onSamplesChange(updatedSamples);
-    setEditingIndex(null);
-  };
-
-  const handleDeleteSample = (index: number) => {
-    const updatedSamples = samples.filter((_, i) => i !== index);
-    onSamplesChange(updatedSamples);
-  };
-
-  // Drag and drop handlers
-  const handleDragStart = (index: number) => {
-    setDraggedIndex(index);
-  };
-
-  const handleDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault();
-  };
-
-  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
-    e.preventDefault();
-    
-    if (draggedIndex === null || draggedIndex === dropIndex) {
-      setDraggedIndex(null);
-      return;
-    }
-
-    const reorderedSamples = [...samples];
-    const [draggedItem] = reorderedSamples.splice(draggedIndex, 1);
-    reorderedSamples.splice(dropIndex, 0, draggedItem);
-    
-    console.log('Audio reordered:', reorderedSamples.map((s, i) => ({ name: s.name, newPosition: i + 1 })));
-    onSamplesChange(reorderedSamples);
-    setDraggedIndex(null);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedIndex(null);
-  };
+  const audioRefs = useRef<Record<number, HTMLAudioElement | null>>({});
 
   const stopAll = () => {
     Object.values(audioRefs.current).forEach((audio) => {
@@ -152,138 +49,115 @@ export function AudioSampleManager({
     });
   };
 
-  const handlePlayPause = (index: number) => {
-    const audio = audioRefs.current[index];
-    if (!audio) return;
+  useEffect(() => () => stopAll(), []);
 
-    // Pause any other playing audio first
-    Object.entries(audioRefs.current).forEach(([key, a]) => {
-      const k = parseInt(key);
-      if (a && k !== index) {
-        a.pause();
-        a.currentTime = 0;
+  const handleAddSample = () => {
+    if (!newSample.name.trim() || !newSample.audio_url) return;
+
+    onSamplesChange([
+      ...samples,
+      {
+        sample_id: `${actorId}.${samples.length + 1}`,
+        name: newSample.name.trim(),
+        audio_url: newSample.audio_url,
+        category: "audio",
+      },
+    ]);
+    setNewSample(DEFAULT_SAMPLE);
+    setIsAddingNew(false);
+  };
+
+  const handlePlayPause = (index: number) => {
+    const selectedAudio = audioRefs.current[index];
+    if (!selectedAudio) return;
+
+    Object.entries(audioRefs.current).forEach(([key, audio]) => {
+      if (audio && Number(key) !== index) {
+        audio.pause();
+        audio.currentTime = 0;
       }
     });
 
-    if (playingIndex === index && !audio.paused) {
-      audio.pause();
+    if (playingIndex === index && !selectedAudio.paused) {
+      selectedAudio.pause();
       setPlayingIndex(null);
     } else {
-      audio.play().catch(() => {});
+      selectedAudio.play().catch(() => setPlayingIndex(null));
       setPlayingIndex(index);
     }
   };
 
-  useEffect(() => {
-    return () => {
-      // Cleanup on unmount
-      stopAll();
-    };
-  }, []);
+  const handleDrop = (event: React.DragEvent, dropIndex: number) => {
+    event.preventDefault();
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      return;
+    }
 
-  const getCategoryColor = (category: string) => {
-    const cat = audioCategories.find(c => c.value === category);
-    return cat?.color_class || "bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-400";
-  };
-
-  const getCategoryIcon = (category: string) => {
-    const cat = audioCategories.find(c => c.value === category);
-    return cat?.icon_name;
-  };
-
-  const isCategoryActive = (category: string) => {
-    const cat = audioCategories.find(c => c.value === category);
-    return cat?.is_active ?? true; // Default to true if not found
+    const reorderedSamples = [...samples];
+    const [draggedSample] = reorderedSamples.splice(draggedIndex, 1);
+    reorderedSamples.splice(dropIndex, 0, draggedSample);
+    onSamplesChange(reorderedSamples);
+    setDraggedIndex(null);
   };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <Label className="text-base font-medium">აუდიო ნიმუშები</Label>
+        <div>
+          <Label className="text-base font-medium">აუდიო ნიმუშები</Label>
+          <p className="mt-1 text-xs text-muted-foreground">
+            ბარათზე გამოჩნდება ამ სიაში მითითებული სახელები და თანმიმდევრობა.
+          </p>
+        </div>
         <Button
+          type="button"
           variant="outline"
           size="sm"
           onClick={() => setIsAddingNew(true)}
-          className="flex items-center gap-2"
         >
-          <Plus className="h-4 w-4" />
+          <Plus className="mr-2 h-4 w-4" />
           ნიმუშის დამატება
         </Button>
       </div>
 
-      {/* Add new sample form */}
       {isAddingNew && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">ახალი აუდიო ნიმუში</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>ნიმუშის სახელი</Label>
-                <Input
-                  value={newSample.name || ""}
-                  onChange={(e) =>
-                    setNewSample({ ...newSample, name: e.target.value })
-                  }
-                  placeholder="მაგ: სარეკლამო რგოლი"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>კატეგორია</Label>
-                <Select
-                  value={newSample.category}
-                  onValueChange={(value) =>
-                    setNewSample({ ...newSample, category: value })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {audioCategories.map((cat) => (
-                      <SelectItem 
-                        key={cat.value} 
-                        value={cat.value}
-                        disabled={!cat.is_active}
-                      >
-                        <div className="flex items-center gap-2">
-                          {cat.icon_name && getIconElement(cat.icon_name, { className: "h-4 w-4" })}
-                          {cat.label}
-                          {!cat.is_active && (
-                            <span className="text-xs text-muted-foreground">(გამორთული)</span>
-                          )}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-2">
+              <Label>ნიმუშის სახელი</Label>
+              <Input
+                value={newSample.name}
+                onChange={(event) =>
+                  setNewSample((sample) => ({ ...sample, name: event.target.value }))
+                }
+                placeholder="მაგ: სარეკლამო რგოლი"
+              />
             </div>
-
             <div className="space-y-2">
               <Label>აუდიო ფაილი</Label>
               <AudioUpload
                 currentUrl={newSample.audio_url}
-                onUpload={(url) =>
-                  setNewSample({ ...newSample, audio_url: url })
-                }
-                onRemove={() => setNewSample({ ...newSample, audio_url: "" })}
-                folder={`${actorId}`}
+                onUpload={(url) => setNewSample((sample) => ({ ...sample, audio_url: url }))}
+                onRemove={() => setNewSample((sample) => ({ ...sample, audio_url: "" }))}
+                folder={actorId}
                 dirOverride="audios"
                 fileName={`${actorId}.${samples.length + 1}.wav`}
                 placeholder="აუდიო ფაილის ატვირთვა"
               />
             </div>
-
             <div className="flex gap-2">
               <Button
+                type="button"
                 onClick={handleAddSample}
-                disabled={(newSample.name || "").trim().length === 0 || !newSample.audio_url}
+                disabled={!newSample.name.trim() || !newSample.audio_url}
               >
                 დამატება
               </Button>
-              <Button variant="outline" onClick={() => setIsAddingNew(false)}>
+              <Button type="button" variant="outline" onClick={() => setIsAddingNew(false)}>
                 გაუქმება
               </Button>
             </div>
@@ -291,102 +165,63 @@ export function AudioSampleManager({
         </Card>
       )}
 
-      {/* Existing samples */}
       <div className="space-y-3">
         {samples.map((sample, index) => (
-          <Card 
+          <Card
             key={sample.sample_id || index}
             draggable={editingIndex !== index}
-            onDragStart={() => handleDragStart(index)}
-            onDragOver={(e) => handleDragOver(e, index)}
-            onDrop={(e) => handleDrop(e, index)}
-            onDragEnd={handleDragEnd}
-            className={`transition-opacity ${draggedIndex === index ? 'opacity-50' : 'opacity-100'} ${editingIndex !== index ? 'cursor-move' : ''}`}
+            onDragStart={() => setDraggedIndex(index)}
+            onDragOver={(event) => event.preventDefault()}
+            onDrop={(event) => handleDrop(event, index)}
+            onDragEnd={() => setDraggedIndex(null)}
+            className={draggedIndex === index ? "opacity-50" : undefined}
           >
             <CardContent className="p-4">
               {editingIndex === index ? (
                 <EditSampleForm
                   sample={sample}
-                  onSave={(updatedSample) =>
-                    handleUpdateSample(index, updatedSample)
-                  }
                   onCancel={() => setEditingIndex(null)}
-                  audioCategories={audioCategories}
+                  onSave={(updatedSample) => {
+                    const updatedSamples = [...samples];
+                    updatedSamples[index] = { ...sample, ...updatedSample };
+                    onSamplesChange(updatedSamples);
+                    setEditingIndex(null);
+                  }}
                 />
               ) : (
                 <div className="flex items-center gap-3">
-                  {/* Drag Handle */}
-                  <div className="cursor-grab active:cursor-grabbing">
-                    <GripVertical className="h-5 w-5 text-muted-foreground" />
-                  </div>
-
-                  {/* Order Number */}
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-semibold text-sm shrink-0">
+                  <GripVertical className="h-5 w-5 shrink-0 cursor-grab text-muted-foreground" />
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
                     {index + 1}
                   </div>
-
                   <audio
-                    ref={(el) => {
-                      audioRefs.current[index] = el;
-                      if (el) {
-                        el.onended = () =>
-                          setPlayingIndex((curr) =>
-                            curr === index ? null : curr
-                          );
-                      }
+                    ref={(element) => {
+                      audioRefs.current[index] = element;
+                      if (element) element.onended = () => setPlayingIndex(null);
                     }}
                     src={sample.audio_url}
                     preload="none"
                   />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-10 w-10 p-0"
-                    onClick={() => handlePlayPause(index)}
-                  >
-                    {playingIndex === index ? (
-                      <Pause className="h-4 w-4" />
-                    ) : (
-                      <Play className="h-4 w-4" />
-                    )}
+                  <Button type="button" variant="ghost" size="icon" onClick={() => handlePlayPause(index)}>
+                    {playingIndex === index ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
                   </Button>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      {getCategoryIcon(sample.category) ? 
-                        getIconElement(getCategoryIcon(sample.category)!, { className: "h-4 w-4 text-muted-foreground" }) :
-                        <Music className="h-4 w-4 text-muted-foreground" />
-                      }
-                      <span className="font-medium truncate">
-                        {sample.name}
-                      </span>
-                      <Badge className={getCategoryColor(sample.category)}>
-                        {sample.category}
-                      </Badge>
-                      {!isCategoryActive(sample.category) && (
-                        <Badge variant="destructive" className="text-xs">
-                          ⚠ კატეგორია გამორთულია
-                        </Badge>
-                      )}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <Music className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      <span className="truncate font-medium">{sample.name}</span>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      ID: {sample.sample_id}
-                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">ID: {sample.sample_id}</p>
                   </div>
-
                   <div className="flex gap-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setEditingIndex(index)}
-                    >
+                    <Button type="button" variant="ghost" size="icon" onClick={() => setEditingIndex(index)}>
                       <Edit className="h-4 w-4" />
                     </Button>
                     <Button
+                      type="button"
                       variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteSample(index)}
+                      size="icon"
                       className="text-red-500 hover:text-red-700"
+                      onClick={() => onSamplesChange(samples.filter((_, sampleIndex) => sampleIndex !== index))}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -401,12 +236,10 @@ export function AudioSampleManager({
       {samples.length === 0 && !isAddingNew && (
         <Card>
           <CardContent className="p-8 text-center">
-            <Music className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <Music className="mx-auto mb-4 h-12 w-12 text-muted-foreground" />
             <p className="text-lg font-medium">აუდიო ნიმუშები არ არის</p>
-            <p className="text-muted-foreground mb-4">
-              დაამატეთ აუდიო ნიმუშები ამ მსახიობისთვის
-            </p>
-            <Button onClick={() => setIsAddingNew(true)}>
+            <p className="mb-4 text-muted-foreground">დაამატეთ აუდიო ნიმუშები ამ მსახიობისთვის.</p>
+            <Button type="button" onClick={() => setIsAddingNew(true)}>
               <Plus className="mr-2 h-4 w-4" />
               პირველი ნიმუშის დამატება
             </Button>
@@ -417,86 +250,52 @@ export function AudioSampleManager({
   );
 }
 
-// Edit form component
 function EditSampleForm({
   sample,
   onSave,
   onCancel,
-  audioCategories,
 }: {
   sample: AudioSample;
   onSave: (sample: Partial<AudioSample>) => void;
   onCancel: () => void;
-  audioCategories: Array<{ value: string; label: string }>;
 }) {
-  const [editedSample, setEditedSample] = useState<Partial<AudioSample>>({
+  const [editedSample, setEditedSample] = useState({
     name: sample.name,
-    category: sample.category || "კომერციული",
     audio_url: sample.audio_url,
   });
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label>ნიმუშის სახელი</Label>
-          <Input
-            value={editedSample.name || ""}
-            onChange={(e) =>
-              setEditedSample({ ...editedSample, name: e.target.value })
-            }
-          />
-        </div>
-        <div className="space-y-2">
-          <Label>კატეგორია</Label>
-          <Select
-            value={editedSample.category || "კომერციული"}
-            onValueChange={(value) =>
-              setEditedSample({ ...editedSample, category: value })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {audioCategories.map((cat) => (
-                <SelectItem 
-                  key={cat.value} 
-                  value={cat.value}
-                  disabled={!cat.is_active}
-                >
-                  <div className="flex items-center gap-2">
-                    {cat.icon_name && getIconElement(cat.icon_name, { className: "h-4 w-4" })}
-                    {cat.label}
-                    {!cat.is_active && (
-                      <span className="text-xs text-muted-foreground">(გამორთული)</span>
-                    )}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      <div className="space-y-2">
+        <Label>ნიმუშის სახელი</Label>
+        <Input
+          value={editedSample.name}
+          onChange={(event) =>
+            setEditedSample((current) => ({ ...current, name: event.target.value }))
+          }
+        />
       </div>
-
       <div className="space-y-2">
         <Label>აუდიო ფაილი</Label>
         <AudioUpload
           currentUrl={editedSample.audio_url}
-          onUpload={(url) =>
-            setEditedSample({ ...editedSample, audio_url: url })
-          }
-          onRemove={() => setEditedSample({ ...editedSample, audio_url: "" })}
-          folder={`${sample.sample_id?.split(".")[0]}`}
+          onUpload={(url) => setEditedSample((current) => ({ ...current, audio_url: url }))}
+          onRemove={() => setEditedSample((current) => ({ ...current, audio_url: "" }))}
+          folder={sample.sample_id.split(".")[0]}
           dirOverride="audios"
           fileName={`${sample.sample_id}.wav`}
           placeholder="აუდიო ფაილის შეცვლა"
         />
       </div>
-
       <div className="flex gap-2">
-        <Button onClick={() => onSave(editedSample)}>შენახვა</Button>
-        <Button variant="outline" onClick={onCancel}>
+        <Button
+          type="button"
+          onClick={() => onSave(editedSample)}
+          disabled={!editedSample.name.trim() || !editedSample.audio_url}
+        >
+          შენახვა
+        </Button>
+        <Button type="button" variant="outline" onClick={onCancel}>
           გაუქმება
         </Button>
       </div>

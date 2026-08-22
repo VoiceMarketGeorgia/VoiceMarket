@@ -54,21 +54,23 @@ import {
   User,
   Star,
   Globe,
-  Calendar,
   DollarSign,
   FileAudio,
   Eye,
   EyeOff,
   Coins,
 } from "lucide-react";
+import {
+  TALENT_GENDER_OPTIONS,
+  TALENT_LANGUAGE_OPTIONS,
+  getTalentOptionLabel,
+} from "@/lib/talent-options";
 
 interface ActorFormData {
   actor_id: string;
   name: string;
   bio: string;
   languages: string[];
-  age_range: string;
-  voice_style: string[];
   gender: string;
   photo_url: string;
   is_featured: boolean;
@@ -86,8 +88,6 @@ const INITIAL_FORM_DATA: ActorFormData = {
   name: "",
   bio: "",
   languages: ["Georgian"],
-  age_range: "25-35",
-  voice_style: ["Conversational"],
   gender: "Male",
   photo_url: "",
   is_featured: false,
@@ -99,16 +99,6 @@ const INITIAL_FORM_DATA: ActorFormData = {
   sound_effects_price: 30,
   audio_samples: [],
 };
-
-import {
-  AGE_RANGE_OPTIONS,
-  GENDER_OPTIONS,
-  getGeorgianLabel,
-} from "@/lib/constants";
-import {
-  getDynamicLanguages,
-  getDynamicVoiceStyles,
-} from "@/lib/dynamic-attributes";
 
 export default function ActorsPage() {
   const [actors, setActors] = useState<VoiceActorWithPricing[]>([]);
@@ -123,14 +113,6 @@ export default function ActorsPage() {
     useState<VoiceActorWithPricing | null>(null);
   const [formData, setFormData] = useState<ActorFormData>(INITIAL_FORM_DATA);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Dynamic attributes
-  const [languageOptions, setLanguageOptions] = useState<
-    Array<{ value: string; label: string }>
-  >([]);
-  const [voiceStyleOptions, setVoiceStyleOptions] = useState<
-    Array<{ value: string; label: string }>
-  >([]);
 
   const loadActors = async () => {
     try {
@@ -149,33 +131,8 @@ export default function ActorsPage() {
     }
   };
 
-  const loadDynamicAttributes = async () => {
-    try {
-      const [languages, voiceStyles] = await Promise.all([
-        getDynamicLanguages(),
-        getDynamicVoiceStyles(),
-      ]);
-      setLanguageOptions(languages);
-      setVoiceStyleOptions(voiceStyles);
-    } catch (error) {
-      console.error("Error loading dynamic attributes:", error);
-    }
-  };
-
   useEffect(() => {
     loadActors();
-    loadDynamicAttributes();
-
-    // Listen for attribute updates from the attributes page
-    const handleAttributesUpdate = () => {
-      loadDynamicAttributes();
-    };
-
-    window.addEventListener("attributesUpdated", handleAttributesUpdate);
-
-    return () => {
-      window.removeEventListener("attributesUpdated", handleAttributesUpdate);
-    };
   }, []);
 
   const filteredActors = actors.filter((actor) => {
@@ -325,9 +282,7 @@ export default function ActorsPage() {
       name: actor.name || "",
       bio: actor.bio || "",
       languages: actor.languages || ["Georgian"],
-      age_range: actor.age_range || "25-35",
-      voice_style: actor.voice_style || ["Conversational"],
-      gender: (actor as any).gender || "Male",
+      gender: actor.gender || "Male",
       photo_url: actor.photo_url || actor.image_url || "",
       is_featured: actor.is_featured || false,
       is_active: actor.is_active || true,
@@ -398,8 +353,6 @@ export default function ActorsPage() {
               onSubmit={handleCreateActor}
               isSubmitting={isSubmitting}
               submitLabel="მსახიობის შექმნა"
-              languageOptions={languageOptions}
-              voiceStyleOptions={voiceStyleOptions}
             />
           </DialogContent>
         </Dialog>
@@ -483,13 +436,25 @@ export default function ActorsPage() {
                   <Globe className="h-4 w-4 text-muted-foreground" />
                   <span>
                     {(actor.languages || [])
-                      .map((lang) => getGeorgianLabel(lang, "language"))
-                      .join(", ")}
+                      .map((actorLanguage) =>
+                        getTalentOptionLabel(
+                          TALENT_LANGUAGE_OPTIONS,
+                          actorLanguage,
+                          "ka"
+                        )
+                      )
+                      .join(", ") || "ენა არ არის მითითებული"}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
-                  <Calendar className="h-4 w-4 text-muted-foreground" />
-                  <span>{actor.age_range} წლის</span>
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <span>
+                    {getTalentOptionLabel(
+                      TALENT_GENDER_OPTIONS,
+                      actor.gender || "Male",
+                      "ka"
+                    )}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <Coins className="h-4 w-4 text-muted-foreground" />
@@ -502,19 +467,6 @@ export default function ActorsPage() {
                   <FileAudio className="h-4 w-4 text-muted-foreground" />
                   <span>{actor.samples?.length || 0} ნიმუში</span>
                 </div>
-              </div>
-
-              <div className="flex flex-wrap gap-1">
-                {(actor.voice_style || []).slice(0, 3).map((style) => (
-                  <Badge key={style} variant="outline" className="text-xs">
-                    {getGeorgianLabel(style, "voiceStyle")}
-                  </Badge>
-                ))}
-                {(actor.voice_style || []).length > 3 && (
-                  <Badge variant="outline" className="text-xs">
-                    +{(actor.voice_style || []).length - 3}
-                  </Badge>
-                )}
               </div>
 
               <div className="flex gap-2 pt-2 border-t">
@@ -587,8 +539,6 @@ export default function ActorsPage() {
             onSubmit={handleEditActor}
             isSubmitting={isSubmitting}
             submitLabel="ცვლილებების შენახვა"
-            languageOptions={languageOptions}
-            voiceStyleOptions={voiceStyleOptions}
           />
         </DialogContent>
       </Dialog>
@@ -598,12 +548,10 @@ export default function ActorsPage() {
 
 interface ActorFormProps {
   formData: ActorFormData;
-  setFormData: (data: ActorFormData) => void;
+  setFormData: React.Dispatch<React.SetStateAction<ActorFormData>>;
   onSubmit: () => void;
   isSubmitting: boolean;
   submitLabel: string;
-  languageOptions: Array<{ value: string; label: string }>;
-  voiceStyleOptions: Array<{ value: string; label: string }>;
 }
 
 function ActorForm({
@@ -612,35 +560,14 @@ function ActorForm({
   onSubmit,
   isSubmitting,
   submitLabel,
-  languageOptions,
-  voiceStyleOptions,
 }: ActorFormProps) {
   const handleLanguageChange = (language: string, checked: boolean) => {
-    if (checked) {
-      setFormData({
-        ...formData,
-        languages: [...formData.languages, language],
-      });
-    } else {
-      setFormData({
-        ...formData,
-        languages: formData.languages.filter((l) => l !== language),
-      });
-    }
-  };
-
-  const handleVoiceStyleChange = (style: string, checked: boolean) => {
-    if (checked) {
-      setFormData({
-        ...formData,
-        voice_style: [...formData.voice_style, style],
-      });
-    } else {
-      setFormData({
-        ...formData,
-        voice_style: formData.voice_style.filter((s) => s !== style),
-      });
-    }
+    setFormData((current) => ({
+      ...current,
+      languages: checked
+        ? [...current.languages, language]
+        : current.languages.filter((currentLanguage) => currentLanguage !== language),
+    }));
   };
 
   return (
@@ -696,90 +623,43 @@ function ActorForm({
         />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-5 border-t pt-5 md:grid-cols-2">
         <div className="space-y-2">
-          <Label>ასაკობრივი ჯგუფი</Label>
-          <Select
-            value={formData.age_range}
-            onValueChange={(value) =>
-              setFormData({ ...formData, age_range: value })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {AGE_RANGE_OPTIONS.map((range) => (
-                <SelectItem key={range} value={range}>
-                  {range}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Label>ენები</Label>
+          <div className="space-y-2 rounded-lg border p-3">
+            {TALENT_LANGUAGE_OPTIONS.map((language) => (
+              <label key={language.value} className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={formData.languages.includes(language.value)}
+                  onChange={(event) =>
+                    handleLanguageChange(language.value, event.target.checked)
+                  }
+                  className="rounded"
+                />
+                {language.ka}
+              </label>
+            ))}
+          </div>
         </div>
+
         <div className="space-y-2">
           <Label>სქესი</Label>
           <Select
             value={formData.gender}
-            onValueChange={(value) =>
-              setFormData({ ...formData, gender: value })
-            }
+            onValueChange={(gender) => setFormData({ ...formData, gender })}
           >
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {GENDER_OPTIONS.map((gender) => (
+              {TALENT_GENDER_OPTIONS.map((gender) => (
                 <SelectItem key={gender.value} value={gender.value}>
-                  {gender.label}
+                  {gender.ka}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label>ენები</Label>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-          {languageOptions.map((language) => (
-            <label
-              key={language.value}
-              className="flex items-center gap-2 text-sm"
-            >
-              <input
-                type="checkbox"
-                checked={formData.languages.includes(language.value)}
-                onChange={(e) =>
-                  handleLanguageChange(language.value, e.target.checked)
-                }
-                className="rounded"
-              />
-              {language.label}
-            </label>
-          ))}
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label>ხმის სტილი</Label>
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-          {voiceStyleOptions.map((style) => (
-            <label
-              key={style.value}
-              className="flex items-center gap-2 text-sm"
-            >
-              <input
-                type="checkbox"
-                checked={formData.voice_style.includes(style.value)}
-                onChange={(e) =>
-                  handleVoiceStyleChange(style.value, e.target.checked)
-                }
-                className="rounded"
-              />
-              {style.label}
-            </label>
-          ))}
         </div>
       </div>
 

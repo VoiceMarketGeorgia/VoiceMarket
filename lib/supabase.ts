@@ -36,6 +36,7 @@ export interface VoiceActor {
   age_range?: string | null
   accent?: string | null
   voice_style?: string[]
+  gender?: string | null
   photo_url?: string | null // For backwards compatibility and form handling
 }
 
