@@ -5,8 +5,21 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { AudioUpload } from "@/components/ui/file-upload";
 import { Edit, GripVertical, Music, Pause, Play, Plus, Trash2 } from "lucide-react";
+import { getAllAudioCategories } from "@/lib/supabase-queries";
+import {
+  CATEGORY_ICON_DEFAULTS,
+  getCategoryIconName,
+  getIconElement,
+} from "@/lib/category-icons";
 
 export interface AudioSample {
   id?: number;
@@ -26,7 +39,19 @@ interface AudioSampleManagerProps {
 const DEFAULT_SAMPLE = {
   name: "სარეკლამო რგოლი",
   audio_url: "",
+  category: "კომერციული",
 };
+
+interface AudioCategoryOption {
+  value: string;
+  label: string;
+  icon_name?: string | null;
+  is_active?: boolean;
+}
+
+const FALLBACK_CATEGORIES: AudioCategoryOption[] = Object.entries(
+  CATEGORY_ICON_DEFAULTS
+).map(([value, icon_name]) => ({ value, label: value, icon_name, is_active: true }));
 
 export function AudioSampleManager({
   actorId,
@@ -38,6 +63,7 @@ export function AudioSampleManager({
   const [playingIndex, setPlayingIndex] = useState<number | null>(null);
   const [newSample, setNewSample] = useState(DEFAULT_SAMPLE);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [audioCategories, setAudioCategories] = useState<AudioCategoryOption[]>([]);
   const audioRefs = useRef<Record<number, HTMLAudioElement | null>>({});
 
   const stopAll = () => {
@@ -51,6 +77,36 @@ export function AudioSampleManager({
 
   useEffect(() => () => stopAll(), []);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    getAllAudioCategories()
+      .then((categories) => {
+        if (!isMounted) return;
+        const availableCategories = categories.length > 0 ? categories : FALLBACK_CATEGORIES;
+        setAudioCategories(availableCategories);
+
+        const firstActiveCategory = availableCategories.find(
+          (category) => category.is_active !== false
+        );
+        if (firstActiveCategory) {
+          setNewSample((sample) =>
+            availableCategories.some((category) => category.value === sample.category)
+              ? sample
+              : { ...sample, category: firstActiveCategory.value }
+          );
+        }
+      })
+      .catch((error) => {
+        console.error("Error loading audio categories:", error);
+        if (isMounted) setAudioCategories(FALLBACK_CATEGORIES);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const handleAddSample = () => {
     if (!newSample.name.trim() || !newSample.audio_url) return;
 
@@ -60,7 +116,7 @@ export function AudioSampleManager({
         sample_id: `${actorId}.${samples.length + 1}`,
         name: newSample.name.trim(),
         audio_url: newSample.audio_url,
-        category: "audio",
+        category: newSample.category,
       },
     ]);
     setNewSample(DEFAULT_SAMPLE);
@@ -127,14 +183,23 @@ export function AudioSampleManager({
             <CardTitle className="text-lg">ახალი აუდიო ნიმუში</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>ნიმუშის სახელი</Label>
-              <Input
-                value={newSample.name}
-                onChange={(event) =>
-                  setNewSample((sample) => ({ ...sample, name: event.target.value }))
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label>ნიმუშის სახელი</Label>
+                <Input
+                  value={newSample.name}
+                  onChange={(event) =>
+                    setNewSample((sample) => ({ ...sample, name: event.target.value }))
+                  }
+                  placeholder="მაგ: სარეკლამო რგოლი"
+                />
+              </div>
+              <CategorySelect
+                categories={audioCategories}
+                value={newSample.category}
+                onChange={(category) =>
+                  setNewSample((sample) => ({ ...sample, category }))
                 }
-                placeholder="მაგ: სარეკლამო რგოლი"
               />
             </div>
             <div className="space-y-2">
@@ -180,6 +245,7 @@ export function AudioSampleManager({
               {editingIndex === index ? (
                 <EditSampleForm
                   sample={sample}
+                  audioCategories={audioCategories}
                   onCancel={() => setEditingIndex(null)}
                   onSave={(updatedSample) => {
                     const updatedSamples = [...samples];
@@ -207,10 +273,19 @@ export function AudioSampleManager({
                   </Button>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <Music className="h-4 w-4 shrink-0 text-muted-foreground" />
+                      {getIconElement(
+                        getCategoryIconName(
+                          sample.category,
+                          audioCategories.find((category) => category.value === sample.category)
+                            ?.icon_name
+                        ),
+                        { className: "h-4 w-4 shrink-0 text-muted-foreground" }
+                      )}
                       <span className="truncate font-medium">{sample.name}</span>
                     </div>
-                    <p className="mt-1 text-xs text-muted-foreground">ID: {sample.sample_id}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {sample.category} · ID: {sample.sample_id}
+                    </p>
                   </div>
                   <div className="flex gap-1">
                     <Button type="button" variant="ghost" size="icon" onClick={() => setEditingIndex(index)}>
@@ -252,26 +327,38 @@ export function AudioSampleManager({
 
 function EditSampleForm({
   sample,
+  audioCategories,
   onSave,
   onCancel,
 }: {
   sample: AudioSample;
+  audioCategories: AudioCategoryOption[];
   onSave: (sample: Partial<AudioSample>) => void;
   onCancel: () => void;
 }) {
   const [editedSample, setEditedSample] = useState({
     name: sample.name,
     audio_url: sample.audio_url,
+    category: sample.category || "კომერციული",
   });
 
   return (
     <div className="space-y-4">
-      <div className="space-y-2">
-        <Label>ნიმუშის სახელი</Label>
-        <Input
-          value={editedSample.name}
-          onChange={(event) =>
-            setEditedSample((current) => ({ ...current, name: event.target.value }))
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-2">
+          <Label>ნიმუშის სახელი</Label>
+          <Input
+            value={editedSample.name}
+            onChange={(event) =>
+              setEditedSample((current) => ({ ...current, name: event.target.value }))
+            }
+          />
+        </div>
+        <CategorySelect
+          categories={audioCategories}
+          value={editedSample.category}
+          onChange={(category) =>
+            setEditedSample((current) => ({ ...current, category }))
           }
         />
       </div>
@@ -299,6 +386,53 @@ function EditSampleForm({
           გაუქმება
         </Button>
       </div>
+    </div>
+  );
+}
+
+function CategorySelect({
+  categories,
+  value,
+  onChange,
+}: {
+  categories: AudioCategoryOption[];
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const selectedCategoryExists = categories.some((category) => category.value === value);
+  const options =
+    value && !selectedCategoryExists
+      ? [{ value, label: value, icon_name: getCategoryIconName(value), is_active: false }, ...categories]
+      : categories;
+
+  return (
+    <div className="space-y-2">
+      <Label>ხატის კატეგორია</Label>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger>
+          <SelectValue placeholder="აირჩიეთ კატეგორია" />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((category) => (
+            <SelectItem
+              key={category.value}
+              value={category.value}
+              disabled={category.is_active === false && category.value !== value}
+            >
+              <span className="flex items-center gap-2">
+                {getIconElement(
+                  getCategoryIconName(category.value, category.icon_name),
+                  { className: "h-4 w-4" }
+                )}
+                {category.label}
+                {category.is_active === false && (
+                  <span className="text-xs text-muted-foreground">(გამორთული)</span>
+                )}
+              </span>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }

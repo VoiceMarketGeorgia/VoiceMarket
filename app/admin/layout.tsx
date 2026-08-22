@@ -5,7 +5,7 @@ import { ProtectedRoute } from "@/components/auth/protected-route";
 import { AdminHeader } from "@/components/auth/admin-header";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { FileText, MessageSquare, Users, BarChart3 } from "lucide-react";
+import { FileText, MessageSquare, Music, Users, BarChart3 } from "lucide-react";
 
 export default function AdminLayout({
   children,
@@ -45,6 +45,12 @@ export default function AdminLayout({
                     <Button variant="ghost" className="w-full justify-start">
                       <Users className="mr-2 h-4 w-4" />
                       მსახიობები
+                    </Button>
+                  </Link>
+                  <Link href="/admin/attributes">
+                    <Button variant="ghost" className="w-full justify-start">
+                      <Music className="mr-2 h-4 w-4" />
+                      აუდიო კატეგორიები
                     </Button>
                   </Link>
                 </nav>

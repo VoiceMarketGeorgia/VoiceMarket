@@ -8,6 +8,7 @@ import "react-h5-audio-player/lib/styles.css";
 import { ChevronDown } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { localizeAudioName } from "@/lib/audio-labels";
+import { getIconElement } from "@/lib/category-icons";
 
 interface AudioSample {
   id: string;
@@ -260,7 +261,9 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
                           : "text-gray-400 dark:text-muted-foreground"
                       }
                     >
-                      {sample.icon}
+                      {sample.iconName
+                        ? getIconElement(sample.iconName, { className: "h-5 w-5" })
+                        : sample.icon}
                     </span>
                     <span className="font-medium">{localizeAudioName(sample.name, language)}</span>
                   </button>

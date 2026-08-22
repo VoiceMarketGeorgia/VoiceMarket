@@ -453,13 +453,21 @@ export async function getQuoteRequests(status?: string): Promise<QuoteRequest[]>
 }
 
 // Utility function to convert database records to legacy Talent interface
-export function convertToTalent(voiceActor: VoiceActorWithPricing): any {
+export function convertToTalent(
+  voiceActor: VoiceActorWithPricing,
+  categoryIconMap?: Map<string, { icon_name?: string | null; color_class?: string | null }>
+): any {
   const samples = voiceActor.samples?.map(sample => {
+    const categoryPresentation = categoryIconMap?.get(sample.category || '')
+
     return {
       id: sample.sample_id,
       name: sample.name,
       url: sample.audio_url,
-      icon: null
+      category: sample.category,
+      icon: null,
+      iconName: categoryPresentation?.icon_name,
+      colorClass: categoryPresentation?.color_class,
     }
   }) || []
 

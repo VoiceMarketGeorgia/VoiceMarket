@@ -2,15 +2,24 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { Clock, DollarSign, Mic2 } from "lucide-react";
+import { Clock, DollarSign } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { ActorPricingCalculator } from "@/components/actor-pricing-calculator";
-import { getVoiceActorById, convertToTalent } from "@/lib/supabase-queries";
+import {
+  getAllAudioCategories,
+  getVoiceActorById,
+  convertToTalent,
+} from "@/lib/supabase-queries";
 import CardAudioPlayer from "@/components/card-audio-player";
 import { useLanguage } from "@/components/language-provider";
 import { localizeAudioName } from "@/lib/audio-labels";
+import {
+  buildAudioCategoryMap,
+  getCategoryIconName,
+  getIconElement,
+} from "@/lib/category-icons";
 
 interface TalentProfileProps {
   id: string;
@@ -29,21 +38,28 @@ export function TalentProfile({ id }: TalentProfileProps) {
       try {
         setLoading(true);
         setError(false);
-        const actor = await getVoiceActorById(id);
+        const [actor, audioCategories] = await Promise.all([
+          getVoiceActorById(id),
+          getAllAudioCategories(),
+        ]);
 
         if (!actor) {
           setError(true);
           return;
         }
 
-        const converted = convertToTalent(actor);
+        const categoryIconMap = buildAudioCategoryMap(audioCategories);
+        const converted = convertToTalent(actor, categoryIconMap);
         setTalent({
           ...converted,
           bio: actor.bio,
           turnaround: actor.turnaround_time,
           samples: converted.samples.map((sample: any) => ({
             ...sample,
-            icon: <Mic2 className="h-4 w-4" />,
+            icon: getIconElement(
+              getCategoryIconName(sample.category, sample.iconName),
+              { className: "h-4 w-4" }
+            ),
           })),
         });
       } catch (loadError) {

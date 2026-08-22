@@ -2,10 +2,19 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Filter, Mic2, RefreshCw, X } from "lucide-react";
+import { Filter, RefreshCw, X } from "lucide-react";
 import { VoiceCard, type ActorPricing, type AudioSample } from "./voice-card";
 import { Button } from "@/components/ui/button";
-import { getAllVoiceActors, convertToTalent } from "@/lib/supabase-queries";
+import {
+  getAllAudioCategories,
+  getAllVoiceActors,
+  convertToTalent,
+} from "@/lib/supabase-queries";
+import {
+  buildAudioCategoryMap,
+  getCategoryIconName,
+  getIconElement,
+} from "@/lib/category-icons";
 import { useLanguage } from "@/components/language-provider";
 import { Label } from "@/components/ui/label";
 import { MultiSelect } from "@/components/ui/multi-select";
@@ -56,9 +65,13 @@ export function AllTalents() {
     try {
       setLoading(true);
       setError(false);
-      const actors = await getAllVoiceActors();
+      const [actors, audioCategories] = await Promise.all([
+        getAllVoiceActors(),
+        getAllAudioCategories(),
+      ]);
+      const categoryIconMap = buildAudioCategoryMap(audioCategories);
       const convertedTalents = actors.map((actor) => {
-        const talent = convertToTalent(actor);
+        const talent = convertToTalent(actor, categoryIconMap);
 
         return {
           id: talent.id,
@@ -70,7 +83,10 @@ export function AllTalents() {
           gender: talent.gender || "Male",
           samples: talent.samples.map((sample: AudioSample) => ({
             ...sample,
-            icon: <Mic2 className="h-4 w-4" />,
+            icon: getIconElement(
+              getCategoryIconName(sample.category, sample.iconName),
+              { className: "h-4 w-4" }
+            ),
           })),
         };
       });

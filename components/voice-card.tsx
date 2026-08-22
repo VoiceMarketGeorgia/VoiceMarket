@@ -4,6 +4,8 @@ export interface AudioSample {
   id: string;
   name: string;
   icon: JSX.Element;
+  iconName?: string;
+  category?: string | null;
   url: string;
 }
 

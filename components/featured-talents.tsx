@@ -3,10 +3,18 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Mic2 } from "lucide-react";
 import { VoiceCard, type AudioSample, type Talent } from "./voice-card";
-import { getAllVoiceActors, convertToTalent } from "@/lib/supabase-queries";
+import {
+  getAllAudioCategories,
+  getAllVoiceActors,
+  convertToTalent,
+} from "@/lib/supabase-queries";
 import { useLanguage } from "@/components/language-provider";
+import {
+  buildAudioCategoryMap,
+  getCategoryIconName,
+  getIconElement,
+} from "@/lib/category-icons";
 
 export function FeaturedTalents() {
   const router = useRouter();
@@ -21,9 +29,13 @@ export function FeaturedTalents() {
       try {
         setLoading(true);
         setError(false);
-        const actors = await getAllVoiceActors();
+        const [actors, audioCategories] = await Promise.all([
+          getAllVoiceActors(),
+          getAllAudioCategories(),
+        ]);
+        const categoryIconMap = buildAudioCategoryMap(audioCategories);
         const converted = actors.slice(0, 4).map((actor) => {
-          const talent = convertToTalent(actor);
+          const talent = convertToTalent(actor, categoryIconMap);
           return {
             id: talent.id,
             name: talent.name,
@@ -32,7 +44,10 @@ export function FeaturedTalents() {
             pricing: talent.pricing,
             samples: talent.samples.map((sample: AudioSample) => ({
               ...sample,
-              icon: <Mic2 className="h-4 w-4" />,
+              icon: getIconElement(
+                getCategoryIconName(sample.category, sample.iconName),
+                { className: "h-4 w-4" }
+              ),
             })),
           };
         });
