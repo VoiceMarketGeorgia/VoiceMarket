@@ -2,38 +2,40 @@
 
 import { Button } from "@/components/ui/button";
 import { Mic2, Radio, Film, BookOpen, Headphones, Tv2 } from "lucide-react";
+import { useLanguage } from "@/components/language-provider";
 
 export function OurServices() {
+  const { tr } = useLanguage();
   const categories = [
     {
       icon: <Headphones className="h-6 w-6" />,
-      name: "ავტომოპასუხე",
-      description: "ხმოვანი პასუხი",
+      name: tr("ავტომოპასუხე", "IVR"),
+      description: tr("ხმოვანი პასუხი", "Automated voice response"),
     },
     {
       icon: <Film className="h-6 w-6" />,
-      name: "გახმოვანება",
-      description: "ფილმები და სერიალები",
+      name: tr("გახმოვანება", "Dubbing"),
+      description: tr("ფილმები და სერიალები", "Films and TV series"),
     },
     {
       icon: <Radio className="h-6 w-6" />,
-      name: "პოდკასტები",
-      description: "ინტერვიუები და სხვა",
+      name: tr("პოდკასტები", "Podcasts"),
+      description: tr("ინტერვიუები და სხვა", "Interviews and more"),
     },
     {
       icon: <Mic2 className="h-6 w-6" />,
-      name: "კომერციული",
-      description: "სარეკლამო რგოლი",
+      name: tr("კომერციული", "Commercials"),
+      description: tr("სარეკლამო რგოლი", "Advertising spots"),
     },
     {
       icon: <BookOpen className="h-6 w-6" />,
-      name: "აუდიოწიგნები",
-      description: "ხმოვანი წიგნები",
+      name: tr("აუდიოწიგნები", "Audiobooks"),
+      description: tr("ხმოვანი წიგნები", "Narrated books"),
     },
     {
       icon: <Tv2 className="h-6 w-6" />,
-      name: "განათლება",
-      description: "ტრენინგები და სხვა",
+      name: tr("განათლება", "Education"),
+      description: tr("ტრენინგები და სხვა", "Training and more"),
     },
   ];
 
@@ -49,7 +51,7 @@ export function OurServices() {
     <section className="container relative">
       <div className="text-center mb-6">
         <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-ჩვენი სერვისები
+          {tr("ჩვენი სერვისები", "Our services")}
         </h2>
         {/* Beautiful decorative line */}
         <div className="flex items-center justify-center mt-4">

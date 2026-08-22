@@ -28,6 +28,9 @@ interface MultiSelectProps {
   selected: string[]
   onChange: (values: string[]) => void
   placeholder?: string
+  searchPlaceholder?: string
+  emptyMessage?: string
+  moreLabel?: string
   className?: string
 }
 
@@ -36,6 +39,9 @@ export function MultiSelect({
   selected,
   onChange,
   placeholder = "აირჩიეთ...",
+  searchPlaceholder = "ძებნა...",
+  emptyMessage = "შედეგი ვერ მოიძებნა.",
+  moreLabel = "მეტი",
   className,
 }: MultiSelectProps) {
   const [open, setOpen] = React.useState(false)
@@ -103,7 +109,7 @@ export function MultiSelect({
                 variant="secondary"
                 className="bg-orange-100 text-orange-800"
               >
-                +{selected.length - 2} მეტი
+                +{selected.length - 2} {moreLabel}
               </Badge>
             )}
           </div>
@@ -112,8 +118,8 @@ export function MultiSelect({
       </PopoverTrigger>
       <PopoverContent className="w-full p-0" align="start">
         <Command>
-          <CommandInput placeholder="ძებნა..." />
-          <CommandEmpty>შედეგი ვერ მოიძებნა.</CommandEmpty>
+          <CommandInput placeholder={searchPlaceholder} />
+          <CommandEmpty>{emptyMessage}</CommandEmpty>
           <CommandGroup className="max-h-64 overflow-auto">
             {options.map((option) => (
               <CommandItem

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import "leaflet/dist/leaflet.css";
+import { useLanguage } from "@/components/language-provider";
 
 interface MapComponentProps {
   position: {
@@ -11,6 +12,7 @@ interface MapComponentProps {
 }
 
 export default function MapComponent({ position }: MapComponentProps) {
+  const { tr } = useLanguage();
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
 
@@ -51,8 +53,8 @@ export default function MapComponent({ position }: MapComponentProps) {
         .bindPopup(
           `<div style="text-align:center;">
             <strong>Voice Market</strong><br/>
-            ვაჟა ფშაველას III კვარტალი, კორპუსი 23<br/>
-            თბილისი, საქართველო
+            ${tr("ვაჟა-ფშაველას III კვარტალი, კორპუსი 23", "23 Vazha-Pshavela III Quarter")}<br/>
+            ${tr("თბილისი, საქართველო", "Tbilisi, Georgia")}
           </div>`
         )
         .openPopup();
@@ -68,7 +70,7 @@ export default function MapComponent({ position }: MapComponentProps) {
         mapInstanceRef.current = null;
       }
     };
-  }, [position]); // rerun only when position changes
+  }, [position, tr]);
 
   return <div ref={mapRef} style={{ height: "100%", width: "100%" }} />;
 }

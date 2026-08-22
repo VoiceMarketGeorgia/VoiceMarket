@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { ActorPricing } from "./voice-card";
 import { submitQuoteRequest } from "@/lib/supabase-queries";
+import { useLanguage } from "@/components/language-provider";
 
 interface ActorPricingCalculatorProps {
   pricing: ActorPricing;
@@ -31,6 +32,7 @@ export function ActorPricingCalculator({
   actorId,
   dbId,
 }: ActorPricingCalculatorProps) {
+  const { tr } = useLanguage();
   const [script, setScript] = useState("");
   const [wordCount, setWordCount] = useState(0);
   const [revisions, setRevisions] = useState([2]);
@@ -38,7 +40,9 @@ export function ActorPricingCalculator({
   const [backgroundMusic, setBackgroundMusic] = useState(false);
   const [soundEffects, setSoundEffects] = useState(false);
   const [price, setPrice] = useState(0);
-  const [deliveryTime, setDeliveryTime] = useState("48 hours");
+  const deliveryTime = expressDelivery
+    ? tr("24 საათი", "24 hours")
+    : tr("48 საათი", "48 hours");
 
   // Quote request form states
   const [showQuoteForm, setShowQuoteForm] = useState(false);
@@ -83,9 +87,6 @@ export function ActorPricingCalculator({
     // Add express delivery fee
     if (expressDelivery) {
       calculatedPrice += pricing.expressDeliveryFee;
-      setDeliveryTime("24 საათში");
-    } else {
-      setDeliveryTime("48 საათში");
     }
 
     // Add background music fee
@@ -114,7 +115,7 @@ export function ActorPricingCalculator({
 
   const handleSubmitQuote = async () => {
     if (!clientName || !clientEmail || !script) {
-      setSubmitError("გთხოვთ შეავსოთ სავალდებულო ველები");
+      setSubmitError(tr("გთხოვთ შეავსოთ სავალდებულო ველები", "Please complete all required fields"));
       return;
     }
 
@@ -146,10 +147,10 @@ export function ActorPricingCalculator({
         setSpecialRequirements("");
         setShowQuoteForm(false);
       } else {
-        setSubmitError(result.error || "მოთხოვნის გაგზავნა ვერ მოხერხდა");
+        setSubmitError(result.error || tr("მოთხოვნის გაგზავნა ვერ მოხერხდა", "The request could not be sent"));
       }
     } catch (err) {
-      setSubmitError("მოთხოვნის გაგზავნა ვერ მოხერხდა");
+      setSubmitError(tr("მოთხოვნის გაგზავნა ვერ მოხერხდა", "The request could not be sent"));
     } finally {
       setIsSubmitting(false);
     }
@@ -159,7 +160,7 @@ export function ActorPricingCalculator({
     <div className="space-y-6">
       <div className="flex items-center gap-2 mb-4">
         <Calculator className="h-5 w-5 text-orange-500" />
-        <h3 className="text-lg font-semibold">ფასის კალკულატორი</h3>
+        <h3 className="text-lg font-semibold">{tr("ფასის კალკულატორი", "Price calculator")}</h3>
       </div>
 
       {pricing.isFixedPrice && (
@@ -168,8 +169,7 @@ export function ActorPricingCalculator({
             <div className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-orange-600" />
               <span className="text-sm font-medium text-orange-800 dark:text-orange-200">
-                ეს მსახიობი გამოიყენებს ფიქსირებულ ფასს: ₾
-                {pricing.fixedPriceAmount} (base rate)
+                {tr("ეს მსახიობი იყენებს ფიქსირებულ ფასს", "This voice actor uses a fixed price")}: ₾{pricing.fixedPriceAmount}
               </span>
             </div>
           </CardContent>
@@ -179,23 +179,23 @@ export function ActorPricingCalculator({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
           <div>
-            <Label htmlFor="script">თქვენი ტექსტი</Label>
+            <Label htmlFor="script">{tr("თქვენი ტექსტი", "Your script")}</Label>
             <Textarea
               id="script"
-              placeholder="ჩასვით თქვენი ტექსტი აქ ზუსტი ფასის გამოსათვლელად..."
+              placeholder={tr("ჩასვით თქვენი ტექსტი აქ ზუსტი ფასის გამოსათვლელად...", "Paste your script here to calculate an accurate price...")}
               value={script}
               onChange={(e) => setScript(e.target.value)}
               rows={6}
               className="mt-2"
             />
             <p className="text-sm text-muted-foreground mt-1">
-              სიტყვების რაოდენობა: {wordCount} სიტყვა
+              {tr("სიტყვების რაოდენობა", "Word count")}: {wordCount}
             </p>
           </div>
 
           <div>
             <Label htmlFor="revisions">
-              შესწორებების რაოდენობა: {revisions[0]}
+              {tr("შესწორებების რაოდენობა", "Number of revisions")}: {revisions[0]}
             </Label>
             <Slider
               id="revisions"
@@ -214,7 +214,7 @@ export function ActorPricingCalculator({
 
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label htmlFor="express">სწრაფი მიწოდება (24 საათი)</Label>
+              <Label htmlFor="express">{tr("სწრაფი მიწოდება (24 საათი)", "Express delivery (24 hours)")}</Label>
               <Switch
                 id="express"
                 checked={expressDelivery}
@@ -223,7 +223,7 @@ export function ActorPricingCalculator({
             </div>
 
             <div className="flex items-center justify-between">
-              <Label htmlFor="music">ფონური მუსიკა</Label>
+              <Label htmlFor="music">{tr("ფონური მუსიკა", "Background music")}</Label>
               <Switch
                 id="music"
                 checked={backgroundMusic}
@@ -232,7 +232,7 @@ export function ActorPricingCalculator({
             </div>
 
             <div className="flex items-center justify-between">
-              <Label htmlFor="effects">ხმოვანი ეფექტები</Label>
+              <Label htmlFor="effects">{tr("ხმოვანი ეფექტები", "Sound effects")}</Label>
               <Switch
                 id="effects"
                 checked={soundEffects}
@@ -250,7 +250,7 @@ export function ActorPricingCalculator({
                   ₾{price}
                 </div>
                 <p className="text-muted-foreground">
-                  პროექტის სრული ღირებულება
+                  {tr("პროექტის სრული ღირებულება", "Total project cost")}
                 </p>
               </div>
             </CardContent>
@@ -258,23 +258,23 @@ export function ActorPricingCalculator({
 
           <Card>
             <CardContent className="p-4">
-              <h4 className="font-medium mb-3">ფასების დეტალები</h4>
+              <h4 className="font-medium mb-3">{tr("ფასების დეტალები", "Price breakdown")}</h4>
               <div className="space-y-2 text-sm">
                 {pricing.isFixedPrice ? (
                   <div className="flex justify-between">
-                    <span>ფიქსირებული ტარიფი:</span>
+                    <span>{tr("ფიქსირებული ტარიფი", "Fixed rate")}:</span>
                     <span>₾{pricing.fixedPriceAmount}</span>
                   </div>
                 ) : (
                   <>
                     <div className="flex justify-between">
-                      <span>საბაზისო ფასი:</span>
+                      <span>{tr("საბაზისო ფასი", "Base price")}:</span>
                       <span>₾{pricing.basePrice}</span>
                     </div>
                     {wordCount > 0 && (
                       <div className="flex justify-between">
                         <span>
-                          სიტყვები ({wordCount} × ₾
+                          {tr("სიტყვები", "Words")} ({wordCount} × ₾
                           {pricing.pricePerWord.toFixed(2)}):
                         </span>
                         <span>
@@ -288,7 +288,7 @@ export function ActorPricingCalculator({
                 {revisions[0] > 0 && (
                   <div className="flex justify-between">
                     <span>
-                      შესწორებები ({revisions[0]} × ₾{pricing.revisionFee}):
+                      {tr("შესწორებები", "Revisions")} ({revisions[0]} × ₾{pricing.revisionFee}):
                     </span>
                     <span>₾{revisions[0] * pricing.revisionFee}</span>
                   </div>
@@ -296,28 +296,28 @@ export function ActorPricingCalculator({
 
                 {expressDelivery && (
                   <div className="flex justify-between">
-                    <span>სწრაფი მიწოდება:</span>
+                    <span>{tr("სწრაფი მიწოდება", "Express delivery")}:</span>
                     <span>₾{pricing.expressDeliveryFee}</span>
                   </div>
                 )}
 
                 {backgroundMusic && (
                   <div className="flex justify-between">
-                    <span>ფონური მუსიკა:</span>
+                    <span>{tr("ფონური მუსიკა", "Background music")}:</span>
                     <span>₾{pricing.backgroundMusicFee}</span>
                   </div>
                 )}
 
                 {soundEffects && (
                   <div className="flex justify-between">
-                    <span>ხმოვანი ეფექტები:</span>
+                    <span>{tr("ხმოვანი ეფექტები", "Sound effects")}:</span>
                     <span>₾{pricing.soundEffectsFee}</span>
                   </div>
                 )}
 
                 <div className="border-t pt-2 mt-2">
                   <div className="flex justify-between font-medium">
-                    <span>სულ:</span>
+                    <span>{tr("სულ", "Total")}:</span>
                     <span>₾{price}</span>
                   </div>
                 </div>
@@ -335,7 +335,7 @@ export function ActorPricingCalculator({
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-2">
                 <Clock className="h-4 w-4 text-orange-500" />
-                <span className="font-medium">მიწოდების დრო</span>
+                <span className="font-medium">{tr("მიწოდების დრო", "Delivery time")}</span>
               </div>
               <p className="text-muted-foreground">{deliveryTime}</p>
             </CardContent>
@@ -351,11 +351,10 @@ export function ActorPricingCalculator({
               <CheckCircle2 className="h-6 w-6 text-green-600" />
               <div>
                 <h3 className="font-semibold text-green-800 dark:text-green-200">
-                  შეკვეთა წარმატებით გაიგზავნა!
+                  {tr("შეკვეთა წარმატებით გაიგზავნა!", "Request sent successfully!")}
                 </h3>
                 <p className="text-sm text-green-600 dark:text-green-300">
-                  ჩვენ განვიხილავთ თქვენს პროექტს და 24 საათში გამოგიგზავნით
-                  ზუსტ ფასს.
+                  {tr("თქვენს პროექტს განვიხილავთ და 24 საათში გამოგიგზავნით ზუსტ ფასს.", "We will review your project and send an exact quote within 24 hours.")}
                 </p>
               </div>
             </div>
@@ -369,10 +368,9 @@ export function ActorPricingCalculator({
           <CardContent className="p-6">
             {!showQuoteForm ? (
               <div className="text-center">
-                <h3 className="text-lg font-semibold mb-2">მომწონს ეს ფასი?</h3>
+                <h3 className="text-lg font-semibold mb-2">{tr("გსურთ გაგრძელება?", "Ready to continue?")}</h3>
                 <p className="text-muted-foreground mb-4">
-                  გაგზავნეთ შეკვეთა მსახიობი #{actorId}-ისთვის და მიიღეთ ზუსტი
-                  ფასი
+                  {tr("გაგზავნეთ მოთხოვნა ამ მსახიობისთვის და მიიღეთ ზუსტი ფასი", "Send a request for this voice actor and receive an exact quote")} #{actorId}
                 </p>
                 <Button
                   onClick={() => setShowQuoteForm(true)}
@@ -381,11 +379,11 @@ export function ActorPricingCalculator({
                   disabled={!script || wordCount === 0}
                 >
                   <Send className="mr-2 h-4 w-4" />
-                  მოთხოვნის გაგზავნა
+                  {tr("მოთხოვნის გაგზავნა", "Send request")}
                 </Button>
                 {(!script || wordCount === 0) && (
                   <p className="text-sm text-muted-foreground mt-2">
-                    * გთხოვთ ჯერ შეიყვანოთ სკრიპტი
+                    * {tr("გთხოვთ ჯერ შეიყვანოთ ტექსტი", "Please enter your script first")}
                   </p>
                 )}
               </div>
@@ -393,14 +391,14 @@ export function ActorPricingCalculator({
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-semibold">
-                    კონტაქტის ინფორმაცია
+                    {tr("საკონტაქტო ინფორმაცია", "Contact information")}
                   </h3>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() => setShowQuoteForm(false)}
                   >
-                    უკან
+                    {tr("უკან", "Back")}
                   </Button>
                 </div>
 
@@ -414,17 +412,17 @@ export function ActorPricingCalculator({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="clientName">სრული სახელი *</Label>
+                    <Label htmlFor="clientName">{tr("სრული სახელი", "Full name")} *</Label>
                     <Input
                       id="clientName"
-                      placeholder="გელა გელაშვილი"
+                      placeholder={tr("გელა გელაშვილი", "Your full name")}
                       value={clientName}
                       onChange={(e) => setClientName(e.target.value)}
                       required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="clientEmail">ელ-ფოსტა *</Label>
+                    <Label htmlFor="clientEmail">{tr("ელ-ფოსტა", "Email")} *</Label>
                     <Input
                       id="clientEmail"
                       type="email"
@@ -437,7 +435,7 @@ export function ActorPricingCalculator({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="clientPhone">ტელეფონი</Label>
+                  <Label htmlFor="clientPhone">{tr("ტელეფონი", "Phone")}</Label>
                   <Input
                     id="clientPhone"
                     type="tel"
@@ -449,11 +447,11 @@ export function ActorPricingCalculator({
 
                 <div className="space-y-2">
                   <Label htmlFor="specialRequirements">
-                    დამატებითი მოთხოვნები
+                    {tr("დამატებითი მოთხოვნები", "Additional requirements")}
                   </Label>
                   <Textarea
                     id="specialRequirements"
-                    placeholder="სპეციალური ინსტრუქციები, ტონალობა, მიწოდების მოთხოვნები..."
+                    placeholder={tr("სპეციალური ინსტრუქციები, ტონალობა, მიწოდების მოთხოვნები...", "Special instructions, tone, delivery requirements...")}
                     rows={3}
                     value={specialRequirements}
                     onChange={(e) => setSpecialRequirements(e.target.value)}
@@ -463,29 +461,29 @@ export function ActorPricingCalculator({
                 {/* Summary */}
                 <Card className="bg-muted/50">
                   <CardContent className="p-4">
-                    <h4 className="font-medium mb-2">მოთხოვნის შეჯამება</h4>
+                    <h4 className="font-medium mb-2">{tr("მოთხოვნის შეჯამება", "Request summary")}</h4>
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <p>
-                          <strong>მსახიობი:</strong> #{actorId}
+                          <strong>{tr("მსახიობი", "Voice actor")}:</strong> #{actorId}
                         </p>
                         <p>
-                          <strong>სიტყვები:</strong> {wordCount}
+                          <strong>{tr("სიტყვები", "Words")}:</strong> {wordCount}
                         </p>
                         <p>
-                          <strong>მიწოდება:</strong> {deliveryTime}
+                          <strong>{tr("მიწოდება", "Delivery")}:</strong> {deliveryTime}
                         </p>
                       </div>
                       <div>
                         <p>
-                          <strong>შესწორებები:</strong> {revisions[0]}
+                          <strong>{tr("შესწორებები", "Revisions")}:</strong> {revisions[0]}
                         </p>
                         <p>
-                          <strong>ფასი:</strong> ₾{price}
+                          <strong>{tr("ფასი", "Price")}:</strong> ₾{price}
                         </p>
                         {expressDelivery && (
                           <p>
-                            <strong>სწრაფი მიწოდება:</strong> ✓
+                            <strong>{tr("სწრაფი მიწოდება", "Express delivery")}:</strong> ✓
                           </p>
                         )}
                       </div>
@@ -501,12 +499,12 @@ export function ActorPricingCalculator({
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      იგზავნება...
+                      {tr("იგზავნება...", "Sending...")}
                     </>
                   ) : (
                     <>
                       <Send className="mr-2 h-4 w-4" />
-                      მოთხოვნის გაგზავნა
+                      {tr("მოთხოვნის გაგზავნა", "Send request")}
                     </>
                   )}
                 </Button>

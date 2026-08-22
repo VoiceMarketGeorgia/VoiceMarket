@@ -1,327 +1,190 @@
 "use client";
-import { useState, useEffect } from "react";
+
+import { useEffect, useState } from "react";
 import Image from "next/image";
+import { Clock, DollarSign, Mic2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import {
-  Star,
-  Heart,
-  Share2,
-  MessageCircle,
-  Languages,
-  Clock,
-  DollarSign,
-  ShoppingBag,
-  ThumbsUp,
-  Users,
-  BarChart3,
-  Calendar,
-  Mic2,
-  Headphones,
-  BookOpen,
-  FileText,
-} from "lucide-react";
 import { ActorPricingCalculator } from "@/components/actor-pricing-calculator";
-import { ActorPricing } from "@/components/voice-card";
 import { getVoiceActorById, convertToTalent } from "@/lib/supabase-queries";
 import CardAudioPlayer from "@/components/card-audio-player";
-import { getGeorgianLabel } from "@/lib/constants";
-import { getDynamicAudioCategories } from "@/lib/dynamic-attributes";
-import { getIconElement } from "@/lib/category-icons";
+import { useLanguage } from "@/components/language-provider";
+import { localizeAudioName } from "@/lib/audio-labels";
 
 interface TalentProfileProps {
   id: string;
 }
 
 export function TalentProfile({ id }: TalentProfileProps) {
+  const { language, tr } = useLanguage();
   const [activeTab, setActiveTab] = useState("demos");
-  const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(
-    null
-  );
+  const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(null);
   const [talent, setTalent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [categoryIconMap, setCategoryIconMap] = useState<
-    Map<string, { icon_name: string; color_class: string }>
-  >(new Map());
+  const [error, setError] = useState(false);
 
-  // Load category icons
-  useEffect(() => {
-    const loadCategoryIcons = async () => {
-      try {
-        const categories = await getDynamicAudioCategories();
-        const map = new Map<
-          string,
-          { icon_name: string; color_class: string }
-        >();
-        categories.forEach((cat) => {
-          if (cat.icon_name && cat.color_class) {
-            map.set(cat.value, {
-              icon_name: cat.icon_name,
-              color_class: cat.color_class,
-            });
-          }
-        });
-        setCategoryIconMap(map);
-      } catch (error) {
-        console.error("Error loading category icons:", error);
-      }
-    };
-    loadCategoryIcons();
-  }, []);
-
-  // Load talent data from Supabase
   useEffect(() => {
     async function loadTalent() {
       try {
         setLoading(true);
-        const voiceActor = await getVoiceActorById(id);
+        setError(false);
+        const actor = await getVoiceActorById(id);
 
-        if (voiceActor) {
-          const talentData = convertToTalent(voiceActor, categoryIconMap);
-
-          // Add proper icons to samples using dynamic iconName
-          const samplesWithIcons = talentData.samples.map((sample: any) => ({
-            ...sample,
-            icon: sample.iconName ? (
-              getIconElement(sample.iconName, { className: "h-4 w-4" })
-            ) : (
-              <Mic2 className="h-4 w-4" />
-            ),
-            category: sample.name,
-            description: `Professional ${sample.name.toLowerCase()} voice sample.`,
-          }));
-
-          setTalent({
-            ...talentData,
-            title: "პროფესიონალი ხმის მსახიობი",
-            coverImage: talentData.image,
-            bio:
-              voiceActor.bio ||
-              `პროფესიონალი ხმის მსახიობი მოქმედებით მრავალფორმული ხმის დამყარების პროექტების გამოცდილებით. სპეციალიზირებულია ${talentData.tags
-                .join(", ")
-                .toLowerCase()} work with a distinctive and engaging voice style.`,
-            priceRange: talentData.pricing.isFixedPrice
-              ? `ფიქსირებული: ₾${talentData.pricing.fixedPriceAmount}`
-              : `₾${talentData.pricing.basePrice}-${
-                  talentData.pricing.basePrice + 200
-                }`,
-            turnaround: voiceActor.turnaround_time || "24-48 საათში",
-            categories: talentData.tags,
-            samples: samplesWithIcons,
-            rating: voiceActor.rating || 4.5,
-            reviewCount: voiceActor.review_count || 0,
-          });
-        } else {
-          setError("მსახიობი ვერ მოიძებნა");
+        if (!actor) {
+          setError(true);
+          return;
         }
-      } catch (err) {
-        console.error("Error loading talent:", err);
-        setError("მსახიობის პროფილის ჩატვირთვა ვერ მოხერხდა");
+
+        const converted = convertToTalent(actor);
+        setTalent({
+          ...converted,
+          bio: actor.bio,
+          turnaround: actor.turnaround_time,
+          samples: converted.samples.map((sample: any) => ({
+            ...sample,
+            icon: <Mic2 className="h-4 w-4" />,
+          })),
+        });
+      } catch (loadError) {
+        console.error("Error loading talent:", loadError);
+        setError(true);
       } finally {
         setLoading(false);
       }
     }
 
     loadTalent();
-  }, [id, categoryIconMap]);
-
-  // Helper function to get icon for sample type
-  const getSampleIcon = (sampleName: string) => {
-    switch (sampleName) {
-      case "სარეკლამო რგოლი":
-        return <Mic2 className="h-5 w-5" />;
-      case "ავტომოპასუხე":
-        return <Headphones className="h-5 w-5" />;
-      case "მხატვრული":
-        return <BookOpen className="h-5 w-5" />;
-      case "დოკუმენტური":
-        return <FileText className="h-5 w-5" />;
-      default:
-        return <Mic2 className="h-5 w-5" />;
-    }
-  };
-
-  const handleTogglePlay = (playerId: string) => {
-    setCurrentlyPlayingId(currentlyPlayingId === playerId ? null : playerId);
-  };
+  }, [id]);
 
   if (loading) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-500 dark:text-muted-foreground text-lg">
-          იტვირთება...
-        </p>
+      <div className="py-12 text-center text-lg text-muted-foreground" aria-busy="true">
+        {tr("იტვირთება...", "Loading...")}
       </div>
     );
   }
 
   if (error || !talent) {
     return (
-      <div className="text-center py-12">
-        <p className="text-red-500 text-lg">
-          {error || "მსახიობი ვერ მოიძებნა"}
+      <div className="py-12 text-center">
+        <p className="text-lg text-red-500">
+          {tr("მსახიობი ვერ მოიძებნა", "Voice actor not found")}
         </p>
-        <Button
-          variant="outline"
-          onClick={() => window.history.back()}
-          className="mt-4"
-        >
-          უკან დაბრუნება
+        <Button variant="outline" onClick={() => window.history.back()} className="mt-4">
+          {tr("უკან დაბრუნება", "Go back")}
         </Button>
       </div>
     );
   }
 
+  const priceRange = talent.pricing.isFixedPrice
+    ? tr(
+        `ფიქსირებული: ₾${talent.pricing.fixedPriceAmount}`,
+        `Fixed: ₾${talent.pricing.fixedPriceAmount}`
+      )
+    : `₾${talent.pricing.basePrice}–₾${talent.pricing.basePrice + 200}`;
+
   return (
     <div className="space-y-8">
-      <div className="relative h-[250px] md:h-[350px] w-full overflow-hidden rounded-xl">
-        <Image
-          src={talent.coverImage || "/placeholder.svg"}
-          alt="Cover"
-          fill
-          className="object-cover"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent" />
-        <div className="absolute bottom-0 left-0 p-6 md:p-8 z-10">
+      <div className="relative h-[250px] w-full overflow-hidden rounded-xl md:h-[350px]">
+        <Image src={talent.image || "/placeholder.svg"} alt={talent.name} fill className="object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
+        <div className="absolute bottom-0 left-0 z-10 p-6 md:p-8">
           <div className="flex items-end gap-6">
-            <div className="relative h-[120px] w-[120px] md:h-[150px] md:w-[150px] overflow-hidden rounded-xl border-4 border-background">
-              <Image
-                src={talent.image || "/placeholder.svg"}
-                alt={talent.name}
-                fill
-                className="object-cover"
-              />
+            <div className="relative h-[110px] w-[110px] overflow-hidden rounded-xl border-4 border-background md:h-[150px] md:w-[150px]">
+              <Image src={talent.image || "/placeholder.svg"} alt={talent.name} fill className="object-cover" />
             </div>
             <div className="text-white">
-              <h1 className="text-3xl md:text-4xl font-bold">
-                მსახიობი #{talent.id}
+              <h1 className="text-3xl font-bold md:text-4xl">
+                {tr("მსახიობი", "Voice actor")} #{talent.id}
               </h1>
-              <p className="text-white/80">{talent.title}</p>
-              {/* Removed rating system as requested */}
-              <div className="flex flex-wrap gap-2 mt-3">
-                {talent.categories.map((category) => (
-                  <Badge
-                    key={category}
-                    variant="secondary"
-                    className="bg-white/20 text-white hover:bg-white/30"
-                  >
-                    {getGeorgianLabel(category)}
-                  </Badge>
-                ))}
-              </div>
+              <p className="text-white/80">
+                {tr("პროფესიონალი ხმის მსახიობი", "Professional voice actor")}
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-[300px_1fr] gap-8">
-        <div className="space-y-6">
-          <Card className="overflow-hidden">
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <Languages className="h-5 w-5 text-orange-500 mt-0.5" />
-                  <div>
-                    <h3 className="font-medium">ენები</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {talent.languages
-                        .map((lang: string) =>
-                          getGeorgianLabel(lang, "language")
-                        )
-                        .join(", ")}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <Clock className="h-5 w-5 text-orange-500 mt-0.5" />
-                  <div>
-                    <h3 className="font-medium">შესრულების დრო</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {talent.turnaround}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-3">
-                  <DollarSign className="h-5 w-5 text-orange-500 mt-0.5" />
-                  <div>
-                    <h3 className="font-medium">ფასთა ფარგლები</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {talent.priceRange}
-                    </p>
-                  </div>
-                </div>
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-[280px_1fr]">
+        <Card className="h-fit overflow-hidden">
+          <CardContent className="space-y-4 p-6">
+            <div className="flex items-start gap-3">
+              <Clock className="mt-0.5 h-5 w-5 text-orange-500" />
+              <div>
+                <h3 className="font-medium">{tr("შესრულების დრო", "Turnaround time")}</h3>
+                <p className="text-sm text-muted-foreground">
+                  {talent.turnaround || tr("24–48 საათი", "24–48 hours")}
+                </p>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Removed Performance Stats section as requested */}
-          {/* Removed Contact button as requested */}
-        </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <DollarSign className="mt-0.5 h-5 w-5 text-orange-500" />
+              <div>
+                <h3 className="font-medium">{tr("ფასის დიაპაზონი", "Price range")}</h3>
+                <p className="text-sm text-muted-foreground">{priceRange}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         <div className="space-y-8">
           <div>
-            <h2 className="text-xl font-semibold mb-4">მსახიობის შესახებ</h2>
-            <p className="text-muted-foreground">{talent.bio}</p>
+            <h2 className="mb-4 text-xl font-semibold">
+              {tr("მსახიობის შესახებ", "About this voice actor")}
+            </h2>
+            <p className="text-muted-foreground">
+              {talent.bio ||
+                tr(
+                  "პროფესიონალი ხმის მსახიობი სხვადასხვა ტიპის პროექტების გამოცდილებით.",
+                  "A professional voice actor experienced in a range of projects."
+                )}
+            </p>
           </div>
 
-          <Tabs
-            defaultValue="demos"
-            value={activeTab}
-            onValueChange={setActiveTab}
-          >
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="demos">ხმოვანი დემო</TabsTrigger>
-              <TabsTrigger value="pricing">ფასების კალკულატორი</TabsTrigger>
+              <TabsTrigger value="demos">{tr("ხმოვანი დემო", "Voice demos")}</TabsTrigger>
+              <TabsTrigger value="pricing">{tr("ფასის კალკულატორი", "Price calculator")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="demos" className="space-y-6 pt-6">
-              {talent.samples.map((sample, index) => (
-                <Card key={sample.id} className="overflow-hidden">
-                  <CardContent className="p-6">
-                    <div className="flex items-start gap-4 mb-4">
-                      <div className="rounded-full bg-orange-500/10 p-3 text-orange-500">
-                        {sample.icon}
+              {talent.samples.length === 0 ? (
+                <p className="rounded-lg border p-6 text-center text-muted-foreground">
+                  {tr("აუდიო ნიმუშები ჯერ არ არის", "No audio samples yet")}
+                </p>
+              ) : (
+                talent.samples.map((sample: any) => (
+                  <Card key={sample.id} className="overflow-hidden">
+                    <CardContent className="p-6">
+                      <div className="mb-4 flex items-center gap-4">
+                        <div className="rounded-full bg-orange-500/10 p-3 text-orange-500">{sample.icon}</div>
+                        <h3 className="text-lg font-semibold">{localizeAudioName(sample.name, language)}</h3>
                       </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-lg">{sample.name}</h3>
-                      </div>
-                    </div>
-                    {/* Use CardAudioPlayer for proper audio functionality */}
-                    <CardAudioPlayer
-                      audioSamples={[
-                        {
-                          id: sample.id,
-                          name: sample.name,
-                          url: sample.url,
-                          icon: sample.icon,
-                        },
-                      ]}
-                      playerId={`profile-${sample.id}`}
-                      isPlaying={currentlyPlayingId === `profile-${sample.id}`}
-                      onTogglePlay={handleTogglePlay}
-                      showTimeDisplay={true}
-                      showDropdown={false}
-                      className="border-2 border-gray-100 dark:border-gray-700"
-                    />
-                  </CardContent>
-                </Card>
-              ))}
+                      <CardAudioPlayer
+                        audioSamples={[sample]}
+                        playerId={`profile-${sample.id}`}
+                        isPlaying={currentlyPlayingId === `profile-${sample.id}`}
+                        onTogglePlay={(playerId) =>
+                          setCurrentlyPlayingId((currentId) =>
+                            currentId === playerId ? null : playerId
+                          )
+                        }
+                        showTimeDisplay
+                        showDropdown={false}
+                        className="border-2 border-gray-100 dark:border-gray-700"
+                      />
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </TabsContent>
 
             <TabsContent value="pricing" className="pt-6">
               <Card>
                 <CardContent className="p-6">
-                  <ActorPricingCalculator
-                    pricing={talent.pricing}
-                    actorId={talent.id}
-                    dbId={talent.dbId}
-                  />
+                  <ActorPricingCalculator pricing={talent.pricing} actorId={talent.id} dbId={talent.dbId} />
                 </CardContent>
               </Card>
             </TabsContent>

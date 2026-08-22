@@ -6,7 +6,8 @@ import { useState, useRef, useEffect } from "react";
 import AudioPlayer from "react-h5-audio-player";
 import "react-h5-audio-player/lib/styles.css";
 import { ChevronDown } from "lucide-react";
-import { getIconElement, getCategoryIconName } from "@/lib/category-icons";
+import { useLanguage } from "@/components/language-provider";
+import { localizeAudioName } from "@/lib/audio-labels";
 
 interface AudioSample {
   id: string;
@@ -35,6 +36,7 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
   showTimeDisplay = true,
   showDropdown = true,
 }) => {
+  const { language, tr } = useLanguage();
   const [selectedSample, setSelectedSample] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isAudioLoaded, setIsAudioLoaded] = useState(false);
@@ -189,6 +191,14 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
     };
   }, [isPlaying, playerId, onTogglePlay]);
 
+  if (!currentSample) {
+    return (
+      <div className={`rounded-xl bg-white p-4 text-center text-sm text-muted-foreground shadow-lg dark:bg-card ${className}`}>
+        {tr("აუდიო ნიმუში ჯერ არ არის", "No audio sample yet")}
+      </div>
+    );
+  }
+
   return (
     <>
       <style jsx global>{`
@@ -205,32 +215,36 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
         {showDropdown && (
           <div className="relative mb-3">
             <button
+              type="button"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="w-full flex items-center justify-between p-3 bg-gray-50 dark:bg-muted rounded-lg border border-gray-200 dark:border-border hover:bg-gray-100 dark:hover:bg-muted/80 transition-colors duration-200"
+              aria-expanded={isDropdownOpen}
+              aria-label={tr("აუდიო ნიმუშის არჩევა", "Choose an audio sample")}
+              className="listen-gradient-button w-full rounded-xl px-4 py-3 shadow-md transition-[filter,box-shadow] duration-200 hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2"
             >
-              <div className="flex items-center gap-2">
-                <span className="text-orange-500">
-                  {currentSample.iconName
-                    ? getIconElement(currentSample.iconName, {
-                        className: "h-5 w-5",
-                      })
-                    : currentSample.icon}
-                </span>
-                <span className="font-medium text-gray-700 dark:text-foreground">
-                  {currentSample.name}
+              <div className="relative z-10 flex items-center justify-between">
+                <div className="flex min-w-0 items-center gap-3 text-left">
+                  <span className="shrink-0 text-sm font-extrabold uppercase tracking-wide text-white drop-shadow-sm">
+                    {tr("მოისმინე", "Listen")}
+                  </span>
+                  <span className="truncate border-l border-white/40 pl-3 text-sm font-medium text-white/95">
+                    {localizeAudioName(currentSample.name, language)}
+                  </span>
+                </div>
+                <span className="ml-2 rounded-full bg-black/20 p-1.5 text-white shadow-sm backdrop-blur-sm">
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform duration-200 ${
+                      isDropdownOpen ? "rotate-180" : "rotate-0"
+                    }`}
+                  />
                 </span>
               </div>
-              <ChevronDown
-                className={`h-4 w-4 text-gray-500 dark:text-muted-foreground transition-transform duration-200 ${
-                  isDropdownOpen ? "rotate-0" : "-rotate-180"
-                }`}
-              />
             </button>
 
             {isDropdownOpen && (
               <div className="absolute bottom-full left-0 right-0 mb-1 bg-white dark:bg-card border border-gray-200 dark:border-border rounded-lg shadow-lg z-[9999] overflow-hidden">
                 {audioSamples.map((sample, index) => (
                   <button
+                    type="button"
                     key={sample.id}
                     onClick={() => handleSampleChange(index)}
                     className={`w-full flex items-center gap-2 p-3 text-left hover:bg-gray-50 dark:hover:bg-muted/50 transition-colors duration-150 ${
@@ -246,13 +260,9 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
                           : "text-gray-400 dark:text-muted-foreground"
                       }
                     >
-                      {sample.iconName
-                        ? getIconElement(sample.iconName, {
-                            className: "h-5 w-5",
-                          })
-                        : sample.icon}
+                      {sample.icon}
                     </span>
-                    <span className="font-medium">{sample.name}</span>
+                    <span className="font-medium">{localizeAudioName(sample.name, language)}</span>
                   </button>
                 ))}
               </div>

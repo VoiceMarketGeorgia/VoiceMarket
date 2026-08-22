@@ -8,26 +8,29 @@ import { ModeToggle } from "@/components/mode-toggle";
 import { Mic2, Search, Menu } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
+import { LanguageSwitcher } from "@/components/language-switcher";
+import { useLanguage } from "@/components/language-provider";
 
 export function Header() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
+  const { tr } = useLanguage();
 
   const routes = [
     {
       href: "/",
-      label: "მთავარი",
+      label: tr("მთავარი", "Home"),
       active: pathname === "/",
     },
     {
       href: "/talents",
-      label: "მსახიობები",
+      label: tr("მსახიობები", "Voice actors"),
       active: pathname === "/talents",
     },
 
     {
       href: "/contact",
-      label: "კონტაქტი",
+      label: tr("კონტაქტი", "Contact"),
       active: pathname === "/contact",
     },
   ];
@@ -38,7 +41,7 @@ export function Header() {
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2">
             <Mic2 className="h-6 w-6 text-orange-500" />
-            <span className="text-xl font-bold">VoiceMarket</span>
+            <span className="hidden text-xl font-bold min-[380px]:inline">VoiceMarket</span>
           </Link>
         </div>
 
@@ -57,19 +60,20 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-1 sm:gap-3">
+          <LanguageSwitcher />
           <ModeToggle />
 
           <Link href="/pricing">
             <Button className="hidden md:inline-flex bg-orange-500 hover:bg-orange-600">
-              შეკვეთა
+              {tr("შეკვეთა", "Order")}
             </Button>
           </Link>
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
             <SheetTrigger asChild className="md:hidden">
               <Button variant="ghost" size="icon">
                 <Menu className="h-5 w-5" />
-                <span className="sr-only">Toggle menu</span>
+                <span className="sr-only">{tr("მენიუს გახსნა", "Open menu")}</span>
               </Button>
             </SheetTrigger>
             <SheetContent side="right">
@@ -87,9 +91,11 @@ export function Header() {
                     {route.label}
                   </Link>
                 ))}
-                <Button className="mt-4 bg-orange-500 hover:bg-orange-600">
-                  Sign In
-                </Button>
+                <Link href="/pricing" onClick={() => setIsOpen(false)}>
+                  <Button className="mt-4 w-full bg-orange-500 hover:bg-orange-600">
+                    {tr("შეკვეთა", "Order")}
+                  </Button>
+                </Link>
               </nav>
             </SheetContent>
           </Sheet>

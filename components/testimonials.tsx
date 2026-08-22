@@ -1,28 +1,32 @@
+"use client";
+
 import Image from "next/image";
 import { Card, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
+import { useLanguage } from "@/components/language-provider";
 
 export function Testimonials() {
+  const { tr } = useLanguage();
   const testimonials = [
     {
       quote:
-        "ჩვენი რეკლამისთვის იდეალური ხმა სულ რამდენიმე საათში ვიპოვეთ. ხარისხი გამორჩეული იყო და შესრულების დროც შთამბეჭდავი.",
-      author: "დავით ბანცაძე",
-      role: "ფოტოგრაფი, პირველი არხი",
+        tr("ჩვენი რეკლამისთვის იდეალური ხმა სულ რამდენიმე საათში ვიპოვეთ. ხარისხი გამორჩეული იყო და შესრულების დროც შთამბეჭდავი.", "We found the perfect voice for our advertisement within hours. The quality and turnaround were outstanding."),
+      author: tr("დავით ბანცაძე", "Davit Bantsadze"),
+      role: tr("ფოტოგრაფი, პირველი არხი", "Photographer, First Channel"),
       avatar: "/davit-bantsadze.jpg",
     },
     {
       quote:
-        "ჩვენი რეკლამისთვის იდეალური ხმა სულ რამდენიმე საათში ვიპოვეთ. ხარისხი გამორჩეული იყო და შესრულების დროც შთამბეჭდავი.",
-      author: "დავით ბანცაძე",
-      role: "ფოტოგრაფი, პირველი არხი",
+        tr("ჩვენი რეკლამისთვის იდეალური ხმა სულ რამდენიმე საათში ვიპოვეთ. ხარისხი გამორჩეული იყო და შესრულების დროც შთამბეჭდავი.", "We found the perfect voice for our advertisement within hours. The quality and turnaround were outstanding."),
+      author: tr("დავით ბანცაძე", "Davit Bantsadze"),
+      role: tr("ფოტოგრაფი, პირველი არხი", "Photographer, First Channel"),
       avatar: "/davit-bantsadze.jpg",
     },
     {
       quote:
-        "ჩვენი რეკლამისთვის იდეალური ხმა სულ რამდენიმე საათში ვიპოვეთ. ხარისხი გამორჩეული იყო და შესრულების დროც შთამბეჭდავი.",
-      author: "დავით ბანცაძე",
-      role: "ფოტოგრაფი, პირველი არხი",
+        tr("ჩვენი რეკლამისთვის იდეალური ხმა სულ რამდენიმე საათში ვიპოვეთ. ხარისხი გამორჩეული იყო და შესრულების დროც შთამბეჭდავი.", "We found the perfect voice for our advertisement within hours. The quality and turnaround were outstanding."),
+      author: tr("დავით ბანცაძე", "Davit Bantsadze"),
+      role: tr("ფოტოგრაფი, პირველი არხი", "Photographer, First Channel"),
       avatar: "/davit-bantsadze.jpg",
     },
   ];
@@ -31,10 +35,10 @@ export function Testimonials() {
     <section className="container">
       <div className="text-center mb-10">
         <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-ჩვენი კლიენტები
+          {tr("ჩვენი კლიენტები", "Our clients")}
         </h2>
         <p className="mt-4 text-muted-foreground px-4">
-გაიგე ბიზნესებისგან, რომლებმაც იპოვეს მათი იდეალური ხმა
+          {tr("გაიგე ბიზნესებისგან, რომლებმაც იპოვეს მათი იდეალური ხმა", "Hear from businesses that found their perfect voice")}
         </p>
       </div>
 

@@ -1,28 +1,31 @@
+"use client";
+
 import { Search, Headphones, CreditCard, CheckCircle } from "lucide-react";
+import { useLanguage } from "@/components/language-provider";
 
 export function HowItWorks() {
+  const { tr } = useLanguage();
   const steps = [
     {
       icon: <Search className="h-10 w-10" />,
-      title: "ხმის არჩევა",
-      description: "აირჩიეთ სასურველი მსახიობი თქვენი პროექტისთვის",
+      title: tr("ხმის არჩევა", "Choose a voice"),
+      description: tr("აირჩიეთ სასურველი მსახიობი თქვენი პროექტისთვის", "Choose the right voice actor for your project"),
     },
     {
       icon: <Headphones className="h-10 w-10" />,
-      title: "შეკვეთა",
-      description: "შეკვეთის შემდეგ ხდება ხმის ავტორის ოპერატიული მობილიზება",
+      title: tr("შეკვეთა", "Place an order"),
+      description: tr("შეკვეთის შემდეგ ხდება ხმის ავტორის ოპერატიული მობილიზება", "Once ordered, the voice actor is scheduled promptly"),
     },
 
     {
       icon: <CheckCircle className="h-10 w-10" />,
-      title: "ხმის ჩაწერა",
-      description:
-        "რამდენიმე ვერსიის ჩაწერა, სადაც აირჩევთ თქვენთვის სასურველს",
+      title: tr("ხმის ჩაწერა", "Record"),
+      description: tr("რამდენიმე ვერსიის ჩაწერა, სადაც აირჩევთ თქვენთვის სასურველს", "We record multiple takes so you can choose your favorite"),
     },
     {
       icon: <CheckCircle className="h-10 w-10" />,
-      title: "ჩაბარება",
-      description: "საბოლოო ვერსიის დასუფთავება, დამუშავება და ჩაბარება",
+      title: tr("ჩაბარება", "Delivery"),
+      description: tr("საბოლოო ვერსიის დასუფთავება, დამუშავება და ჩაბარება", "We clean, process, and deliver the final version"),
     },
   ];
 
@@ -30,11 +33,13 @@ export function HowItWorks() {
     <section className="container">
       <div className="text-center mb-10">
         <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-როგორ მუშაობს
+          {tr("როგორ მუშაობს", "How it works")}
         </h2>
         <p className="mt-4 text-muted-foreground p-3">
-სურვილის შემთხვევაში შეგიძლიათ დაესწროთ ჩაწერას და ცვლილება შეიტანოთ
-          ხასიათში, ინტონაციასა თუ დეტალებში
+          {tr(
+            "სურვილის შემთხვევაში შეგიძლიათ დაესწროთ ჩაწერას და ცვლილება შეიტანოთ ხასიათში, ინტონაციასა თუ დეტალებში",
+            "You can attend the recording session and guide the character, intonation, and details."
+          )}
         </p>
       </div>
 

@@ -1,156 +1,102 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { VoiceCard, AudioSample, Talent } from "./voice-card";
-import { Mic2, Headphones, BookOpen } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Mic2 } from "lucide-react";
+import { VoiceCard, type AudioSample, type Talent } from "./voice-card";
 import { getAllVoiceActors, convertToTalent } from "@/lib/supabase-queries";
-import { getDynamicAudioCategories } from "@/lib/dynamic-attributes";
-import { getIconElement } from "@/lib/category-icons";
+import { useLanguage } from "@/components/language-provider";
 
 export function FeaturedTalents() {
   const router = useRouter();
-  const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(
-    null
-  );
+  const { tr } = useLanguage();
+  const [currentlyPlayingId, setCurrentlyPlayingId] = useState<string | null>(null);
   const [talents, setTalents] = useState<Talent[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [categoryIconMap, setCategoryIconMap] = useState<Map<string, { icon_name: string; color_class: string }>>(new Map());
+  const [error, setError] = useState(false);
 
-  // Load category icons
-  useEffect(() => {
-    const loadCategoryIcons = async () => {
-      try {
-        const categories = await getDynamicAudioCategories();
-        const map = new Map<string, { icon_name: string; color_class: string }>();
-        categories.forEach(cat => {
-          if (cat.icon_name && cat.color_class) {
-            map.set(cat.value, {
-              icon_name: cat.icon_name,
-              color_class: cat.color_class
-            });
-          }
-        });
-        setCategoryIconMap(map);
-      } catch (error) {
-        console.error('Error loading category icons:', error);
-      }
-    };
-    loadCategoryIcons();
-  }, []);
-
-  // Load talents from Supabase
   useEffect(() => {
     async function loadTalents() {
       try {
         setLoading(true);
-        const voiceActors = await getAllVoiceActors();
-        
-        // Take only the first 4 actors for featured section
-        const featuredActors = voiceActors.slice(0, 4);
-        
-        const talentsData: Talent[] = featuredActors.map(actor => {
-          const talent = convertToTalent(actor, categoryIconMap);
-          
-          // Add proper icons to samples using dynamic iconName
-          const samplesWithIcons = talent.samples.map((sample: any) => ({
-            ...sample,
-            icon: sample.iconName ? getIconElement(sample.iconName, { className: "h-4 w-4" }) : <Mic2 className="h-4 w-4" />
-          }));
-
+        setError(false);
+        const actors = await getAllVoiceActors();
+        const converted = actors.slice(0, 4).map((actor) => {
+          const talent = convertToTalent(actor);
           return {
-            ...talent,
-            samples: samplesWithIcons,
+            id: talent.id,
+            name: talent.name,
+            image: talent.image,
+            gradient: talent.gradient,
+            pricing: talent.pricing,
+            samples: talent.samples.map((sample: AudioSample) => ({
+              ...sample,
+              icon: <Mic2 className="h-4 w-4" />,
+            })),
           };
         });
-
-        setTalents(talentsData);
-        setError(null);
-      } catch (err) {
-        console.error('Error loading featured talents:', err);
-        setError('Failed to load voice actors');
+        setTalents(converted);
+      } catch (loadError) {
+        console.error("Error loading featured talents:", loadError);
+        setError(true);
       } finally {
         setLoading(false);
       }
     }
 
     loadTalents();
-  }, [categoryIconMap]);
-
-  // Helper function to get icon for sample type
-  const getSampleIcon = (sampleName: string) => {
-    switch (sampleName) {
-      case "სარეკლამო რგოლი":
-        return <Mic2 className="h-4 w-4" />;
-      case "ავტომოპასუხე":
-        return <Headphones className="h-4 w-4" />;
-      case "მხატვრული":
-        return <BookOpen className="h-4 w-4" />;
-      case "დოკუმენტური":
-        return <Mic2 className="h-4 w-4" />;
-      default:
-        return <Mic2 className="h-4 w-4" />;
-    }
-  };
-
-  const handleTogglePlay = (playerId: string) => {
-    setCurrentlyPlayingId(currentlyPlayingId === playerId ? null : playerId);
-  };
-
-  const handleCardClick = (talentId: string) => {
-    router.push(`/talents/${talentId}`);
-  };
+  }, []);
 
   return (
-    <div className=" bg-white dark:bg-background p-4 py-12">
-      <div className="container mx-auto">
-        <h1 className="text-3xl font-bold text-center mb-8 text-gray-800 dark:text-foreground">
-ჩვენი მსახიობები
-        </h1>
+    <section className="bg-white px-4 py-12 dark:bg-background">
+      <div className="container">
+        <h2 className="mb-8 text-center text-3xl font-bold text-gray-800 dark:text-foreground">
+          {tr("ჩვენი მსახიობები", "Our voice actors")}
+        </h2>
 
-        {/* Loading State */}
         {loading && (
-          <div className="text-center py-12">
-            <p className="text-gray-500 dark:text-muted-foreground text-lg">
-              იტვირთება...
-            </p>
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4" aria-busy="true">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div key={index} className="aspect-[3/4] animate-pulse rounded-xl bg-muted" />
+            ))}
           </div>
         )}
 
-        {/* Error State */}
         {error && (
-          <div className="text-center py-12">
-            <p className="text-red-500 text-lg">{error}</p>
-          </div>
+          <p className="py-12 text-center text-red-500">
+            {tr("მსახიობების ჩატვირთვა ვერ მოხერხდა.", "We could not load the voice actors.")}
+          </p>
         )}
 
-        {/* Talents Grid */}
         {!loading && !error && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
               {talents.map((talent) => (
                 <VoiceCard
                   key={talent.id}
-                  talent={talent as Talent}
+                  talent={talent}
                   currentlyPlayingId={currentlyPlayingId}
-                  onTogglePlay={handleTogglePlay}
-                  onClick={() => handleCardClick(talent.id)}
+                  onTogglePlay={(playerId) =>
+                    setCurrentlyPlayingId((currentId) =>
+                      currentId === playerId ? null : playerId
+                    )
+                  }
+                  onClick={() => router.push(`/talents/${talent.id}`)}
                 />
               ))}
             </div>
-
             <div className="mt-10 text-center">
-              <Link href="/talents">
-                <button className="rounded-full px-8 py-3 border border-gray-300 dark:border-border bg-white dark:bg-card text-gray-700 dark:text-foreground hover:bg-orange-500 hover:text-white hover:border-orange-500 transition-all duration-300 shadow-md hover:shadow-lg">
-იხილეთ ყველა მსახიობი
-                </button>
+              <Link
+                href="/talents"
+                className="inline-flex rounded-full border border-gray-300 bg-white px-8 py-3 text-gray-700 shadow-md transition-all duration-300 hover:border-orange-500 hover:bg-orange-500 hover:text-white hover:shadow-lg dark:border-border dark:bg-card dark:text-foreground"
+              >
+                {tr("იხილეთ ყველა მსახიობი", "View all voice actors")}
               </Link>
             </div>
           </>
         )}
       </div>
-    </div>
+    </section>
   );
 }

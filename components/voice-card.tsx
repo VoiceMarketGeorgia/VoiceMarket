@@ -1,6 +1,4 @@
-import { Star, Headphones, Mic2, BookOpen, GraduationCap } from "lucide-react";
 import CardAudioPlayer from "./card-audio-player";
-import { getGeorgianLabel } from "@/lib/constants";
 
 export interface AudioSample {
   id: string;
@@ -27,8 +25,6 @@ export interface Talent {
   image: string;
   samples: AudioSample[];
   gradient: string;
-  languages: string[];
-  tags: string[];
   pricing: ActorPricing;
 }
 
@@ -67,20 +63,6 @@ export function VoiceCard({
         <div className="absolute bottom-0 left-0 z-20 p-5">
           <div className="text-4xl font-bold text-white mb-2 drop-shadow-lg">
             {talent.id.padStart(2, "0")}
-          </div>
-          {/* <h3 className="text-white font-semibold text-lg mb-2">
-            {talent.name}
-          </h3> */}
-
-          <div className="flex flex-wrap gap-1.5">
-            {talent.tags.map((tag) => (
-              <span
-                key={tag}
-                className="bg-white/25 backdrop-blur-md text-white text-xs px-2.5 py-1 rounded-full border border-white/20 shadow-sm font-medium"
-              >
-                {getGeorgianLabel(tag)}
-              </span>
-            ))}
           </div>
         </div>
       </div>

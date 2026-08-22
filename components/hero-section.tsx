@@ -1,16 +1,19 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import Link from "next/link";
+import { useLanguage } from "@/components/language-provider";
 
 export function HeroSection() {
+  const { tr } = useLanguage();
   return (
     <section className="relative min-h-[460px] flex items-center justify-center overflow-hidden">
       {/* Background Image with Overlay */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage:
-            "url(https://voicemarket.ge/wp-content/uploads/2023/10/service.jpg)",
+          backgroundImage: "url(/service.jpg)",
         }}
       />
 
@@ -32,7 +35,7 @@ export function HeroSection() {
 
           {/* Subtitle */}
           <p className="mt-6 text-lg sm:text-xl md:text-2xl text-gray-200 drop-shadow-md font-medium">
-            🎙️ ყველა ხმა, ერთ სივრცეში!
+            🎙️ {tr("ყველა ხმა, ერთ სივრცეში!", "Every voice, all in one place!")}
           </p>
 
           {/* Call to Action Buttons */}
@@ -45,7 +48,7 @@ export function HeroSection() {
               >
                 <span>
                   <Search className="mr-2 h-5 w-5" />
-                  ხმების ძიება
+                  {tr("ხმების ძიება", "Browse voices")}
                 </span>
               </Button>
             </Link>
@@ -56,7 +59,7 @@ export function HeroSection() {
                 size="lg"
                 className="border-2 border-white/80 text-white hover:bg-white hover:text-gray-900 font-semibold px-8 py-3 text-lg backdrop-blur-sm bg-white/10 transition-all duration-300"
               >
-                დაკავშირება
+                {tr("დაკავშირება", "Contact us")}
               </Button>
             </Link>
           </div>

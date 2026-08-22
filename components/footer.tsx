@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   Mic2,
@@ -8,8 +10,10 @@ import {
   Mail,
   Phone,
 } from "lucide-react";
+import { useLanguage } from "@/components/language-provider";
 
 export function Footer() {
+  const { tr } = useLanguage();
   return (
     <footer className="border-t bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container py-10">
@@ -20,13 +24,15 @@ export function Footer() {
               <span className="text-xl font-bold">VoiceMarket</span>
             </Link>
             <p className="text-sm text-muted-foreground">
-იპოვე იდეალური ხმა შენი პროექტისთვის ჩვენი პროფესიონალი
-              გახმოვანების მსახიობების შერჩეული კოლექციიდან
+              {tr(
+                "იპოვე იდეალური ხმა შენი პროექტისთვის ჩვენი პროფესიონალი გახმოვანების მსახიობების შერჩეული კოლექციიდან",
+                "Find the perfect voice for your project from our curated collection of professional voice actors."
+              )}
             </p>
           </div>
 
           <div>
-            <h3 className="mb-4 text-sm font-semibold">სოციალური მედია</h3>
+            <h3 className="mb-4 text-sm font-semibold">{tr("სოციალური მედია", "Social media")}</h3>
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
@@ -59,11 +65,11 @@ export function Footer() {
           </div>
 
           <div>
-            <h3 className="mb-4 text-sm font-semibold">კონტაქტი</h3>
+            <h3 className="mb-4 text-sm font-semibold">{tr("კონტაქტი", "Contact")}</h3>
             <ul className="space-y-2 text-sm">
               <li className="flex items-start gap-2 text-muted-foreground">
                 <MapPin className="h-4 w-4 mt-0.5" />
-                <span>ვაჟა ფშაველას IIIკვ , კორპუსი 23</span>
+                <span>{tr("ვაჟა-ფშაველას III კვარტალი, კორპუსი 23", "23 Vazha-Pshavela III Quarter")}</span>
               </li>
               <li className="flex items-center gap-2 text-muted-foreground">
                 <Mail className="h-4 w-4" />
@@ -77,7 +83,7 @@ export function Footer() {
           </div>
         </div>
         <div className="mt-8 border-t pt-8 text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} VoiceMarket. ყველა უფლება დაცულია.</p>
+          <p>© {new Date().getFullYear()} VoiceMarket. {tr("ყველა უფლება დაცულია.", "All rights reserved.")}</p>
         </div>
       </div>
     </footer>

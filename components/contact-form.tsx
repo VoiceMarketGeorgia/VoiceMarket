@@ -17,8 +17,10 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle2, Loader2 } from "lucide-react";
 import { submitContactForm } from "@/lib/supabase-queries";
+import { useLanguage } from "@/components/language-provider";
 
 export function ContactForm() {
+  const { tr } = useLanguage();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [subject, setSubject] = useState("");
@@ -48,10 +50,10 @@ export function ContactForm() {
         setSubject("");
         setMessage("");
       } else {
-        setError(result.error || "შეტყობინების გაგზავნა ვერ მოხერხდა");
+        setError(result.error || tr("შეტყობინების გაგზავნა ვერ მოხერხდა", "The message could not be sent"));
       }
     } catch (err) {
-      setError("შეტყობინების გაგზავნა ვერ მოხერხდა");
+      setError(tr("შეტყობინების გაგზავნა ვერ მოხერხდა", "The message could not be sent"));
     } finally {
       setIsSubmitting(false);
     }
@@ -66,13 +68,13 @@ export function ContactForm() {
               <CheckCircle2 className="h-10 w-10 text-green-600 dark:text-green-400" />
             </div>
             <h3 className="mt-4 text-xl font-semibold">
-              შეტყობინება წარმატებით გაიგზავნა
+              {tr("შეტყობინება წარმატებით გაიგზავნა", "Message sent successfully")}
             </h3>
             <p className="mt-2 text-muted-foreground">
-              მადლობა, რომ მიმართეთ! ჩვენ მალე უპასუხებთ.
+              {tr("მადლობა, რომ მოგვწერეთ! მალე გიპასუხებთ.", "Thanks for reaching out! We will reply soon.")}
             </p>
             <Button className="mt-6" onClick={() => setIsSubmitted(false)}>
-              სხვა შეტყობინების გაგზავნა
+              {tr("სხვა შეტყობინების გაგზავნა", "Send another message")}
             </Button>
           </div>
         ) : (
@@ -85,10 +87,10 @@ export function ContactForm() {
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="name">თქვენი სახელი</Label>
+              <Label htmlFor="name">{tr("თქვენი სახელი", "Your name")}</Label>
               <Input
                 id="name"
-                placeholder="გიორგი გიორგაძე"
+                placeholder={tr("გიორგი გიორგაძე", "Your name")}
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -96,7 +98,7 @@ export function ContactForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email">ელ-ფოსტის მისამართი</Label>
+              <Label htmlFor="email">{tr("ელ-ფოსტის მისამართი", "Email address")}</Label>
               <Input
                 id="email"
                 type="email"
@@ -108,30 +110,30 @@ export function ContactForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="subject">თემა</Label>
+              <Label htmlFor="subject">{tr("თემა", "Subject")}</Label>
               <Select value={subject} onValueChange={setSubject} required>
                 <SelectTrigger id="subject">
-                  <SelectValue placeholder="აირჩიეთ თემა" />
+                  <SelectValue placeholder={tr("აირჩიეთ თემა", "Choose a subject")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="general">ზოგადი კითხვა</SelectItem>
+                  <SelectItem value="general">{tr("ზოგადი კითხვა", "General question")}</SelectItem>
                   <SelectItem value="support">
-                    მომხმარებელთა მხარდაჭერა
+                    {tr("მომხმარებელთა მხარდაჭერა", "Customer support")}
                   </SelectItem>
-                  <SelectItem value="billing">ფასდაკლების კითხვა</SelectItem>
+                  <SelectItem value="billing">{tr("ფასებთან დაკავშირებული კითხვა", "Pricing question")}</SelectItem>
                   <SelectItem value="partnership">
-                    პარტნიორობის შესაძლებლობა
+                    {tr("პარტნიორობის შესაძლებლობა", "Partnership opportunity")}
                   </SelectItem>
-                  <SelectItem value="talent">მსახიობობა მსურს</SelectItem>
+                  <SelectItem value="talent">{tr("მსახიობობა მსურს", "I want to become a voice actor")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="message">თქვენი შეტყობინება</Label>
+              <Label htmlFor="message">{tr("თქვენი შეტყობინება", "Your message")}</Label>
               <Textarea
                 id="message"
-                placeholder="როგორ შეგვიძლია დაგეხმაროთ?"
+                placeholder={tr("როგორ შეგვიძლია დაგეხმაროთ?", "How can we help?")}
                 rows={6}
                 required
                 value={message}
@@ -147,10 +149,10 @@ export function ContactForm() {
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  იგზავნება...
+                  {tr("იგზავნება...", "Sending...")}
                 </>
               ) : (
-                "შეტყობინების გაგზავნა"
+                tr("შეტყობინების გაგზავნა", "Send message")
               )}
             </Button>
           </form>
