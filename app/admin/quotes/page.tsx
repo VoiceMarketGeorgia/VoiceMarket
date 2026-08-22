@@ -69,8 +69,8 @@ export default function AdminQuotesPage() {
     (quote) => filter === "all" || quote.status === filter
   );
 
-  const getActorById = (actorId: string) => {
-    return actors.find((actor) => actor.actor_id === actorId);
+  const getActorById = (actorId: number) => {
+    return actors.find((actor) => actor.id === actorId);
   };
 
   const getStatusColor = (status: string) => {
@@ -215,7 +215,7 @@ export default function AdminQuotesPage() {
                           return actor?.photo_url ? (
                             <img
                               src={actor.photo_url}
-                              alt={actor.name}
+                              alt={actor.name || `Actor ${actor.actor_id}`}
                               className="w-full h-full object-cover"
                             />
                           ) : (

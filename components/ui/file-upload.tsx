@@ -38,7 +38,7 @@ export function FileUpload({
   const [uploadError, setUploadError] = useState<string | null>(null)
 
   const isImage = bucket === 'actor-photos'
-  const defaultAccept = isImage 
+  const defaultAccept: Record<string, string[]> = isImage
     ? { 'image/*': ['.jpeg', '.jpg', '.png', '.webp'] }
     : { 'audio/*': ['.mp3', '.wav', '.ogg', '.m4a'] }
 
