@@ -83,7 +83,7 @@
       #e9540d 100%
     );
     transform: translate3d(0, 0, 0);
-    animation: listen-gradient-ribbon 8s linear infinite;
+    animation: listen-gradient-ribbon 6s linear infinite;
     pointer-events: none;
     will-change: transform;
   }
