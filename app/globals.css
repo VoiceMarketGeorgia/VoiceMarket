@@ -54,7 +54,7 @@
     position: relative;
     isolation: isolate;
     overflow: hidden;
-    background: linear-gradient(135deg, #e9540d 0%, #f97316 52%, #ff7a18 100%);
+    background: #f97316;
     box-shadow:
       0 8px 24px rgb(249 115 22 / 30%),
       inset 0 1px 0 rgb(255 255 255 / 28%);
@@ -63,15 +63,27 @@
   .listen-gradient-button::before {
     content: "";
     position: absolute;
-    inset: -45%;
+    inset: 0 auto 0 0;
+    width: 300%;
     z-index: 0;
-    background:
-      radial-gradient(circle at 18% 35%, rgb(255 190 76 / 78%), transparent 27%),
-      radial-gradient(circle at 76% 28%, rgb(255 105 20 / 90%), transparent 32%),
-      radial-gradient(circle at 52% 82%, rgb(255 151 41 / 72%), transparent 34%);
-    filter: blur(12px);
-    transform: translate3d(-4%, 1%, 0) scale(1.04);
-    animation: listen-gradient-drift 16s ease-in-out infinite alternate;
+    background: linear-gradient(
+      100deg,
+      #e9540d 0%,
+      #ff6b14 8%,
+      #ff9a2e 17%,
+      #f97316 25%,
+      #e9540d 33.333%,
+      #ff6b14 41.333%,
+      #ff9a2e 50.333%,
+      #f97316 58.333%,
+      #e9540d 66.666%,
+      #ff6b14 74.666%,
+      #ff9a2e 83.666%,
+      #f97316 91.666%,
+      #e9540d 100%
+    );
+    transform: translate3d(0, 0, 0);
+    animation: listen-gradient-ribbon 8s linear infinite;
     pointer-events: none;
     will-change: transform;
   }
@@ -86,12 +98,12 @@
     pointer-events: none;
   }
 
-  @keyframes listen-gradient-drift {
+  @keyframes listen-gradient-ribbon {
     from {
-      transform: translate3d(-4%, 1%, 0) scale(1.04);
+      transform: translate3d(0, 0, 0);
     }
     to {
-      transform: translate3d(5%, -2%, 0) scale(1.1);
+      transform: translate3d(-33.333%, 0, 0);
     }
   }
 
