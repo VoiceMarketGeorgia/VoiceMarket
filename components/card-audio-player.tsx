@@ -3,8 +3,6 @@
 import type React from "react";
 
 import { useState, useRef, useEffect } from "react";
-import AudioPlayer from "react-h5-audio-player";
-import "react-h5-audio-player/lib/styles.css";
 import { ChevronDown } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { localizeAudioName } from "@/lib/audio-labels";
@@ -40,13 +38,14 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
   const { language, tr } = useLanguage();
   const [selectedSample, setSelectedSample] = useState(0);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isAudioLoaded, setIsAudioLoaded] = useState(false);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
   const [audioSrc, setAudioSrc] = useState<string>("");
   const [progress, setProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const audioPlayerRef = useRef<AudioPlayer>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const playRequestedRef = useRef(false);
+  const ignoreNextPauseRef = useRef(false);
 
   const currentSample = audioSamples[selectedSample];
 
@@ -58,87 +57,120 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
     return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
-  // Lazy load audio function
-  const loadAudio = async () => {
-    if (isAudioLoaded || isLoadingAudio || audioSrc) return;
-
+  const loadAudioAndPlay = (url: string) => {
+    playRequestedRef.current = true;
     setIsLoadingAudio(true);
+    setAudioSrc(url);
 
-    // Simulate loading and then set the source
-    setTimeout(() => {
-      setAudioSrc(currentSample.url);
-      setIsLoadingAudio(false);
-    }, 100);
+    // Start from the click event itself so browser autoplay policies recognize
+    // this as an explicit user action. The can-play handler remains a fallback.
+    const audio = audioRef.current;
+    if (audio) {
+      audio.src = url;
+      audio.load();
+      audio.play().catch((playError) => {
+        playRequestedRef.current = false;
+        setIsLoadingAudio(false);
+        console.error("Unable to start the selected audio sample:", playError);
+      });
+    }
   };
 
   // Toggle play/pause with lazy loading
-  const togglePlayPause = async () => {
+  const togglePlayPause = () => {
     if (!audioSrc && !isLoadingAudio) {
-      // Load audio first if not loaded
-      await loadAudio();
-      setTimeout(() => {
-        if (audioPlayerRef.current?.audio.current) {
-          audioPlayerRef.current.audio.current.play();
-        }
-      }, 200);
-    } else if (audioPlayerRef.current?.audio.current) {
+      loadAudioAndPlay(currentSample.url);
+    } else if (audioRef.current) {
       // Toggle play/pause
-      if (audioPlayerRef.current.audio.current.paused) {
-        audioPlayerRef.current.audio.current.play();
+      if (audioRef.current.paused) {
+        playRequestedRef.current = true;
+        audioRef.current.play().catch((playError) => {
+          playRequestedRef.current = false;
+          console.error(playError);
+        });
       } else {
-        audioPlayerRef.current.audio.current.pause();
+        audioRef.current.pause();
       }
     }
   };
 
   // Handle sample change
   const handleSampleChange = (index: number) => {
-    // Stop current audio
-    if (audioPlayerRef.current?.audio.current) {
-      audioPlayerRef.current.audio.current.pause();
-      audioPlayerRef.current.audio.current.currentTime = 0;
+    const nextSample = audioSamples[index];
+    if (!nextSample) return;
+
+    setIsDropdownOpen(false);
+
+    const audio = audioRef.current;
+
+    // Selecting the current row should also act as an immediate replay action.
+    if (index === selectedSample && audio && audioSrc === nextSample.url) {
+      audio.currentTime = 0;
+      setProgress(0);
+      setCurrentTime(0);
+      playRequestedRef.current = true;
+      audio.play().catch((playError) => {
+        playRequestedRef.current = false;
+        console.error(playError);
+      });
+      return;
     }
 
-    if (isPlaying) {
-      onTogglePlay(playerId);
+    // Stop current audio
+    if (audio) {
+      ignoreNextPauseRef.current = !audio.paused;
+      audio.pause();
+      audio.currentTime = 0;
     }
 
     setSelectedSample(index);
-    setIsDropdownOpen(false);
 
-    // Reset audio loaded state when changing samples
-    setIsAudioLoaded(false);
-    setIsLoadingAudio(false);
-    setAudioSrc("");
+    // Load the newly selected sample and start it as soon as it is ready.
     setProgress(0);
     setCurrentTime(0);
     setDuration(0);
+    loadAudioAndPlay(nextSample.url);
   };
 
   // Audio event handlers
   const handleCanPlay = () => {
-    setIsAudioLoaded(true);
     setIsLoadingAudio(false);
-    if (audioPlayerRef.current?.audio.current) {
-      setDuration(audioPlayerRef.current.audio.current.duration);
+    const audio = audioRef.current;
+
+    if (audio) {
+      setDuration(audio.duration);
+
+      if (playRequestedRef.current && audio.paused) {
+        audio.play().catch((playError) => {
+          playRequestedRef.current = false;
+          console.error("Unable to start the selected audio sample:", playError);
+        });
+      }
     }
   };
 
   const handlePause = () => {
+    if (ignoreNextPauseRef.current) {
+      ignoreNextPauseRef.current = false;
+      return;
+    }
+
+    playRequestedRef.current = false;
     if (isPlaying) {
       onTogglePlay(playerId);
     }
   };
 
   const handlePlay = () => {
+    playRequestedRef.current = false;
     if (!isPlaying) {
       onTogglePlay(playerId);
     }
   };
 
   const handleListen = () => {
-    if (audioPlayerRef.current?.audio.current) {
-      const audio = audioPlayerRef.current.audio.current;
+    if (audioRef.current) {
+      const audio = audioRef.current;
       const progressPercent = (audio.currentTime / audio.duration) * 100 || 0;
       setProgress(progressPercent);
       setCurrentTime(audio.currentTime);
@@ -150,7 +182,7 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
 
   // Handle progress bar click to seek
   const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const audio = audioPlayerRef.current?.audio.current;
+    const audio = audioRef.current;
     if (!audio || !audioSrc) return;
 
     const progressBar = e.currentTarget;
@@ -168,12 +200,12 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
 
   // Sync isPlaying state with audio
   useEffect(() => {
-    const audio = audioPlayerRef.current?.audio.current;
+    const audio = audioRef.current;
     if (!audio || !audioSrc) return;
 
     if (isPlaying) {
       audio.play().catch(console.error);
-    } else {
+    } else if (!playRequestedRef.current) {
       audio.pause();
     }
   }, [isPlaying, audioSrc]);
@@ -201,14 +233,6 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
   }
 
   return (
-    <>
-      <style jsx global>{`
-        /* Hide the H5 player completely - we'll use custom controls */
-        .custom-audio-player {
-          display: none !important;
-        }
-      `}</style>
-
       <div
         className={`bg-white dark:bg-card rounded-xl shadow-lg pl-2.5 pr-4 pt-4 pb-4 ${className}`}
       >
@@ -220,7 +244,7 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               aria-expanded={isDropdownOpen}
               aria-label={tr("აუდიო ნიმუშის არჩევა", "Choose an audio sample")}
-              className="listen-gradient-button w-full rounded-xl px-4 py-3 shadow-md transition-[filter,box-shadow] duration-200 hover:brightness-105 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2"
+              className="listen-gradient-button w-full rounded-xl px-4 py-3 shadow-md transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2"
             >
               <div className="relative z-10 flex items-center justify-between">
                 <div className="flex min-w-0 items-center gap-3 text-left">
@@ -330,20 +354,18 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
           </div>
         </div>
 
-        {/* Hidden H5 Audio Player for functionality */}
-        <AudioPlayer
-          ref={audioPlayerRef}
-          src={audioSrc}
-          autoPlay={false}
-          loop={true}
+        <audio
+          ref={audioRef}
+          src={audioSrc || undefined}
+          preload="none"
+          loop
           onCanPlay={handleCanPlay}
           onPlay={handlePlay}
           onPause={handlePause}
-          onListen={handleListen}
-          className="custom-audio-player"
+          onTimeUpdate={handleListen}
+          className="hidden"
         />
       </div>
-    </>
   );
 };
 

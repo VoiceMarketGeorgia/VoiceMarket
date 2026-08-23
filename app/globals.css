@@ -53,12 +53,23 @@
   .listen-gradient-button {
     position: relative;
     overflow: hidden;
-    background:
-      radial-gradient(circle at 18% 15%, rgb(255 255 255 / 28%), transparent 32%),
-      linear-gradient(118deg, #ea580c 0%, #ff5a12 22%, #f97316 48%, #fb9b24 72%, #e94b0c 100%);
+    background: linear-gradient(
+      110deg,
+      #e9540d 0%,
+      #ff6b14 12.5%,
+      #ff9628 25%,
+      #f97316 37.5%,
+      #e9540d 50%,
+      #ff6b14 62.5%,
+      #ff9628 75%,
+      #f97316 87.5%,
+      #e9540d 100%
+    );
+    background-size: 200% 100%;
     box-shadow:
-      0 8px 22px rgb(249 115 22 / 24%),
-      inset 0 1px 0 rgb(255 255 255 / 25%);
+      0 8px 24px rgb(249 115 22 / 30%),
+      inset 0 1px 0 rgb(255 255 255 / 28%);
+    animation: listen-gradient-flow 7s linear infinite;
   }
 
   .listen-gradient-button::after {
@@ -68,6 +79,21 @@
     border-radius: calc(0.75rem - 1px);
     border: 1px solid rgb(255 255 255 / 18%);
     pointer-events: none;
+  }
+
+  @keyframes listen-gradient-flow {
+    from {
+      background-position: 0% 50%;
+    }
+    to {
+      background-position: 200% 50%;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .listen-gradient-button {
+      animation: none;
+    }
   }
 }
 
