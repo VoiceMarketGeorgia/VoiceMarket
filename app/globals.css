@@ -54,7 +54,7 @@
     position: relative;
     isolation: isolate;
     overflow: hidden;
-    background: #f97316;
+    background: linear-gradient(135deg, #e9540d 0%, #f97316 52%, #ff7a18 100%);
     box-shadow:
       0 8px 24px rgb(249 115 22 / 30%),
       inset 0 1px 0 rgb(255 255 255 / 28%);
@@ -63,17 +63,15 @@
   .listen-gradient-button::before {
     content: "";
     position: absolute;
-    inset: -160%;
+    inset: -45%;
     z-index: 0;
-    background: conic-gradient(
-      from 0deg,
-      #e9540d,
-      #ff6b14,
-      #ff9628,
-      #f97316,
-      #e9540d
-    );
-    animation: listen-gradient-rotate 14s linear infinite;
+    background:
+      radial-gradient(circle at 18% 35%, rgb(255 190 76 / 78%), transparent 27%),
+      radial-gradient(circle at 76% 28%, rgb(255 105 20 / 90%), transparent 32%),
+      radial-gradient(circle at 52% 82%, rgb(255 151 41 / 72%), transparent 34%);
+    filter: blur(12px);
+    transform: translate3d(-4%, 1%, 0) scale(1.04);
+    animation: listen-gradient-drift 16s ease-in-out infinite alternate;
     pointer-events: none;
     will-change: transform;
   }
@@ -88,12 +86,12 @@
     pointer-events: none;
   }
 
-  @keyframes listen-gradient-rotate {
+  @keyframes listen-gradient-drift {
     from {
-      transform: rotate(0deg);
+      transform: translate3d(-4%, 1%, 0) scale(1.04);
     }
     to {
-      transform: rotate(360deg);
+      transform: translate3d(5%, -2%, 0) scale(1.1);
     }
   }
 
