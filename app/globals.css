@@ -66,22 +66,29 @@
     inset: 0 auto 0 0;
     width: 300%;
     z-index: 0;
-    background: linear-gradient(
-      100deg,
-      #e9540d 0%,
-      #ff6b14 8%,
-      #ff9a2e 17%,
-      #f97316 25%,
-      #e9540d 33.333%,
-      #ff6b14 41.333%,
-      #ff9a2e 50.333%,
-      #f97316 58.333%,
-      #e9540d 66.666%,
-      #ff6b14 74.666%,
-      #ff9a2e 83.666%,
-      #f97316 91.666%,
-      #e9540d 100%
-    );
+    background:
+      radial-gradient(ellipse 11% 105% at 9% 12%, rgb(255 190 76 / 72%), transparent 68%),
+      radial-gradient(ellipse 12% 115% at 25% 88%, rgb(211 62 9 / 68%), transparent 70%),
+      radial-gradient(ellipse 11% 105% at 42.333% 12%, rgb(255 190 76 / 72%), transparent 68%),
+      radial-gradient(ellipse 12% 115% at 58.333% 88%, rgb(211 62 9 / 68%), transparent 70%),
+      radial-gradient(ellipse 11% 105% at 75.666% 12%, rgb(255 190 76 / 72%), transparent 68%),
+      radial-gradient(ellipse 12% 115% at 91.666% 88%, rgb(211 62 9 / 68%), transparent 70%),
+      linear-gradient(
+        100deg,
+        #e9540d 0%,
+        #ff6b14 8%,
+        #ff9a2e 17%,
+        #f97316 25%,
+        #e9540d 33.333%,
+        #ff6b14 41.333%,
+        #ff9a2e 50.333%,
+        #f97316 58.333%,
+        #e9540d 66.666%,
+        #ff6b14 74.666%,
+        #ff9a2e 83.666%,
+        #f97316 91.666%,
+        #e9540d 100%
+      );
     transform: translate3d(0, 0, 0);
     animation: listen-gradient-ribbon 6s linear infinite;
     pointer-events: none;
