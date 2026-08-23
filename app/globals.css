@@ -52,46 +52,53 @@
 @layer components {
   .listen-gradient-button {
     position: relative;
+    isolation: isolate;
     overflow: hidden;
-    background: linear-gradient(
-      110deg,
-      #e9540d 0%,
-      #ff6b14 12.5%,
-      #ff9628 25%,
-      #f97316 37.5%,
-      #e9540d 50%,
-      #ff6b14 62.5%,
-      #ff9628 75%,
-      #f97316 87.5%,
-      #e9540d 100%
-    );
-    background-size: 200% 100%;
+    background: #f97316;
     box-shadow:
       0 8px 24px rgb(249 115 22 / 30%),
       inset 0 1px 0 rgb(255 255 255 / 28%);
-    animation: listen-gradient-flow 7s linear infinite;
+  }
+
+  .listen-gradient-button::before {
+    content: "";
+    position: absolute;
+    inset: -160%;
+    z-index: 0;
+    background: conic-gradient(
+      from 0deg,
+      #e9540d,
+      #ff6b14,
+      #ff9628,
+      #f97316,
+      #e9540d
+    );
+    animation: listen-gradient-rotate 14s linear infinite;
+    pointer-events: none;
+    will-change: transform;
   }
 
   .listen-gradient-button::after {
     content: "";
     position: absolute;
     inset: 1px;
+    z-index: 1;
     border-radius: calc(0.75rem - 1px);
     border: 1px solid rgb(255 255 255 / 18%);
     pointer-events: none;
   }
 
-  @keyframes listen-gradient-flow {
+  @keyframes listen-gradient-rotate {
     from {
-      background-position: 0% 50%;
+      transform: rotate(0deg);
     }
     to {
-      background-position: 200% 50%;
+      transform: rotate(360deg);
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .listen-gradient-button {
+    .listen-gradient-button::before {
       animation: none;
     }
   }

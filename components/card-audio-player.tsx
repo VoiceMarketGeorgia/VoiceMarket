@@ -155,7 +155,13 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
       return;
     }
 
-    playRequestedRef.current = false;
+    // Changing an audio element's source can emit a pause event before the
+    // replacement file starts. Do not let that transient event cancel the
+    // play request created by the user's dropdown click.
+    if (playRequestedRef.current) {
+      return;
+    }
+
     if (isPlaying) {
       onTogglePlay(playerId);
     }
@@ -356,7 +362,6 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
 
         <audio
           ref={audioRef}
-          src={audioSrc || undefined}
           preload="none"
           loop
           onCanPlay={handleCanPlay}
