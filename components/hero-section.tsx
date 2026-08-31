@@ -4,33 +4,33 @@ import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/components/language-provider";
+import { HeroActorWall } from "@/components/hero-actor-wall";
 
 export function HeroSection() {
   const { tr } = useLanguage();
   return (
-    <section className="relative min-h-[460px] flex items-center justify-center overflow-hidden">
-      {/* Background Image with Overlay */}
+    <section className="relative flex min-h-[560px] items-center justify-center overflow-hidden md:min-h-[660px] lg:min-h-[720px]">
+      {/* Base layer - shown while the actor photos are still loading */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: "url(/service.jpg)",
-        }}
+        style={{ backgroundImage: "url(/service.jpg)" }}
       />
 
-      {/* Dark Overlay for Better Text Readability */}
-      <div className="absolute inset-0 bg-black/80" />
+      {/* Animated wall of blurred voice actors */}
+      <HeroActorWall />
 
-      {/* Gradient Overlay for Additional Visual Appeal */}
-      <div className="absolute inset-0 bg-gradient-to-b from-orange-500/30 via-transparent to-black/40" />
+      {/* Dark Overlay for Better Text Readability */}
+      <div className="absolute inset-0 bg-black/55" />
+
+      {/* Warm cinematic light + vignette */}
+      <div className="absolute inset-0 bg-gradient-to-b from-orange-500/25 via-transparent to-black/70" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.15)_30%,rgba(0,0,0,0.75)_100%)]" />
 
       {/* Content Container */}
       <div className="relative z-10 container mx-auto px-4 pt-16 pb-20 text-center">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl">
-            Voice Market
-            {/* <span className="text-orange-400 drop-shadow-lg bg-gradient-to-r from-orange-400 to-orange-500 bg-clip-text text-transparent">
-              
-            </span> */}
+          <h1 className="text-4xl font-extrabold tracking-tight text-white drop-shadow-[0_4px_24px_rgba(0,0,0,0.75)] sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl">
+            Voice <span className="text-orange-500">Market</span>
           </h1>
 
           {/* Subtitle */}
@@ -67,7 +67,7 @@ export function HeroSection() {
       </div>
 
       {/* Decorative Elements */}
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-gray-900 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent dark:from-background" />
 
       {/* Animated Floating Elements */}
       <div className="absolute top-20 left-10 w-2 h-2 bg-orange-400 rounded-full opacity-60 animate-pulse" />

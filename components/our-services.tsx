@@ -1,42 +1,24 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Mic2, Radio, Film, BookOpen, Headphones, Tv2 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
+import {
+  AnimationIcon,
+  AudiobookIcon,
+  CommercialIcon,
+  FilmIcon,
+  IvrIcon,
+  SeriesIcon,
+} from "@/components/service-icons";
 
 export function OurServices() {
   const { tr } = useLanguage();
   const categories = [
-    {
-      icon: <Headphones className="h-6 w-6" />,
-      name: tr("ავტომოპასუხე", "IVR"),
-      description: tr("ხმოვანი პასუხი", "Automated voice response"),
-    },
-    {
-      icon: <Film className="h-6 w-6" />,
-      name: tr("გახმოვანება", "Dubbing"),
-      description: tr("ფილმები და სერიალები", "Films and TV series"),
-    },
-    {
-      icon: <Radio className="h-6 w-6" />,
-      name: tr("პოდკასტები", "Podcasts"),
-      description: tr("ინტერვიუები და სხვა", "Interviews and more"),
-    },
-    {
-      icon: <Mic2 className="h-6 w-6" />,
-      name: tr("კომერციული", "Commercials"),
-      description: tr("სარეკლამო რგოლი", "Advertising spots"),
-    },
-    {
-      icon: <BookOpen className="h-6 w-6" />,
-      name: tr("აუდიოწიგნები", "Audiobooks"),
-      description: tr("ხმოვანი წიგნები", "Narrated books"),
-    },
-    {
-      icon: <Tv2 className="h-6 w-6" />,
-      name: tr("განათლება", "Education"),
-      description: tr("ტრენინგები და სხვა", "Training and more"),
-    },
+    { Icon: IvrIcon, name: tr("ავტომოპასუხე", "IVR") },
+    { Icon: CommercialIcon, name: tr("სარეკლამო რგოლი", "Commercials") },
+    { Icon: FilmIcon, name: tr("ფილმი", "Film") },
+    { Icon: SeriesIcon, name: tr("სერიალი", "TV series") },
+    { Icon: AnimationIcon, name: tr("ანიმაცია", "Animation") },
+    { Icon: AudiobookIcon, name: tr("აუდიოწიგნი", "Audiobook") },
   ];
 
   // Duplicate categories for seamless infinite scroll - using more repetitions
@@ -75,22 +57,21 @@ export function OurServices() {
             width: `calc(${duplicatedCategories.length} * (200px + 1rem))`,
           }}
         >
-          {duplicatedCategories.map((category, index) => (
-            <Button
-              key={`${category.name}-${index}`}
-              variant="outline"
-              className="h-auto flex flex-col items-center justify-center gap-2 p-6 min-w-[200px] flex-shrink-0 bg-background/50 backdrop-blur-sm border-border pointer-events-none"
+          {duplicatedCategories.map(({ Icon, name }, index) => (
+            <div
+              key={`${name}-${index}`}
+              className="flex min-w-[200px] flex-shrink-0 flex-col items-center justify-center gap-3 rounded-lg border border-border bg-background/50 p-6 backdrop-blur-sm"
             >
-              <div className="rounded-full bg-orange-500/10 p-3 text-orange-500">
-                {category.icon}
-              </div>
-              <h3 className="font-medium text-sm whitespace-nowrap">
-                {category.name}
+              <Icon className="h-12 w-12" />
+              <h3 className="whitespace-nowrap text-center text-sm font-medium">
+                {name}
               </h3>
-              <p className="text-xs text-muted-foreground text-center leading-relaxed">
-                {category.description}
-              </p>
-            </Button>
+              <div className="flex w-full items-center justify-center">
+                <div className="h-[1px] w-10 bg-gradient-to-r from-transparent to-orange-500" />
+                <div className="mx-1.5 h-1 w-1 rounded-full bg-orange-500" />
+                <div className="h-[1px] w-10 bg-gradient-to-l from-transparent to-orange-500" />
+              </div>
+            </div>
           ))}
         </div>
       </div>

@@ -252,16 +252,11 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
               aria-label={tr("აუდიო ნიმუშის არჩევა", "Choose an audio sample")}
               className="listen-gradient-button w-full rounded-xl px-4 py-3 shadow-md transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2"
             >
-              <div className="relative z-10 flex items-center justify-between">
-                <div className="flex min-w-0 items-center gap-3 text-left">
-                  <span className="shrink-0 text-sm font-extrabold uppercase tracking-wide text-white drop-shadow-sm">
-                    {tr("მოისმინე", "Listen")}
-                  </span>
-                  <span className="truncate border-l border-white/40 pl-3 text-sm font-medium text-white/95">
-                    {localizeAudioName(currentSample.name, language)}
-                  </span>
-                </div>
-                <span className="ml-2 rounded-full bg-black/20 p-1.5 text-white shadow-sm backdrop-blur-sm">
+              <div className="relative z-10 flex items-center justify-center">
+                <span className="text-base font-extrabold uppercase tracking-wide text-white drop-shadow-sm sm:text-lg">
+                  {tr("მოისმინე", "Listen")}
+                </span>
+                <span className="absolute right-0 top-1/2 -translate-y-1/2 rounded-full bg-black/20 p-1.5 text-white shadow-sm backdrop-blur-sm">
                   <ChevronDown
                     className={`h-4 w-4 transition-transform duration-200 ${
                       isDropdownOpen ? "rotate-180" : "rotate-0"

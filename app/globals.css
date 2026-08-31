@@ -90,7 +90,7 @@
         #e9540d 100%
       );
     transform: translate3d(0, 0, 0);
-    animation: listen-gradient-ribbon 6s linear infinite;
+    animation: listen-gradient-ribbon 3s linear infinite;
     pointer-events: none;
     will-change: transform;
   }
@@ -119,6 +119,66 @@
       animation: none;
     }
   }
+
+  /* --- Hero: drifting wall of blurred voice-actor portraits --- */
+  .hero-actor-wall {
+    position: absolute;
+    inset: -6%;
+    display: flex;
+    gap: 5px;
+    background: #050505;
+    overflow: hidden;
+  }
+
+  .hero-actor-column {
+    flex: 1 1 0;
+    min-width: 0;
+    flex-direction: column;
+    gap: 5px;
+    animation-name: hero-actor-scroll;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    will-change: transform;
+    /* Blurring the whole column keeps this to one composited layer per column
+       instead of one per portrait, which matters on mid-range phones. */
+    filter: blur(6px) saturate(120%) contrast(108%) brightness(80%);
+  }
+
+  .hero-actor-tile {
+    position: relative;
+    flex: 0 0 auto;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    background: #0b0b0b;
+  }
+
+  .hero-actor-tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  @keyframes hero-actor-scroll {
+    from {
+      transform: translate3d(0, 0, 0);
+    }
+    to {
+      transform: translate3d(0, -50%, 0);
+    }
+  }
+
+  @media (min-width: 768px) {
+    .hero-actor-column {
+      filter: blur(8px) saturate(120%) contrast(108%) brightness(78%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-actor-column {
+      animation: none;
+    }
+  }
+
 }
 
 @layer base {
