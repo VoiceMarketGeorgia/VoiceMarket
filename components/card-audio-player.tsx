@@ -240,7 +240,7 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
 
   return (
       <div
-        className={`bg-white dark:bg-card rounded-xl shadow-lg pl-2.5 pr-4 pt-4 pb-4 ${className}`}
+        className={`pl-2.5 pr-4 pt-4 pb-4 ${className}`}
       >
         {/* Category Dropdown */}
         {showDropdown && (
@@ -259,7 +259,7 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
                 <span className="absolute right-0 top-1/2 -translate-y-1/2 rounded-full bg-black/20 p-1.5 text-white shadow-sm backdrop-blur-sm">
                   <ChevronDown
                     className={`h-4 w-4 transition-transform duration-200 ${
-                      isDropdownOpen ? "rotate-180" : "rotate-0"
+                      isDropdownOpen ? "rotate-0" : "rotate-180"
                     }`}
                   />
                 </span>

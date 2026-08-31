@@ -56,10 +56,12 @@ export function VoiceCard({
           onClick ? 'cursor-pointer hover:opacity-95 transition-opacity duration-200' : ''
         }`}
       >
-        <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/85 via-black/25 to-transparent" />
+        <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/85 via-black/25 to-transparent dark:from-gray-900 dark:via-gray-900/30" />
         <img
           src={talent.image}
           alt={talent.id}
+          loading="lazy"
+          decoding="async"
           className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         <div className="absolute bottom-0 left-0 z-20 p-5">

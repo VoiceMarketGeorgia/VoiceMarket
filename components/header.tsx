@@ -5,7 +5,8 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/mode-toggle";
-import { Mic2, Search, Menu } from "lucide-react";
+import { Search, Menu } from "lucide-react";
+import { BrandMark } from "@/components/brand-mark";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
 import { LanguageSwitcher } from "@/components/language-switcher";
@@ -40,7 +41,7 @@ export function Header() {
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2">
-            <Mic2 className="h-6 w-6 text-orange-500" />
+            <BrandMark className="h-7 w-7 text-orange-500" />
             <span className="hidden text-xl font-bold min-[380px]:inline">VoiceMarket</span>
           </Link>
         </div>

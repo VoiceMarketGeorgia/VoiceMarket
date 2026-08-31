@@ -67,7 +67,7 @@ export function HeroSection() {
       </div>
 
       {/* Decorative Elements */}
-      <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent dark:from-background" />
+      <div className="absolute -bottom-1 left-0 right-0 h-24 bg-gradient-to-t from-white from-[8%] to-transparent dark:from-background" />
 
       {/* Animated Floating Elements */}
       <div className="absolute top-20 left-10 w-2 h-2 bg-orange-400 rounded-full opacity-60 animate-pulse" />

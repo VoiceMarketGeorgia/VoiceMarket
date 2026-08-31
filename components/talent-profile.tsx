@@ -189,7 +189,7 @@ export function TalentProfile({ id }: TalentProfileProps) {
                         }
                         showTimeDisplay
                         showDropdown={false}
-                        className="border-2 border-gray-100 dark:border-gray-700"
+                        className="rounded-xl border-2 border-gray-100 bg-white shadow-lg dark:border-gray-700 dark:bg-card"
                       />
                     </CardContent>
                   </Card>

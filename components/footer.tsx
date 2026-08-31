@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import {
-  Mic2,
   Facebook,
   Instagram,
   Linkedin,
@@ -11,6 +10,7 @@ import {
   Phone,
 } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
+import { BrandMark } from "@/components/brand-mark";
 
 export function Footer() {
   const { tr } = useLanguage();
@@ -20,7 +20,7 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3 md:justify-items-center">
           <div className="flex flex-col gap-2">
             <Link href="/" className="flex items-center gap-2">
-              <Mic2 className="h-6 w-6 text-orange-500" />
+              <BrandMark className="h-7 w-7 text-orange-500" />
               <span className="text-xl font-bold">VoiceMarket</span>
             </Link>
             <p className="text-sm text-muted-foreground">

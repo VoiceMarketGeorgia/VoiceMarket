@@ -125,7 +125,11 @@
     position: absolute;
     inset: -6%;
     display: flex;
-    gap: 5px;
+    /* flex-start (not the default stretch) so each column is as tall as its
+       own tiles. A stretched column would be the wall's height, and the -50%
+       loop below would then no longer equal one copy of the tiles. */
+    align-items: flex-start;
+    gap: 2px;
     background: #050505;
     overflow: hidden;
   }
@@ -134,14 +138,13 @@
     flex: 1 1 0;
     min-width: 0;
     flex-direction: column;
-    gap: 5px;
     animation-name: hero-actor-scroll;
     animation-timing-function: linear;
     animation-iteration-count: infinite;
     will-change: transform;
     /* Blurring the whole column keeps this to one composited layer per column
        instead of one per portrait, which matters on mid-range phones. */
-    filter: blur(6px) saturate(120%) contrast(108%) brightness(80%);
+    filter: blur(8px) saturate(120%) contrast(108%) brightness(80%);
   }
 
   .hero-actor-tile {
@@ -150,6 +153,10 @@
     aspect-ratio: 3 / 4;
     overflow: hidden;
     background: #0b0b0b;
+    /* A trailing margin rather than a column gap: every tile then occupies an
+       identical slot, so half the column is exactly one copy of the tiles and
+       the loop restarts on an invisible seam. */
+    margin-bottom: 2px;
   }
 
   .hero-actor-tile img {
@@ -169,7 +176,7 @@
 
   @media (min-width: 768px) {
     .hero-actor-column {
-      filter: blur(8px) saturate(120%) contrast(108%) brightness(78%);
+      filter: blur(11px) saturate(120%) contrast(108%) brightness(78%);
     }
   }
 

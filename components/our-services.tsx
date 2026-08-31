@@ -21,13 +21,13 @@ export function OurServices() {
     { Icon: AudiobookIcon, name: tr("აუდიოწიგნი", "Audiobook") },
   ];
 
-  // Duplicate categories for seamless infinite scroll - using more repetitions
-  const duplicatedCategories = [
-    ...categories,
-    ...categories,
-    ...categories,
-    ...categories,
-  ];
+  // Four identical copies, so one copy is exactly 25% of the strip - that is
+  // the distance the scroll animation travels before it loops.
+  const COPIES = 4;
+  const duplicatedCategories = Array.from(
+    { length: COPIES * categories.length },
+    (_, index) => categories[index % categories.length]
+  );
 
   return (
     <section className="container relative">
@@ -51,16 +51,13 @@ export function OurServices() {
 
         {/* Scrolling content */}
         <div
-          className="flex gap-4"
-          style={{
-            animation: "scroll 40s linear infinite",
-            width: `calc(${duplicatedCategories.length} * (200px + 1rem))`,
-          }}
+          className="flex w-max"
+          style={{ animation: "scroll 40s linear infinite" }}
         >
           {duplicatedCategories.map(({ Icon, name }, index) => (
             <div
               key={`${name}-${index}`}
-              className="flex min-w-[200px] flex-shrink-0 flex-col items-center justify-center gap-3 rounded-lg border border-border bg-background/50 p-6 backdrop-blur-sm"
+              className="mr-4 flex min-w-[200px] flex-shrink-0 flex-col items-center justify-center gap-3 rounded-lg border border-border bg-background/50 p-6 backdrop-blur-sm"
             >
               <Icon className="h-12 w-12" />
               <h3 className="whitespace-nowrap text-center text-sm font-medium">
@@ -82,7 +79,8 @@ export function OurServices() {
             transform: translateX(0);
           }
           100% {
-            transform: translateX(-33.333%);
+            /* One of the four copies - lands on identical content. */
+            transform: translateX(-25%);
           }
         }
       `}</style>
