@@ -2,8 +2,6 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { Textarea } from "@/components/ui/textarea";
-import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import {
   Calculator,
   Clock,
-  DollarSign,
   AlertCircle,
   ChevronDown,
   User,
@@ -39,19 +36,19 @@ interface ActorData {
   rating: number;
 }
 
+/**
+ * Words that comfortably fit into one minute of voice-over. Matches the
+ * per-actor calculator so both surfaces quote the same way.
+ */
+const WORDS_PER_MINUTE = 150;
+
 export function PricingPageCalculator() {
   const { tr } = useLanguage();
   const [selectedActorId, setSelectedActorId] = useState<string>("");
   const [script, setScript] = useState("");
   const [wordCount, setWordCount] = useState(0);
-  const [revisions, setRevisions] = useState([2]);
-  const [expressDelivery, setExpressDelivery] = useState(false);
-  const [backgroundMusic, setBackgroundMusic] = useState(false);
-  const [soundEffects, setSoundEffects] = useState(false);
   const [price, setPrice] = useState(0);
-  const deliveryTime = expressDelivery
-    ? tr("24 საათი", "24 hours")
-    : tr("48 საათი", "48 hours");
+  const deliveryTime = tr("48 საათი", "48 hours");
 
   // Quote request form states
   const [showQuoteForm, setShowQuoteForm] = useState(false);
@@ -101,53 +98,22 @@ export function PricingPageCalculator() {
       return;
     }
 
-    let calculatedPrice = 0;
     const pricing = selectedActor.pricing;
+    const baseRate =
+      pricing.isFixedPrice && pricing.fixedPriceAmount
+        ? pricing.fixedPriceAmount
+        : pricing.basePrice;
+    const extraWords = Math.max(0, wordCount - WORDS_PER_MINUTE);
 
-    if (pricing.isFixedPrice && pricing.fixedPriceAmount) {
-      // Fixed price model
-      calculatedPrice = pricing.fixedPriceAmount;
-    } else {
-      // Variable pricing model
-      calculatedPrice = pricing.basePrice;
-
-      // Add per-word pricing
-      if (wordCount > 0) {
-        calculatedPrice += wordCount * pricing.pricePerWord;
-      }
-    }
-
-    // Add revision cost
-    calculatedPrice += revisions[0] * pricing.revisionFee;
-
-    // Add express delivery fee
-    if (expressDelivery) {
-      calculatedPrice += pricing.expressDeliveryFee;
-    }
-
-    // Add background music fee
-    if (backgroundMusic) {
-      calculatedPrice += pricing.backgroundMusicFee;
-    }
-
-    // Add sound effects fee
-    if (soundEffects) {
-      calculatedPrice += pricing.soundEffectsFee;
-    }
-
-    // Apply minimum order
-    calculatedPrice = Math.max(calculatedPrice, pricing.minOrder);
+    // Starting rate covers a spot of up to one minute; past that the actor's
+    // per-word rate applies. Add-ons are quoted per project, not here.
+    const calculatedPrice = Math.max(
+      baseRate + extraWords * (pricing.pricePerWord || 0),
+      pricing.minOrder
+    );
 
     setPrice(Math.round(calculatedPrice));
-  }, [
-    selectedActor,
-    script,
-    wordCount,
-    revisions,
-    expressDelivery,
-    backgroundMusic,
-    soundEffects,
-  ]);
+  }, [selectedActor, wordCount]);
 
   const handleSubmitQuote = async () => {
     if (!clientName || !clientEmail || !script || !selectedActorId) {
@@ -166,10 +132,11 @@ export function PricingPageCalculator() {
         client_phone: clientPhone,
         script_text: script,
         word_count: wordCount,
-        revisions_requested: revisions[0],
-        express_delivery: expressDelivery,
-        background_music: backgroundMusic,
-        sound_effects: soundEffects,
+        // Add-ons are agreed per project, so the request carries neutral values.
+        revisions_requested: 0,
+        express_delivery: false,
+        background_music: false,
+        sound_effects: false,
         estimated_price: price,
         special_requirements: specialRequirements,
       });
@@ -295,53 +262,6 @@ export function PricingPageCalculator() {
                 </p>
               </div>
 
-              <div>
-                <Label htmlFor="revisions">
-                  {tr("შესწორებების რაოდენობა", "Number of revisions")}: {revisions[0]}
-                </Label>
-                <Slider
-                  id="revisions"
-                  min={0}
-                  max={5}
-                  step={1}
-                  value={revisions}
-                  onValueChange={setRevisions}
-                  className="mt-2"
-                />
-                <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                  <span>0</span>
-                  <span>5</span>
-                </div>
-              </div>
-
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="express">{tr("სწრაფი მიწოდება (24 საათი)", "Express delivery (24 hours)")}</Label>
-                  <Switch
-                    id="express"
-                    checked={expressDelivery}
-                    onCheckedChange={setExpressDelivery}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="music">{tr("ფონური მუსიკა", "Background music")}</Label>
-                  <Switch
-                    id="music"
-                    checked={backgroundMusic}
-                    onCheckedChange={setBackgroundMusic}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="effects">{tr("ხმოვანი ეფექტები", "Sound effects")}</Label>
-                  <Switch
-                    id="effects"
-                    checked={soundEffects}
-                    onCheckedChange={setSoundEffects}
-                  />
-                </div>
-              </div>
             </div>
 
             <div className="space-y-6">
@@ -365,64 +285,37 @@ export function PricingPageCalculator() {
                 <CardContent className="p-4">
                   <h4 className="font-medium mb-3">{tr("ფასების დეტალები", "Price breakdown")}</h4>
                   <div className="space-y-2 text-sm">
-                    {selectedActor.pricing.isFixedPrice ? (
-                      <div className="flex justify-between">
-                        <span>{tr("ფიქსირებული ტარიფი", "Fixed rate")}:</span>
-                        <span>₾{selectedActor.pricing.fixedPriceAmount}</span>
-                      </div>
-                    ) : (
-                      <>
-                        <div className="flex justify-between">
-                          <span>{tr("საბაზისო ფასი", "Base price")}:</span>
-                          <span>₾{selectedActor.pricing.basePrice}</span>
-                        </div>
-                        {wordCount > 0 && (
-                          <div className="flex justify-between">
-                            <span>
-                              {tr("სიტყვები", "Words")} ({wordCount} × ₾
-                              {selectedActor.pricing.pricePerWord.toFixed(2)}):
-                            </span>
-                            <span>
-                              ₾
-                              {(
-                                wordCount * selectedActor.pricing.pricePerWord
-                              ).toFixed(0)}
-                            </span>
-                          </div>
+                    <div className="flex justify-between">
+                      <span>
+                        {tr(
+                          `საწყისი ფასი (1 წუთამდე, ${WORDS_PER_MINUTE} სიტყვამდე)`,
+                          `Starting rate (up to 1 min / ${WORDS_PER_MINUTE} words)`
                         )}
-                      </>
-                    )}
+                        :
+                      </span>
+                      <span>
+                        ₾
+                        {selectedActor.pricing.isFixedPrice &&
+                        selectedActor.pricing.fixedPriceAmount
+                          ? selectedActor.pricing.fixedPriceAmount
+                          : selectedActor.pricing.basePrice}
+                      </span>
+                    </div>
 
-                    {revisions[0] > 0 && (
+                    {wordCount > WORDS_PER_MINUTE && (
                       <div className="flex justify-between">
                         <span>
-                          {tr("შესწორებები", "Revisions")} ({revisions[0]} × ₾
-                          {selectedActor.pricing.revisionFee}):
+                          {tr("დამატებითი სიტყვები", "Extra words")} (
+                          {wordCount - WORDS_PER_MINUTE} × ₾
+                          {selectedActor.pricing.pricePerWord}):
                         </span>
                         <span>
-                          ₾{revisions[0] * selectedActor.pricing.revisionFee}
+                          ₾
+                          {Math.round(
+                            (wordCount - WORDS_PER_MINUTE) *
+                              selectedActor.pricing.pricePerWord
+                          )}
                         </span>
-                      </div>
-                    )}
-
-                    {expressDelivery && (
-                      <div className="flex justify-between">
-                        <span>{tr("სწრაფი მიწოდება", "Express delivery")}:</span>
-                        <span>₾{selectedActor.pricing.expressDeliveryFee}</span>
-                      </div>
-                    )}
-
-                    {backgroundMusic && (
-                      <div className="flex justify-between">
-                        <span>{tr("ფონური მუსიკა", "Background music")}:</span>
-                        <span>₾{selectedActor.pricing.backgroundMusicFee}</span>
-                      </div>
-                    )}
-
-                    {soundEffects && (
-                      <div className="flex justify-between">
-                        <span>{tr("ხმოვანი ეფექტები", "Sound effects")}:</span>
-                        <span>₾{selectedActor.pricing.soundEffectsFee}</span>
                       </div>
                     )}
 
@@ -596,16 +489,8 @@ export function PricingPageCalculator() {
                           </div>
                           <div>
                             <p>
-                              <strong>{tr("შესწორებები", "Revisions")}:</strong> {revisions[0]}
+                              <strong>{tr("სავარაუდო ფასი", "Estimated price")}:</strong> ₾{price}
                             </p>
-                            <p>
-                              <strong>{tr("ფასი", "Price")}:</strong> ₾{price}
-                            </p>
-                            {expressDelivery && (
-                              <p>
-                                <strong>{tr("სწრაფი მიწოდება", "Express delivery")}:</strong> ✓
-                              </p>
-                            )}
                           </div>
                         </div>
                       </CardContent>

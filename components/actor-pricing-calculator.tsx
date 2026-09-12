@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { Textarea } from "@/components/ui/textarea";
-import { Slider } from "@/components/ui/slider";
-import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,8 +9,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   Calculator,
   Clock,
-  DollarSign,
-  AlertCircle,
   Send,
   CheckCircle2,
   Loader2,
@@ -20,6 +16,13 @@ import {
 import { ActorPricing } from "./voice-card";
 import { submitQuoteRequest } from "@/lib/supabase-queries";
 import { useLanguage } from "@/components/language-provider";
+
+/**
+ * Words that comfortably fit into one minute of voice-over. The actor's base
+ * price covers everything up to this length; past it each extra word is
+ * charged at the actor's per-word rate.
+ */
+const WORDS_PER_MINUTE = 150;
 
 interface ActorPricingCalculatorProps {
   pricing: ActorPricing;
@@ -35,14 +38,16 @@ export function ActorPricingCalculator({
   const { tr } = useLanguage();
   const [script, setScript] = useState("");
   const [wordCount, setWordCount] = useState(0);
-  const [revisions, setRevisions] = useState([2]);
-  const [expressDelivery, setExpressDelivery] = useState(false);
-  const [backgroundMusic, setBackgroundMusic] = useState(false);
-  const [soundEffects, setSoundEffects] = useState(false);
   const [price, setPrice] = useState(0);
-  const deliveryTime = expressDelivery
-    ? tr("24 საათი", "24 hours")
-    : tr("48 საათი", "48 hours");
+  const deliveryTime = tr("48 საათი", "48 hours");
+
+  // The actor's own starting rate - what "from ₾X" refers to.
+  const baseRate =
+    pricing.isFixedPrice && pricing.fixedPriceAmount
+      ? pricing.fixedPriceAmount
+      : pricing.basePrice;
+  const extraWordRate = pricing.pricePerWord || 0;
+  const extraWords = Math.max(0, wordCount - WORDS_PER_MINUTE);
 
   // Quote request form states
   const [showQuoteForm, setShowQuoteForm] = useState(false);
@@ -64,54 +69,16 @@ export function ActorPricingCalculator({
     }
   }, [script]);
 
-  // Calculate price based on actor's specific pricing
+  // Simple, explainable model: a starting rate that covers a spot of up to
+  // one minute, plus the actor's per-word rate for anything beyond that.
   useEffect(() => {
-    let calculatedPrice = 0;
-
-    if (pricing.isFixedPrice && pricing.fixedPriceAmount) {
-      // Fixed price model
-      calculatedPrice = pricing.fixedPriceAmount;
-    } else {
-      // Variable pricing model
-      calculatedPrice = pricing.basePrice;
-
-      // Add per-word pricing
-      if (wordCount > 0) {
-        calculatedPrice += wordCount * pricing.pricePerWord;
-      }
-    }
-
-    // Add revision cost
-    calculatedPrice += revisions[0] * pricing.revisionFee;
-
-    // Add express delivery fee
-    if (expressDelivery) {
-      calculatedPrice += pricing.expressDeliveryFee;
-    }
-
-    // Add background music fee
-    if (backgroundMusic) {
-      calculatedPrice += pricing.backgroundMusicFee;
-    }
-
-    // Add sound effects fee
-    if (soundEffects) {
-      calculatedPrice += pricing.soundEffectsFee;
-    }
-
-    // Apply minimum order
-    calculatedPrice = Math.max(calculatedPrice, pricing.minOrder);
+    const calculatedPrice = Math.max(
+      baseRate + extraWords * extraWordRate,
+      pricing.minOrder
+    );
 
     setPrice(Math.round(calculatedPrice));
-  }, [
-    script,
-    wordCount,
-    revisions,
-    expressDelivery,
-    backgroundMusic,
-    soundEffects,
-    pricing,
-  ]);
+  }, [baseRate, extraWords, extraWordRate, pricing.minOrder]);
 
   const handleSubmitQuote = async () => {
     if (!clientName || !clientEmail || !script) {
@@ -130,10 +97,12 @@ export function ActorPricingCalculator({
         client_phone: clientPhone,
         script_text: script,
         word_count: wordCount,
-        revisions_requested: revisions[0],
-        express_delivery: expressDelivery,
-        background_music: backgroundMusic,
-        sound_effects: soundEffects,
+        // The calculator no longer prices add-ons - those are agreed per
+        // project - so the request carries neutral values for them.
+        revisions_requested: 0,
+        express_delivery: false,
+        background_music: false,
+        sound_effects: false,
         estimated_price: price,
         special_requirements: specialRequirements,
       });
@@ -163,18 +132,28 @@ export function ActorPricingCalculator({
         <h3 className="text-lg font-semibold">{tr("ფასის კალკულატორი", "Price calculator")}</h3>
       </div>
 
-      {pricing.isFixedPrice && (
-        <Card className="border-orange-200 bg-orange-50 dark:bg-orange-950/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 text-orange-600" />
-              <span className="text-sm font-medium text-orange-800 dark:text-orange-200">
-                {tr("ეს მსახიობი იყენებს ფიქსირებულ ფასს", "This voice actor uses a fixed price")}: ₾{pricing.fixedPriceAmount}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Headline rate: "from ₾500" - what a spot of up to a minute costs */}
+      <Card className="border-orange-200 bg-orange-50 dark:border-orange-900 dark:bg-orange-950/20">
+        <CardContent className="p-5 text-center">
+          <div className="text-3xl font-bold text-orange-500">
+            {tr(`₾${baseRate}-დან`, `from ₾${baseRate}`)}
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {tr(
+              "1 წუთამდე ხანგრძლივობის რგოლი",
+              "For a spot of up to one minute"
+            )}
+          </p>
+          {extraWordRate > 0 && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              {tr(
+                `${WORDS_PER_MINUTE} სიტყვის შემდეგ ყოველი დამატებითი სიტყვა +₾${extraWordRate}`,
+                `Beyond ${WORDS_PER_MINUTE} words, each extra word adds ₾${extraWordRate}`
+              )}
+            </p>
+          )}
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-4">
@@ -193,53 +172,6 @@ export function ActorPricingCalculator({
             </p>
           </div>
 
-          <div>
-            <Label htmlFor="revisions">
-              {tr("შესწორებების რაოდენობა", "Number of revisions")}: {revisions[0]}
-            </Label>
-            <Slider
-              id="revisions"
-              min={0}
-              max={5}
-              step={1}
-              value={revisions}
-              onValueChange={setRevisions}
-              className="mt-2"
-            />
-            <div className="flex justify-between text-xs text-muted-foreground mt-1">
-              <span>0</span>
-              <span>5</span>
-            </div>
-          </div>
-
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="express">{tr("სწრაფი მიწოდება (24 საათი)", "Express delivery (24 hours)")}</Label>
-              <Switch
-                id="express"
-                checked={expressDelivery}
-                onCheckedChange={setExpressDelivery}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <Label htmlFor="music">{tr("ფონური მუსიკა", "Background music")}</Label>
-              <Switch
-                id="music"
-                checked={backgroundMusic}
-                onCheckedChange={setBackgroundMusic}
-              />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <Label htmlFor="effects">{tr("ხმოვანი ეფექტები", "Sound effects")}</Label>
-              <Switch
-                id="effects"
-                checked={soundEffects}
-                onCheckedChange={setSoundEffects}
-              />
-            </div>
-          </div>
         </div>
 
         <div className="space-y-4">
@@ -260,58 +192,24 @@ export function ActorPricingCalculator({
             <CardContent className="p-4">
               <h4 className="font-medium mb-3">{tr("ფასების დეტალები", "Price breakdown")}</h4>
               <div className="space-y-2 text-sm">
-                {pricing.isFixedPrice ? (
-                  <div className="flex justify-between">
-                    <span>{tr("ფიქსირებული ტარიფი", "Fixed rate")}:</span>
-                    <span>₾{pricing.fixedPriceAmount}</span>
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex justify-between">
-                      <span>{tr("საბაზისო ფასი", "Base price")}:</span>
-                      <span>₾{pricing.basePrice}</span>
-                    </div>
-                    {wordCount > 0 && (
-                      <div className="flex justify-between">
-                        <span>
-                          {tr("სიტყვები", "Words")} ({wordCount} × ₾
-                          {pricing.pricePerWord.toFixed(2)}):
-                        </span>
-                        <span>
-                          ₾{(wordCount * pricing.pricePerWord).toFixed(0)}
-                        </span>
-                      </div>
+                <div className="flex justify-between">
+                  <span>
+                    {tr(
+                      `საწყისი ფასი (1 წუთამდე, ${WORDS_PER_MINUTE} სიტყვამდე)`,
+                      `Starting rate (up to 1 min / ${WORDS_PER_MINUTE} words)`
                     )}
-                  </>
-                )}
+                    :
+                  </span>
+                  <span>₾{baseRate}</span>
+                </div>
 
-                {revisions[0] > 0 && (
+                {extraWords > 0 && (
                   <div className="flex justify-between">
                     <span>
-                      {tr("შესწორებები", "Revisions")} ({revisions[0]} × ₾{pricing.revisionFee}):
+                      {tr("დამატებითი სიტყვები", "Extra words")} ({extraWords} × ₾
+                      {extraWordRate}):
                     </span>
-                    <span>₾{revisions[0] * pricing.revisionFee}</span>
-                  </div>
-                )}
-
-                {expressDelivery && (
-                  <div className="flex justify-between">
-                    <span>{tr("სწრაფი მიწოდება", "Express delivery")}:</span>
-                    <span>₾{pricing.expressDeliveryFee}</span>
-                  </div>
-                )}
-
-                {backgroundMusic && (
-                  <div className="flex justify-between">
-                    <span>{tr("ფონური მუსიკა", "Background music")}:</span>
-                    <span>₾{pricing.backgroundMusicFee}</span>
-                  </div>
-                )}
-
-                {soundEffects && (
-                  <div className="flex justify-between">
-                    <span>{tr("ხმოვანი ეფექტები", "Sound effects")}:</span>
-                    <span>₾{pricing.soundEffectsFee}</span>
+                    <span>₾{Math.round(extraWords * extraWordRate)}</span>
                   </div>
                 )}
 
@@ -321,6 +219,13 @@ export function ActorPricingCalculator({
                     <span>₾{price}</span>
                   </div>
                 </div>
+
+                <p className="pt-1 text-xs text-muted-foreground">
+                  {tr(
+                    "საბოლოო ფასი დამოკიდებულია პროექტის სირთულესა და გამოყენების პირობებზე.",
+                    "The final price depends on the complexity of the project and the usage terms."
+                  )}
+                </p>
 
                 {price === pricing.minOrder && (
                   <p className="text-xs text-muted-foreground mt-2">
@@ -476,16 +381,8 @@ export function ActorPricingCalculator({
                       </div>
                       <div>
                         <p>
-                          <strong>{tr("შესწორებები", "Revisions")}:</strong> {revisions[0]}
+                          <strong>{tr("სავარაუდო ფასი", "Estimated price")}:</strong> ₾{price}
                         </p>
-                        <p>
-                          <strong>{tr("ფასი", "Price")}:</strong> ₾{price}
-                        </p>
-                        {expressDelivery && (
-                          <p>
-                            <strong>{tr("სწრაფი მიწოდება", "Express delivery")}:</strong> ✓
-                          </p>
-                        )}
                       </div>
                     </div>
                   </CardContent>
