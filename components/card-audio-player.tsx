@@ -3,10 +3,9 @@
 import type React from "react";
 
 import { useState, useRef, useEffect } from "react";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Pause, Play } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 import { localizeAudioName } from "@/lib/audio-labels";
-import { getIconElement } from "@/lib/category-icons";
 
 interface AudioSample {
   id: string;
@@ -48,6 +47,11 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
   const ignoreNextPauseRef = useRef(false);
 
   const currentSample = audioSamples[selectedSample];
+
+  // On the cards the whole transport lives inside the dropdown: one play
+  // button per genre. The standalone player (profile page) keeps the classic
+  // play button + progress bar instead.
+  const showTransportControls = !showDropdown;
 
   // Format time in MM:SS
   const formatTime = (seconds: number): string => {
@@ -94,25 +98,25 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
     }
   };
 
-  // Handle sample change
+  // Play / pause one row of the dropdown. The list deliberately stays open so
+  // visitors can work through every genre without reopening it each time.
   const handleSampleChange = (index: number) => {
     const nextSample = audioSamples[index];
     if (!nextSample) return;
 
-    setIsDropdownOpen(false);
-
     const audio = audioRef.current;
 
-    // Selecting the current row should also act as an immediate replay action.
+    // Tapping the row that is already loaded acts as play/pause.
     if (index === selectedSample && audio && audioSrc === nextSample.url) {
-      audio.currentTime = 0;
-      setProgress(0);
-      setCurrentTime(0);
-      playRequestedRef.current = true;
-      audio.play().catch((playError) => {
-        playRequestedRef.current = false;
-        console.error(playError);
-      });
+      if (audio.paused) {
+        playRequestedRef.current = true;
+        audio.play().catch((playError) => {
+          playRequestedRef.current = false;
+          console.error(playError);
+        });
+      } else {
+        audio.pause();
+      }
       return;
     }
 
@@ -244,7 +248,7 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
       >
         {/* Category Dropdown */}
         {showDropdown && (
-          <div className="relative mb-3">
+          <div className="relative">
             <button
               type="button"
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -268,92 +272,136 @@ const CardAudioPlayer: React.FC<AudioPlayerProps> = ({
 
             {isDropdownOpen && (
               <div className="absolute bottom-full left-0 right-0 mb-1 bg-white dark:bg-card border border-gray-200 dark:border-border rounded-lg shadow-lg z-[9999] overflow-hidden">
-                {audioSamples.map((sample, index) => (
-                  <button
-                    type="button"
-                    key={sample.id}
-                    onClick={() => handleSampleChange(index)}
-                    className={`w-full flex items-center gap-2 p-3 text-left hover:bg-gray-50 dark:hover:bg-muted/50 transition-colors duration-150 ${
-                      index === selectedSample
-                        ? "bg-orange-50 dark:bg-orange-950/20 text-orange-600 dark:text-orange-400"
-                        : "text-gray-700 dark:text-foreground"
-                    }`}
-                  >
-                    <span
-                      className={
-                        index === selectedSample
-                          ? "text-orange-500 dark:text-orange-400"
-                          : "text-gray-400 dark:text-muted-foreground"
-                      }
+                {audioSamples.map((sample, index) => {
+                  const isActive = index === selectedSample;
+                  const isRowPlaying = isActive && isPlaying;
+                  const isRowLoading = isActive && isLoadingAudio;
+
+                  return (
+                    <div
+                      key={sample.id}
+                      className={`border-b border-gray-100 last:border-0 dark:border-border/60 ${
+                        isActive ? "bg-orange-50 dark:bg-orange-950/20" : ""
+                      }`}
                     >
-                      {sample.iconName
-                        ? getIconElement(sample.iconName, { className: "h-5 w-5" })
-                        : sample.icon}
-                    </span>
-                    <span className="font-medium">{localizeAudioName(sample.name, language)}</span>
-                  </button>
-                ))}
+                      <button
+                        type="button"
+                        onClick={() => handleSampleChange(index)}
+                        aria-label={`${
+                          isRowPlaying ? tr("პაუზა", "Pause") : tr("დაკვრა", "Play")
+                        } - ${localizeAudioName(sample.name, language)}`}
+                        className="flex w-full items-center gap-3 p-2.5 text-left transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-muted/50"
+                      >
+                        {/* Per-genre play button, so samples can be auditioned
+                            one after another without closing the list. */}
+                        <span
+                          className={`flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-white shadow-sm transition-transform duration-200 ${
+                            isActive
+                              ? "bg-gradient-to-r from-orange-400 to-orange-500"
+                              : "bg-gray-300 dark:bg-muted-foreground/40"
+                          }`}
+                        >
+                          {isRowLoading ? (
+                            <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                          ) : isRowPlaying ? (
+                            <Pause className="h-3.5 w-3.5 fill-current" />
+                          ) : (
+                            <Play className="h-3.5 w-3.5 translate-x-[1px] fill-current" />
+                          )}
+                        </span>
+
+                        <span
+                          className={`text-sm font-medium ${
+                            isActive
+                              ? "text-orange-600 dark:text-orange-400"
+                              : "text-gray-700 dark:text-foreground"
+                          }`}
+                        >
+                          {localizeAudioName(sample.name, language)}
+                        </span>
+                      </button>
+
+                      {/* Progress for the row currently loaded */}
+                      {isActive && audioSrc && (
+                        <div className="px-2.5 pb-2.5">
+                          <div
+                            className="relative h-1.5 cursor-pointer overflow-hidden rounded-full bg-gray-200 dark:bg-muted"
+                            onClick={handleProgressClick}
+                          >
+                            <div
+                              className="pointer-events-none absolute left-0 top-0 h-full rounded-full bg-gradient-to-r from-orange-400 to-orange-500 transition-all duration-200"
+                              style={{ width: `${progress}%` }}
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
         )}
 
-        {/* Audio Player Controls */}
-        <div className="flex items-center gap-4">
-          {/* Play/Pause Button */}
-          <button
-            onClick={togglePlayPause}
-            disabled={isLoadingAudio}
-            className={`w-12 h-12 flex items-center justify-center rounded-full bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-offset-2 flex-shrink-0 ${
-              isLoadingAudio ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-          >
-            {isLoadingAudio ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : isPlaying ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-5 h-5 fill-current"
-                viewBox="0 0 24 24"
-              >
-                <path d="M6 22h4v-20h-4v20zm8-20v20h4v-20h-4z" />
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-5 h-5 fill-current"
-                viewBox="0 0 24 24"
-                style={{ transform: "translateX(1px)" }}
-              >
-                <path d="M3 22v-20l18 10-18 10z" />
-              </svg>
-            )}
-          </button>
-
-          {/* Progress Bar */}
-          <div className="flex-1">
-            <div
-              className="relative h-2 bg-gray-200 dark:bg-muted rounded-full overflow-hidden cursor-pointer"
-              onClick={handleProgressClick}
+        {/* Audio Player Controls - standalone player only; the cards drive
+            playback from the dropdown rows above. */}
+        {showTransportControls && (
+          <div className="flex items-center gap-4">
+            {/* Play/Pause Button */}
+            <button
+              onClick={togglePlayPause}
+              disabled={isLoadingAudio}
+              className={`w-12 h-12 flex items-center justify-center rounded-full bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-300 focus:ring-offset-2 flex-shrink-0 ${
+                isLoadingAudio ? "opacity-50 cursor-not-allowed" : ""
+              }`}
             >
+              {isLoadingAudio ? (
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : isPlaying ? (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-5 h-5 fill-current"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M6 22h4v-20h-4v20zm8-20v20h4v-20h-4z" />
+                </svg>
+              ) : (
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-5 h-5 fill-current"
+                  viewBox="0 0 24 24"
+                  style={{ transform: "translateX(1px)" }}
+                >
+                  <path d="M3 22v-20l18 10-18 10z" />
+                </svg>
+              )}
+            </button>
+
+            {/* Progress Bar */}
+            <div className="flex-1">
               <div
-                className="absolute top-0 left-0 h-full bg-gradient-to-r from-orange-400 to-orange-500 rounded-full transition-all duration-200 pointer-events-none"
-                style={{ width: `${progress}%` }}
-              />
-            </div>
-            {/* Time Display */}
-            {showTimeDisplay && (
-              <div className="flex justify-between items-center mt-1.5 px-1">
-                <span className="text-xs text-gray-600 dark:text-gray-400 font-mono">
-                  {formatTime(currentTime)}
-                </span>
-                <span className="text-xs text-gray-600 dark:text-gray-400 font-mono">
-                  {formatTime(duration)}
-                </span>
+                className="relative h-2 bg-gray-200 dark:bg-muted rounded-full overflow-hidden cursor-pointer"
+                onClick={handleProgressClick}
+              >
+                <div
+                  className="absolute top-0 left-0 h-full bg-gradient-to-r from-orange-400 to-orange-500 rounded-full transition-all duration-200 pointer-events-none"
+                  style={{ width: `${progress}%` }}
+                />
               </div>
-            )}
+              {/* Time Display */}
+              {showTimeDisplay && (
+                <div className="flex justify-between items-center mt-1.5 px-1">
+                  <span className="text-xs text-gray-600 dark:text-gray-400 font-mono">
+                    {formatTime(currentTime)}
+                  </span>
+                  <span className="text-xs text-gray-600 dark:text-gray-400 font-mono">
+                    {formatTime(duration)}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         <audio
           ref={audioRef}
