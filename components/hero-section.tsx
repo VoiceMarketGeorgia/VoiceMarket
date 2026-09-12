@@ -20,11 +20,11 @@ export function HeroSection() {
       <HeroActorWall />
 
       {/* Dark Overlay for Better Text Readability */}
-      <div className="absolute inset-0 bg-black/55" />
+      <div className="absolute inset-0 bg-black/35" />
 
       {/* Warm cinematic light + vignette */}
-      <div className="absolute inset-0 bg-gradient-to-b from-orange-500/25 via-transparent to-black/70" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.15)_30%,rgba(0,0,0,0.75)_100%)]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-orange-500/20 via-transparent to-black/55" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.08)_30%,rgba(0,0,0,0.55)_100%)]" />
 
       {/* Content Container */}
       <div className="relative z-10 container mx-auto px-4 pt-16 pb-20 text-center">
