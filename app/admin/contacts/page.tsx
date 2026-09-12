@@ -13,12 +13,15 @@ import {
 } from "@/components/ui/select";
 import { ContactSubmission } from "@/lib/supabase";
 import { Calendar, Mail, MessageSquare, User } from "lucide-react";
+import { toErrorMessage } from "@/lib/error-message";
+import { AdminError } from "@/components/admin/admin-error";
 import { createSupabaseClient } from "@/lib/supabase";
 
 export default function AdminContactsPage() {
   const [contacts, setContacts] = useState<ContactSubmission[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
+  const [pageError, setPageError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadContacts() {
@@ -37,6 +40,9 @@ export default function AdminContactsPage() {
         setContacts(data || []);
       } catch (error) {
         console.error("Error loading contacts:", error);
+        setPageError(
+          `შეტყობინებების ჩატვირთვა ვერ მოხერხდა: ${toErrorMessage(error)}`
+        );
       } finally {
         setLoading(false);
       }
@@ -100,6 +106,7 @@ export default function AdminContactsPage() {
       );
     } catch (error) {
       console.error("Error updating contact status:", error);
+      setPageError(`სტატუსის შეცვლა ვერ მოხერხდა: ${toErrorMessage(error)}`);
     }
   };
 
@@ -123,6 +130,8 @@ export default function AdminContactsPage() {
   if (loading) {
     return (
       <div className="space-y-4 md:space-y-6 px-2 md:px-0">
+      <AdminError message={pageError} onDismiss={() => setPageError(null)} />
+
         <h1 className="text-2xl md:text-3xl font-bold">შეტყობინებები</h1>
         <div className="text-center py-8">
           <p className="text-muted-foreground text-sm md:text-base">

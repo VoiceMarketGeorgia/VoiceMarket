@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { toErrorMessage } from "@/lib/error-message";
+import { AdminError } from "@/components/admin/admin-error";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,6 +30,7 @@ export default function AdminQuotesPage() {
   const [actors, setActors] = useState<VoiceActor[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<string>("all");
+  const [pageError, setPageError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -42,6 +45,7 @@ export default function AdminQuotesPage() {
 
         if (quotesError) {
           console.error("Error fetching quote requests:", quotesError);
+          throw quotesError;
         }
 
         // Load actors
@@ -51,12 +55,14 @@ export default function AdminQuotesPage() {
 
         if (actorsError) {
           console.error("Error fetching voice actors:", actorsError);
+          throw actorsError;
         }
 
         setQuotes(quotesData || []);
         setActors(actorsData || []);
       } catch (error) {
         console.error("Error loading data:", error);
+        setPageError(`შეკვეთების ჩატვირთვა ვერ მოხერხდა: ${toErrorMessage(error)}`);
       } finally {
         setLoading(false);
       }
@@ -124,6 +130,7 @@ export default function AdminQuotesPage() {
       );
     } catch (error) {
       console.error("Error updating quote status:", error);
+      setPageError(`სტატუსის შეცვლა ვერ მოხერხდა: ${toErrorMessage(error)}`);
     }
   };
 
@@ -141,6 +148,8 @@ export default function AdminQuotesPage() {
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-7xl">
+      <AdminError message={pageError} onDismiss={() => setPageError(null)} />
+
       <div className="mb-6">
         <h1 className="text-2xl md:text-4xl font-bold tracking-tight">
           შეკვეთები

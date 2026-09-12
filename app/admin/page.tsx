@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FileText, MessageSquare, Users, TrendingUp } from "lucide-react";
 import { createSupabaseClient } from "@/lib/supabase";
+import { toErrorMessage } from "@/lib/error-message";
+import { AdminError } from "@/components/admin/admin-error";
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
@@ -13,6 +15,7 @@ export default function AdminDashboard() {
     newContacts: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [pageError, setPageError] = useState<string | null>(null);
 
   useEffect(() => {
     async function loadStats() {
@@ -35,6 +38,7 @@ export default function AdminDashboard() {
         });
       } catch (error) {
         console.error("Error loading stats:", error);
+        setPageError(`სტატისტიკის ჩატვირთვა ვერ მოხერხდა: ${toErrorMessage(error)}`);
       } finally {
         setLoading(false);
       }
@@ -47,6 +51,8 @@ export default function AdminDashboard() {
     return (
       <div className="space-y-6">
         <h1 className="text-3xl font-bold">ადმინისტრაციის პანელი</h1>
+
+      <AdminError message={pageError} onDismiss={() => setPageError(null)} />
         <div className="text-center py-8">
           <p className="text-muted-foreground">იტვირთება...</p>
         </div>
