@@ -5,9 +5,14 @@ import {
   AnimationIcon,
   AudiobookIcon,
   CommercialIcon,
+  CopywritingIcon,
+  DubbingIcon,
   FilmIcon,
   IvrIcon,
   SeriesIcon,
+  SignLanguageIcon,
+  TextAdaptationIcon,
+  TranslationIcon,
 } from "@/components/service-icons";
 
 export function OurServices() {
@@ -19,6 +24,11 @@ export function OurServices() {
     { Icon: SeriesIcon, name: tr("სერიალი", "TV series") },
     { Icon: AnimationIcon, name: tr("ანიმაცია", "Animation") },
     { Icon: AudiobookIcon, name: tr("აუდიოწიგნი", "Audiobook") },
+    { Icon: DubbingIcon, name: tr("დუბლირება", "Dubbing") },
+    { Icon: CopywritingIcon, name: tr("ქოფირაითინგი", "Copywriting") },
+    { Icon: TextAdaptationIcon, name: tr("ტექსტის ადაპტაცია", "Text adaptation") },
+    { Icon: TranslationIcon, name: tr("თარგმნა", "Translation") },
+    { Icon: SignLanguageIcon, name: tr("ჟესტური თარგმანი", "Sign language") },
   ];
 
   // Four identical copies, so one copy is exactly 25% of the strip - that is

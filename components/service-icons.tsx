@@ -196,3 +196,133 @@ export function AudiobookIcon(props: IconProps) {
     </IconShell>
   );
 }
+
+/** დუბლირება — two voices over one frame: speech bubbles plus a mic. */
+export function DubbingIcon(props: IconProps) {
+  return (
+    <IconShell {...props}>
+      {(ids) => (
+        <>
+          <path
+            d="M8 12h26a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H19l-7 6v-6H8a3 3 0 0 1-3-3V15a3 3 0 0 1 3-3Z"
+            fill={`url(#${ids.soft})`}
+            fillOpacity={0.16}
+          />
+          <path d="M12 18h18M12 24h11" strokeWidth={2} />
+          <path
+            d="M44 24h11a4 4 0 0 1 4 4v10a4 4 0 0 1-4 4h-3v5l-6-5h-2a4 4 0 0 1-4-4V28a4 4 0 0 1 4-4Z"
+            fill={`url(#${ids.grad})`}
+            fillOpacity={0.22}
+          />
+          <rect x="47.5" y="28.5" width="6" height="9" rx="3" fill={`url(#${ids.grad})`} strokeWidth={1.6} />
+          <path d="M45.5 35a5 5 0 0 0 10 0" strokeWidth={1.8} />
+        </>
+      )}
+    </IconShell>
+  );
+}
+
+/** ქოფირაითინგი — a nib writing a line of copy. */
+export function CopywritingIcon(props: IconProps) {
+  return (
+    <IconShell {...props}>
+      {(ids) => (
+        <>
+          <path
+            d="M13 8h22l14 14v26a4 4 0 0 1-4 4H13a4 4 0 0 1-4-4V12a4 4 0 0 1 4-4Z"
+            fill={`url(#${ids.soft})`}
+            fillOpacity={0.14}
+          />
+          <path d="M34 8v11a3 3 0 0 0 3 3h11" strokeWidth={2} />
+          <path d="M16 32h13M16 39h9" strokeWidth={2} strokeOpacity={0.8} />
+          {/* nib */}
+          <path
+            d="m52 26 6 6-15 15-7.5 1.5L37 41l15-15Z"
+            fill={`url(#${ids.grad})`}
+            fillOpacity={0.28}
+          />
+          <path d="m48.5 29.5 6 6" strokeWidth={2} />
+        </>
+      )}
+    </IconShell>
+  );
+}
+
+/** ტექსტის ადაპტაცია — a document reshaped, shown by the cycle arrows. */
+export function TextAdaptationIcon(props: IconProps) {
+  return (
+    <IconShell {...props}>
+      {(ids) => (
+        <>
+          <rect x="7" y="7" width="26" height="32" rx="4" fill={`url(#${ids.soft})`} fillOpacity={0.14} />
+          <path d="M13 16h14M13 23h14M13 30h9" strokeWidth={2} />
+          <rect x="31" y="25" width="26" height="32" rx="4" fill={`url(#${ids.grad})`} fillOpacity={0.16} />
+          <path d="M37 34h14M37 41h14M37 48h9" strokeWidth={2} strokeOpacity={0.85} />
+          {/* adaptation cycle */}
+          <path d="M45 14a9 9 0 0 1 9 9" strokeWidth={2.2} />
+          <path d="m41.5 17.5 3.5-4 4 3.5" strokeWidth={2.2} />
+          <path d="M23 50a9 9 0 0 1-9-9" strokeWidth={2.2} />
+          <path d="m26.5 46.5-3.5 4-4-3.5" strokeWidth={2.2} />
+        </>
+      )}
+    </IconShell>
+  );
+}
+
+/** თარგმნა — a Latin A and a Georgian ა across a globe. */
+export function TranslationIcon(props: IconProps) {
+  return (
+    <IconShell {...props}>
+      {(ids) => (
+        <>
+          <circle cx="32" cy="32" r="24" fill={`url(#${ids.soft})`} fillOpacity={0.12} />
+          <path d="M32 8c6 7 6 41 0 48M32 8c-6 7-6 41 0 48" strokeWidth={1.8} strokeOpacity={0.55} />
+          <path d="M9 24h46M9 40h46" strokeWidth={1.8} strokeOpacity={0.55} />
+          <text
+            x="21"
+            y="38"
+            textAnchor="middle"
+            fontSize="19"
+            fontWeight="700"
+            fill={`url(#${ids.grad})`}
+            stroke="none"
+            fontFamily="Arial, Helvetica, sans-serif"
+          >
+            A
+          </text>
+          <text
+            x="43"
+            y="38"
+            textAnchor="middle"
+            fontSize="19"
+            fontWeight="700"
+            fill={`url(#${ids.grad})`}
+            stroke="none"
+            fontFamily="Arial, Helvetica, sans-serif"
+          >
+            ა
+          </text>
+        </>
+      )}
+    </IconShell>
+  );
+}
+
+/** ჟესტური თარგმანი — a signing hand with motion marks. */
+export function SignLanguageIcon(props: IconProps) {
+  return (
+    <IconShell {...props}>
+      {(ids) => (
+        <>
+          <path
+            d="M24 34V13a3.5 3.5 0 0 1 7 0v17V9a3.5 3.5 0 0 1 7 0v21V13.5a3.5 3.5 0 0 1 7 0V34c0 11-6.5 20-16 20-7 0-11-4-13.5-9.5l-3.5-7.5a3.6 3.6 0 0 1 5.8-4.1L24 38"
+            fill={`url(#${ids.soft})`}
+            fillOpacity={0.16}
+          />
+          <path d="M8 14l-3.5-3.5M13 9.5 11.5 5M4 22H0.5" strokeWidth={2.2} strokeOpacity={0.85} />
+          <path d="M56 14l3.5-3.5M51 9.5 52.5 5" strokeWidth={2.2} strokeOpacity={0.85} />
+        </>
+      )}
+    </IconShell>
+  );
+}
