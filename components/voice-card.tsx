@@ -1,4 +1,9 @@
+"use client";
+
+import { Heart } from "lucide-react";
 import CardAudioPlayer from "./card-audio-player";
+import { useShortlist } from "@/hooks/use-shortlist";
+import { useLanguage } from "@/components/language-provider";
 
 export interface AudioSample {
   id: string;
@@ -44,6 +49,10 @@ export function VoiceCard({
   onTogglePlay,
   onClick,
 }: VoiceCardProps) {
+  const { tr } = useLanguage();
+  const { has, toggle } = useShortlist();
+  const isMarked = has(talent.id);
+
   return (
     <div
       key={talent.id}
@@ -69,6 +78,33 @@ export function VoiceCard({
             {talent.id.padStart(2, "0")}
           </div>
         </div>
+
+        {/* Mark this voice - stops propagation so it never opens the profile */}
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            toggle(talent.id);
+          }}
+          aria-pressed={isMarked}
+          title={
+            isMarked
+              ? tr("კალათიდან ამოშლა", "Remove from selection")
+              : tr("მოინიშნე ხმა", "Mark this voice")
+          }
+          aria-label={
+            isMarked
+              ? tr("კალათიდან ამოშლა", "Remove from selection")
+              : tr("მოინიშნე ხმა", "Mark this voice")
+          }
+          className={`absolute right-3 top-3 z-30 flex h-10 w-10 items-center justify-center rounded-full backdrop-blur-sm transition-all duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-orange-400 ${
+            isMarked
+              ? "bg-orange-500 text-white shadow-lg shadow-orange-500/40"
+              : "bg-black/40 text-white hover:bg-black/60"
+          }`}
+        >
+          <Heart className={`h-5 w-5 ${isMarked ? "fill-current" : ""}`} />
+        </button>
       </div>
 
       {/* Audio Player Section */}
