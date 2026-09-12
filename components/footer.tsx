@@ -20,8 +20,13 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-3 md:justify-items-center">
           <div className="flex flex-col gap-2">
             <Link href="/" className="flex items-center gap-2">
-              <BrandMark className="h-7 w-7 text-orange-500" />
-              <span className="text-xl font-bold">VoiceMarket</span>
+              <BrandMark className="h-8 w-8 text-gray-900 dark:text-white" />
+              <span className="text-xl font-bold">
+                Voice
+                <span className="bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">
+                  market.ge
+                </span>
+              </span>
             </Link>
             <p className="text-sm text-muted-foreground">
               {tr(
