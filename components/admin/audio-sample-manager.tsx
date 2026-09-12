@@ -210,7 +210,7 @@ export function AudioSampleManager({
                 onRemove={() => setNewSample((sample) => ({ ...sample, audio_url: "" }))}
                 folder={actorId}
                 dirOverride="audios"
-                fileName={`${actorId}.${samples.length + 1}.wav`}
+                fileName={`${actorId}.${samples.length + 1}`}
                 placeholder="აუდიო ფაილის ატვირთვა"
               />
             </div>
@@ -370,7 +370,7 @@ function EditSampleForm({
           onRemove={() => setEditedSample((current) => ({ ...current, audio_url: "" }))}
           folder={sample.sample_id.split(".")[0]}
           dirOverride="audios"
-          fileName={`${sample.sample_id}.wav`}
+          fileName={`${sample.sample_id}`}
           placeholder="აუდიო ფაილის შეცვლა"
         />
       </div>

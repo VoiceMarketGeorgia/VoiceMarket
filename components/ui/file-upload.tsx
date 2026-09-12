@@ -218,8 +218,8 @@ export function AudioUpload(props: Omit<FileUploadProps, 'bucket'>) {
       <FileUpload
       {...props}
         bucket="audio-samples"
-      accept={{ 'audio/*': ['.wav'] }}
-      maxSize={10 * 1024 * 1024} // 10MB for audio
+      accept={{ 'audio/*': ['.mp3', '.wav', '.ogg'] }}
+      maxSize={50 * 1024 * 1024} // 50MB - a minute of WAV is already ~10MB
     />
   )
 }

@@ -1,6 +1,11 @@
 // Supabase Storage file upload utility
 
-import { supabase } from './supabase'
+import { createSupabaseClient } from './supabase'
+
+// Uploads happen from the admin panel only. Use the session-carrying client so
+// storage sees the signed-in admin rather than the anonymous role - otherwise
+// the buckets have to stay writable by anyone holding the public anon key.
+const supabase = createSupabaseClient()
 
 export interface UploadResult {
   url: string
@@ -23,7 +28,8 @@ const DEFAULT_OPTIONS: Partial<FileUploadOptions> = {
 }
 
 const IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
-const AUDIO_TYPES = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg', 'audio/m4a']
+// Kept in step with what the `audios` storage bucket actually accepts.
+const AUDIO_TYPES = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg']
 
 // Map bucket names to Supabase storage buckets
 const BUCKET_MAP = {
@@ -64,16 +70,26 @@ export async function uploadFile(
     const bucketName = BUCKET_MAP[options.bucket]
     const timestamp = Date.now()
     const randomStr = Math.random().toString(36).slice(2, 8)
-    const ext = file.name.split('.').pop()
-    const fileName = options.fileName || `${timestamp}-${randomStr}.${ext}`
+    const ext = (file.name.split('.').pop() || 'bin').toLowerCase()
+
+    // Callers pass a stable base name (e.g. the actor id) so each actor keeps
+    // one predictable file. Any extension they include is dropped in favour of
+    // the uploaded file's real one - otherwise a PNG would be stored as .jpg.
+    const baseName = options.fileName
+      ? options.fileName.replace(/\.[^.]+$/, '')
+      : `${timestamp}-${randomStr}`
+    const fileName = `${baseName}.${ext}`
     const filePath = options.folder ? `${options.folder}/${fileName}` : fileName
 
-    // Upload to Supabase Storage
+    // Upload to Supabase Storage.
+    // upsert: replacing an actor's photo or a sample's audio reuses the same
+    // path, and without this every replacement failed with "resource already
+    // exists".
     const { data, error } = await supabase.storage
       .from(bucketName)
       .upload(filePath, file, {
         cacheControl: '3600',
-        upsert: false
+        upsert: true
       })
 
     if (error) {
@@ -85,13 +101,14 @@ export async function uploadFile(
       }
     }
 
-    // Get public URL
+    // Get public URL. A version marker is appended because the path is reused
+    // on replacement and the CDN would otherwise keep serving the old file.
     const { data: { publicUrl } } = supabase.storage
       .from(bucketName)
       .getPublicUrl(filePath)
 
     return {
-      url: publicUrl,
+      url: `${publicUrl}?v=${timestamp}`,
       path: filePath
     }
   } catch (error) {
