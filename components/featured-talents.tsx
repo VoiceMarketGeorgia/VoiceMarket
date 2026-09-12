@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { VoiceCard, type AudioSample, type Talent } from "./voice-card";
 import {
@@ -10,6 +9,7 @@ import {
   convertToTalent,
 } from "@/lib/supabase-queries";
 import { useLanguage } from "@/components/language-provider";
+import { ListenAllButton } from "@/components/listen-all-button";
 import {
   buildAudioCategoryMap,
   getCategoryIconName,
@@ -102,12 +102,7 @@ export function FeaturedTalents() {
               ))}
             </div>
             <div className="mt-10 text-center">
-              <Link
-                href="/talents"
-                className="inline-flex rounded-full border border-gray-300 bg-white px-8 py-3 text-gray-700 shadow-md transition-all duration-300 hover:border-orange-500 hover:bg-orange-500 hover:text-white hover:shadow-lg dark:border-border dark:bg-card dark:text-foreground"
-              >
-                {tr("იხილეთ ყველა მსახიობი", "View all voice actors")}
-              </Link>
+              <ListenAllButton />
             </div>
           </>
         )}

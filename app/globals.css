@@ -120,6 +120,164 @@
     }
   }
 
+  /* --- Headline CTA: louder than the per-card listen buttons --- */
+  .listen-all-button {
+    background: linear-gradient(
+      100deg,
+      #c2410c 0%,
+      #f97316 12%,
+      #fbbf24 24%,
+      #f97316 36%,
+      #e11d8f 48%,
+      #7c3aed 60%,
+      #e11d8f 72%,
+      #f97316 84%,
+      #c2410c 100%
+    );
+    background-size: 300% 100%;
+    animation:
+      listen-all-flow 5s linear infinite,
+      listen-all-glow 2.4s ease-in-out infinite;
+  }
+
+  /* Specular sweep on top of the flowing gradient. */
+  .listen-all-button::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    background: linear-gradient(
+      105deg,
+      transparent 35%,
+      rgb(255 255 255 / 55%) 50%,
+      transparent 65%
+    );
+    background-size: 250% 100%;
+    background-position: 200% 0;
+    animation: listen-all-shine 3.4s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .listen-all-waves {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .listen-all-wave path {
+    fill: none;
+    stroke: #fff;
+    vector-effect: non-scaling-stroke;
+  }
+
+  .listen-all-wave--back path {
+    stroke-width: 2;
+    opacity: 0.35;
+  }
+
+  .listen-all-wave--front path {
+    stroke-width: 1.5;
+    opacity: 0.55;
+  }
+
+  /* Each group shifts by exactly one wave period, so the loop is seamless. */
+  .listen-all-wave--back {
+    animation: listen-all-wave-back 2.6s linear infinite;
+  }
+
+  .listen-all-wave--front {
+    animation: listen-all-wave-front 1.8s linear infinite;
+  }
+
+  .listen-all-bar {
+    display: block;
+    border-radius: 9999px;
+    background: rgb(255 255 255 / 90%);
+    transform-origin: bottom;
+    animation: listen-all-eq 0.9s ease-in-out infinite;
+  }
+
+  .listen-all-bar:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+
+  .listen-all-bar:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+
+  .listen-all-bar:nth-child(4) {
+    animation-delay: 0.45s;
+  }
+
+  @keyframes listen-all-flow {
+    from {
+      background-position: 0% 0;
+    }
+    to {
+      background-position: -300% 0;
+    }
+  }
+
+  @keyframes listen-all-shine {
+    0% {
+      background-position: 200% 0;
+    }
+    60%,
+    100% {
+      background-position: -100% 0;
+    }
+  }
+
+  @keyframes listen-all-glow {
+    0%,
+    100% {
+      box-shadow: 0 10px 30px rgb(249 115 22 / 45%);
+    }
+    50% {
+      box-shadow: 0 16px 46px rgb(225 29 143 / 55%);
+    }
+  }
+
+  @keyframes listen-all-wave-back {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50px);
+    }
+  }
+
+  @keyframes listen-all-wave-front {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-36px);
+    }
+  }
+
+  @keyframes listen-all-eq {
+    0%,
+    100% {
+      transform: scaleY(0.5);
+    }
+    50% {
+      transform: scaleY(1);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .listen-all-button,
+    .listen-all-button::after,
+    .listen-all-wave,
+    .listen-all-bar {
+      animation: none;
+    }
+  }
+
   /* --- Hero: drifting wall of blurred voice-actor portraits --- */
   .hero-actor-wall {
     position: absolute;
@@ -144,7 +302,7 @@
     will-change: transform;
     /* Blurring the whole column keeps this to one composited layer per column
        instead of one per portrait, which matters on mid-range phones. */
-    filter: blur(8px) saturate(120%) contrast(108%) brightness(80%);
+    filter: blur(5px) saturate(120%) contrast(108%) brightness(95%);
   }
 
   .hero-actor-tile {
@@ -176,7 +334,7 @@
 
   @media (min-width: 768px) {
     .hero-actor-column {
-      filter: blur(11px) saturate(120%) contrast(108%) brightness(78%);
+      filter: blur(7px) saturate(120%) contrast(108%) brightness(92%);
     }
   }
 
