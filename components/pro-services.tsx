@@ -74,8 +74,13 @@ export function ProServices() {
               "Pricing for these services is agreed individually, per project."
             )}
           </p>
-          <Link href="/contact">
-            <Button size="lg" className="bg-orange-500 hover:bg-orange-600">
+          <Link href="/contact" className="inline-flex max-w-full">
+            {/* Wraps on phones: the tall Georgian label is wider than the card,
+                and the default button is single-line at a fixed height. */}
+            <Button
+              size="lg"
+              className="h-auto min-h-11 max-w-full whitespace-normal bg-orange-500 px-6 py-3 text-center leading-snug hover:bg-orange-600"
+            >
               {tr("დაგვიკავშირდი პროექტისთვის", "Talk to us about your project")}
             </Button>
           </Link>

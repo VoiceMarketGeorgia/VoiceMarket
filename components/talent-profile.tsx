@@ -106,13 +106,15 @@ export function TalentProfile({ id }: TalentProfileProps) {
       <div className="relative h-[250px] w-full overflow-hidden rounded-xl md:h-[350px]">
         <Image src={talent.image || "/placeholder.svg"} alt={talent.name} fill className="object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/35 to-transparent" />
-        <div className="absolute bottom-0 left-0 z-10 p-6 md:p-8">
-          <div className="flex items-end gap-6">
-            <div className="relative h-[110px] w-[110px] overflow-hidden rounded-xl border-4 border-background md:h-[150px] md:w-[150px]">
+        {/* Spans the full width (inset-x-0) so the name can wrap: with only a
+            left edge, the tall Georgian name ran past the photo on phones. */}
+        <div className="absolute inset-x-0 bottom-0 z-10 p-4 sm:p-6 md:p-8">
+          <div className="flex items-end gap-4 sm:gap-6">
+            <div className="relative h-[84px] w-[84px] shrink-0 overflow-hidden rounded-xl border-4 border-background sm:h-[110px] sm:w-[110px] md:h-[150px] md:w-[150px]">
               <Image src={talent.image || "/placeholder.svg"} alt={talent.name} fill className="object-cover" />
             </div>
-            <div className="text-white">
-              <h1 className="text-3xl font-bold md:text-4xl">
+            <div className="min-w-0 text-white">
+              <h1 className="text-2xl font-bold sm:text-3xl md:text-4xl">
                 {tr("მსახიობი", "Voice actor")} #{talent.id}
               </h1>
               <p className="text-white/80">
@@ -160,9 +162,15 @@ export function TalentProfile({ id }: TalentProfileProps) {
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="demos">{tr("ხმოვანი დემო", "Voice demos")}</TabsTrigger>
-              <TabsTrigger value="pricing">{tr("ფასის კალკულატორი", "Price calculator")}</TabsTrigger>
+            {/* Labels may wrap: two tall Georgian labels do not fit side by
+                side on narrow phones at the default single-line height. */}
+            <TabsList className="grid h-auto w-full grid-cols-2">
+              <TabsTrigger value="demos" className="h-full whitespace-normal text-center leading-tight">
+                {tr("ხმოვანი დემო", "Voice demos")}
+              </TabsTrigger>
+              <TabsTrigger value="pricing" className="h-full whitespace-normal text-center leading-tight">
+                {tr("ფასის კალკულატორი", "Price calculator")}
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="demos" className="space-y-6 pt-6">
