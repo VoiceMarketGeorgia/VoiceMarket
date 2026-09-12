@@ -267,7 +267,9 @@
     }
 
     .listen-all__label {
-      white-space: nowrap;
+      /* No nowrap here: the pill can sit in a narrow box even on a wide
+         screen (the empty shortlist card), where a forced single line was
+         cut off. It still renders on one line whenever there is room. */
       font-size: 1.5rem;
     }
 

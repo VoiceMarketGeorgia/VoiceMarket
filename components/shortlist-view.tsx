@@ -220,7 +220,7 @@ export function ShortlistView() {
       )}
 
       {!loading && !error && selected.length === 0 && (
-        <div className="mx-auto max-w-md rounded-xl border bg-card p-10 text-center">
+        <div className="mx-auto max-w-2xl rounded-xl border bg-card px-6 py-10 text-center sm:p-10">
           <p className="text-muted-foreground">
             {tr(
               "ჯერ არცერთი ხმა არ მოგინიშნავთ. დააჭირეთ გულის ღილაკს მსახიობის ფოტოზე.",
