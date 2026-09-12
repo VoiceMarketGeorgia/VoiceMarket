@@ -18,8 +18,9 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        'dachi': ['var(--font-dachi)', 'cursive', 'fantasy'],
-        'sans': ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        // Georgian face first: its unicode-range limits it to Georgian, so
+        // Latin falls through to --font-sans.
+        'sans': ['var(--font-georgian)', 'var(--font-sans)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",

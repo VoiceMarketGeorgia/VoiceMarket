@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Check, Download, Link2, Loader2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,6 +11,7 @@ import {
   convertToTalent,
 } from "@/lib/supabase-queries";
 import { useLanguage } from "@/components/language-provider";
+import { ListenAllButton } from "@/components/listen-all-button";
 import {
   buildAudioCategoryMap,
   getCategoryIconName,
@@ -227,11 +227,7 @@ export function ShortlistView() {
               "You have not marked any voices yet. Tap the heart on a voice actor's photo."
             )}
           </p>
-          <Link href="/talents">
-            <Button className="mt-6 bg-orange-500 hover:bg-orange-600">
-              {tr("მოისმინე ყველა ხმა", "Listen to every voice")}
-            </Button>
-          </Link>
+          <ListenAllButton className="mt-6" />
         </div>
       )}
 

@@ -2,17 +2,18 @@ import { useId } from "react";
 import type { SVGProps } from "react";
 
 /**
- * VoiceMarket brand mark: a studio microphone wearing headphones, with sound
- * waves either side.
+ * VoiceMarket brand mark: a studio microphone wearing headphones, sitting in
+ * a U-shaped cradle on a stand.
  *
- * The headphones, stand and grille follow `currentColor` so the mark works on
- * both the light and the dark theme (white on dark, near-black on light). Only
- * the capsule keeps its fixed orange-to-black gradient, exactly as in the
- * brand artwork.
+ * The headphones, grille bars, cradle and stand follow `currentColor`, so the
+ * mark reads on both themes (white on dark, near-black on light). The capsule
+ * keeps its fixed orange-to-black gradient and glow from the brand artwork.
  */
 export function BrandMark({ className, ...props }: SVGProps<SVGSVGElement>) {
   const uid = useId().replace(/:/g, "");
-  const capsuleGradient = `brand-capsule-${uid}`;
+  const capsuleFill = `brand-capsule-${uid}`;
+  const capsuleGloss = `brand-gloss-${uid}`;
+  const glow = `brand-glow-${uid}`;
 
   return (
     <svg
@@ -25,58 +26,76 @@ export function BrandMark({ className, ...props }: SVGProps<SVGSVGElement>) {
       {...props}
     >
       <defs>
-        <linearGradient id={capsuleGradient} x1="32" y1="12" x2="32" y2="46" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#ffb347" />
-          <stop offset="30%" stopColor="#f9701a" />
-          <stop offset="52%" stopColor="#e23c10" />
-          {/* Hard-ish break into the dark lower half of the capsule */}
-          <stop offset="58%" stopColor="#141414" />
+        <linearGradient id={capsuleFill} x1="32" y1="8.8" x2="32" y2="53.4" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#ffb13b" />
+          <stop offset="30%" stopColor="#ff7a1a" />
+          <stop offset="52%" stopColor="#e8401c" />
+          {/* Hard break into the black lower half, as in the artwork */}
+          <stop offset="56%" stopColor="#161616" />
           <stop offset="100%" stopColor="#000000" />
         </linearGradient>
+        <linearGradient id={capsuleGloss} x1="0" y1="8.8" x2="0" y2="34" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor="#ffffff" stopOpacity={0.35} />
+          <stop offset="100%" stopColor="#ffffff" stopOpacity={0} />
+        </linearGradient>
+        <filter id={glow} x="-60%" y="-40%" width="220%" height="180%">
+          <feGaussianBlur stdDeviation="3.2" />
+        </filter>
       </defs>
 
-      {/* Sound waves */}
-      <g
-        stroke="#f97316"
-        strokeWidth={2.2}
-        strokeLinecap="round"
-        fill="none"
-      >
-        <path d="M12 27q-2.5 5 0 10" opacity={0.95} />
-        <path d="M8.5 24q-4 8 0 16" opacity={0.7} />
-        <path d="M5 21q-5.5 11 0 22" opacity={0.45} />
-        <path d="M52 27q2.5 5 0 10" opacity={0.95} />
-        <path d="M55.5 24q4 8 0 16" opacity={0.7} />
-        <path d="M59 21q5.5 11 0 22" opacity={0.45} />
-      </g>
+      {/* Warm glow behind the capsule */}
+      <rect
+        x="20.8"
+        y="8.8"
+        width="23.3"
+        height="28"
+        rx="11.65"
+        fill="#ff6a1a"
+        opacity={0.55}
+        filter={`url(#${glow})`}
+      />
 
-      {/* Capsule */}
-      <rect x="25" y="12" width="14" height="30" rx="7" fill={`url(#${capsuleGradient})`} />
-
-      {/* Grille slots */}
-      <g fill="currentColor">
-        <rect x="27.6" y="20.6" width="3.8" height="2" rx="1" />
-        <rect x="33.4" y="20.6" width="5" height="2" rx="1" />
-        <rect x="26.4" y="25.4" width="5" height="2" rx="1" />
-        <rect x="33.4" y="25.4" width="3.8" height="2" rx="1" />
-      </g>
-
-      {/* Headband + stand */}
-      <g
+      {/* Headband */}
+      <path
+        d="M11.3 22.5v-4.5a20.7 16 0 0 1 41.4 0v4.5"
         stroke="currentColor"
-        strokeWidth={3.2}
+        strokeWidth={2.8}
         strokeLinecap="round"
-        fill="none"
-      >
-        <path d="M17 33v-5a15 15 0 0 1 30 0v5" />
-        <path d="M32 43v10" />
-        <path d="M24 55h16" />
-      </g>
+      />
 
       {/* Ear cups */}
       <g fill="currentColor">
-        <rect x="13" y="27" width="7.5" height="15" rx="3.75" />
-        <rect x="43.5" y="27" width="7.5" height="15" rx="3.75" />
+        <rect x="7.2" y="19.6" width="8.2" height="16.6" rx="4.1" />
+        <rect x="48.6" y="19.6" width="8.2" height="16.6" rx="4.1" />
+      </g>
+
+      {/* Capsule, with a faint rim so the black half still reads on dark */}
+      <rect
+        x="20.8"
+        y="8.8"
+        width="23.3"
+        height="44.6"
+        rx="11.65"
+        fill={`url(#${capsuleFill})`}
+        stroke="#ffffff"
+        strokeOpacity={0.12}
+        strokeWidth={0.6}
+      />
+      <rect x="23.5" y="10.5" width="7" height="22" rx="3.5" fill={`url(#${capsuleGloss})`} />
+
+      {/* Grille bars - they run past the capsule edges, as in the artwork */}
+      <g fill="currentColor">
+        <rect x="17.7" y="23.8" width="10.2" height="2.6" rx="1.3" />
+        <rect x="35.9" y="23.8" width="10.2" height="2.6" rx="1.3" />
+        <rect x="17.7" y="29.6" width="10.2" height="2.6" rx="1.3" />
+        <rect x="35.9" y="29.6" width="10.2" height="2.6" rx="1.3" />
+      </g>
+
+      {/* Cradle, stem and base */}
+      <g stroke="currentColor" strokeWidth={2.6} strokeLinecap="round">
+        <path d="M17.9 35v7.4a14.4 14.4 0 0 0 28.8 0V35" />
+        <path d="M32.3 56.8v4.4" />
+        <path d="M22.2 61.4h20.2" />
       </g>
     </svg>
   );

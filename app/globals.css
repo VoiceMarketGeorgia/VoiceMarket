@@ -120,161 +120,152 @@
     }
   }
 
-  /* --- Headline CTA: louder than the per-card listen buttons --- */
-  .listen-all-button {
-    background: linear-gradient(
-      100deg,
-      #c2410c 0%,
-      #f97316 12%,
-      #fbbf24 24%,
-      #f97316 36%,
-      #e11d8f 48%,
-      #7c3aed 60%,
-      #e11d8f 72%,
-      #f97316 84%,
-      #c2410c 100%
-    );
-    background-size: 300% 100%;
-    animation:
-      listen-all-flow 5s linear infinite,
-      listen-all-glow 2.4s ease-in-out infinite;
+  /* --- Headline CTA: dark glass pill with a glowing edge --- */
+  .listen-all {
+    isolation: isolate;
+    overflow: hidden;
+    /* Glass fill on the padding box, glowing gradient on the border box. */
+    border: 1.5px solid transparent;
+    background:
+      linear-gradient(180deg, rgb(30 22 20 / 92%), rgb(10 8 9 / 96%)) padding-box,
+      linear-gradient(
+          90deg,
+          #ff8a1f 0%,
+          #ff4d1a 22%,
+          rgb(255 140 50 / 35%) 50%,
+          #ff4d1a 78%,
+          #ffb13b 100%
+        )
+        border-box;
+    box-shadow:
+      0 0 22px rgb(255 100 30 / 30%),
+      0 10px 30px rgb(0 0 0 / 35%),
+      inset 0 1px 0 rgb(255 255 255 / 6%);
+    transition:
+      box-shadow 0.3s ease,
+      transform 0.3s ease;
   }
 
-  /* Specular sweep on top of the flowing gradient. */
-  .listen-all-button::after {
-    content: "";
+  .listen-all:hover {
+    transform: translateY(-1px);
+    box-shadow:
+      0 0 34px rgb(255 110 30 / 50%),
+      0 14px 36px rgb(0 0 0 / 40%),
+      inset 0 1px 0 rgb(255 255 255 / 8%);
+  }
+
+  .listen-all__bars {
     position: absolute;
-    inset: 0;
-    z-index: 5;
-    background: linear-gradient(
-      105deg,
-      transparent 35%,
-      rgb(255 255 255 / 55%) 50%,
-      transparent 65%
-    );
-    background-size: 250% 100%;
-    background-position: 200% 0;
-    animation: listen-all-shine 3.4s ease-in-out infinite;
+    inset: 10% 3.25rem 10% 3.75rem;
+    z-index: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     pointer-events: none;
+    opacity: 0.9;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
   }
 
-  .listen-all-waves {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
-    pointer-events: none;
-  }
-
-  .listen-all-wave path {
-    fill: none;
-    stroke: #fff;
-    vector-effect: non-scaling-stroke;
-  }
-
-  .listen-all-wave--back path {
-    stroke-width: 2;
-    opacity: 0.35;
-  }
-
-  .listen-all-wave--front path {
-    stroke-width: 1.5;
-    opacity: 0.55;
-  }
-
-  /* Each group shifts by exactly one wave period, so the loop is seamless. */
-  .listen-all-wave--back {
-    animation: listen-all-wave-back 2.6s linear infinite;
-  }
-
-  .listen-all-wave--front {
-    animation: listen-all-wave-front 1.8s linear infinite;
-  }
-
-  .listen-all-bar {
-    display: block;
+  .listen-all__bar {
+    width: 3px;
     border-radius: 9999px;
-    background: rgb(255 255 255 / 90%);
-    transform-origin: bottom;
-    animation: listen-all-eq 0.9s ease-in-out infinite;
+    background: linear-gradient(to top, rgb(217 52 15 / 55%), #ff7a1a 50%, rgb(255 193 90 / 70%));
+    box-shadow: 0 0 8px rgb(255 110 30 / 60%);
+    transform-origin: center;
+    animation-name: listen-all-eq;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
   }
 
-  .listen-all-bar:nth-child(2) {
-    animation-delay: 0.15s;
+  .listen-all__play {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: 9999px;
+    color: #fff;
+    border: 2px solid transparent;
+    background:
+      radial-gradient(circle at 50% 40%, #1c1c1c, #050505) padding-box,
+      linear-gradient(135deg, #ffb13b, #ff4d1a 55%, #c81e0f) border-box;
+    box-shadow: 0 0 14px rgb(255 90 30 / 45%);
+    transition: transform 0.3s ease;
   }
 
-  .listen-all-bar:nth-child(3) {
-    animation-delay: 0.3s;
+  .listen-all:hover .listen-all__play {
+    transform: scale(1.06);
   }
 
-  .listen-all-bar:nth-child(4) {
-    animation-delay: 0.45s;
+  .listen-all__label {
+    position: relative;
+    z-index: 1;
+    white-space: nowrap;
+    font-size: 1rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    /* Latin only - Georgian is already tall via the site font. */
+    text-transform: uppercase;
+    color: #fff;
+    text-shadow: 0 1px 10px rgb(0 0 0 / 70%);
   }
 
-  @keyframes listen-all-flow {
-    from {
-      background-position: 0% 0;
-    }
-    to {
-      background-position: -300% 0;
-    }
+  .listen-all__divider {
+    position: relative;
+    z-index: 1;
+    width: 1px;
+    height: 2rem;
+    background: rgb(255 255 255 / 18%);
   }
 
-  @keyframes listen-all-shine {
-    0% {
-      background-position: 200% 0;
-    }
-    60%,
-    100% {
-      background-position: -100% 0;
-    }
+  .listen-all__chevron {
+    position: relative;
+    z-index: 1;
+    color: rgb(255 255 255 / 80%);
+    transition: transform 0.3s ease;
   }
 
-  @keyframes listen-all-glow {
-    0%,
-    100% {
-      box-shadow: 0 10px 30px rgb(249 115 22 / 45%);
-    }
-    50% {
-      box-shadow: 0 16px 46px rgb(225 29 143 / 55%);
-    }
+  .listen-all:hover .listen-all__chevron {
+    transform: translateX(3px);
   }
 
-  @keyframes listen-all-wave-back {
-    from {
-      transform: translateX(0);
+  @media (min-width: 640px) {
+    .listen-all__play {
+      width: 4rem;
+      height: 4rem;
     }
-    to {
-      transform: translateX(-50px);
-    }
-  }
 
-  @keyframes listen-all-wave-front {
-    from {
-      transform: translateX(0);
+    .listen-all__label {
+      font-size: 1.5rem;
     }
-    to {
-      transform: translateX(-36px);
+
+    .listen-all__divider {
+      height: 2.5rem;
+    }
+
+    .listen-all__bars {
+      inset: 10% 4.25rem 10% 5rem;
     }
   }
 
   @keyframes listen-all-eq {
-    0%,
-    100% {
-      transform: scaleY(0.5);
+    from {
+      transform: scaleY(0.35);
     }
-    50% {
+    to {
       transform: scaleY(1);
     }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .listen-all-button,
-    .listen-all-button::after,
-    .listen-all-wave,
-    .listen-all-bar {
+    .listen-all__bar {
       animation: none;
+      transform: scaleY(0.7);
     }
   }
 
@@ -351,7 +342,6 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
-    font-family: Arial, Helvetica, sans-serif;
+    @apply bg-background text-foreground font-sans;
   }
 }

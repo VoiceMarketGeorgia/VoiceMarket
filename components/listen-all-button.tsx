@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { ChevronRight, Play } from "lucide-react";
 import { useLanguage } from "@/components/language-provider";
 
 interface ListenAllButtonProps {
@@ -9,44 +10,57 @@ interface ListenAllButtonProps {
 }
 
 /**
- * The headline call to action. Deliberately louder than the per-card
- * "მოისმინე" buttons: a faster gradient in a warmer-to-violet tone with
- * synthesiser waves drifting across it.
+ * Equaliser bar heights (percent of the bar area). A soft envelope - lower at
+ * the ends, peaking just right of centre - so the bars frame the label
+ * instead of competing with it.
+ */
+const BAR_HEIGHTS = Array.from({ length: 34 }, (_, index) => {
+  const position = index / 33;
+  const envelope = Math.sin(position * Math.PI) ** 1.4;
+  const texture = 0.55 + 0.45 * Math.abs(Math.sin(index * 1.7));
+  return Math.round(18 + 78 * envelope * texture);
+});
+
+/**
+ * The headline call to action: a dark glass pill with a glowing edge, a round
+ * play button and equaliser bars drifting behind the label.
  */
 export function ListenAllButton({ href = "/talents", className = "" }: ListenAllButtonProps) {
   const { tr } = useLanguage();
+  const label = tr("მოუსმინე ყველა ხმას", "Listen to every voice");
 
   return (
     <Link
       href={href}
-      className={`listen-all-button group relative inline-flex items-center justify-center gap-3 overflow-hidden rounded-full px-10 py-4 text-lg font-extrabold tracking-wide text-white shadow-xl focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-offset-2 ${className}`}
+      className={`listen-all group relative inline-flex items-center gap-3 rounded-full py-2.5 pl-2.5 pr-5 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 focus-visible:ring-offset-2 focus-visible:ring-offset-background sm:gap-5 sm:py-3 sm:pl-3 sm:pr-7 ${className}`}
     >
-      {/* Synthesiser waves: the path spans 1.5 viewBox widths and shifts by
-          exactly one period, so the drift never shows a seam. */}
-      <svg
-        className="listen-all-waves"
-        viewBox="0 0 100 40"
-        preserveAspectRatio="none"
-        aria-hidden="true"
-      >
-        <g className="listen-all-wave listen-all-wave--back">
-          <path d="M0 20 Q12.5 6 25 20 T50 20 T75 20 T100 20 T125 20 T150 20" />
-        </g>
-        <g className="listen-all-wave listen-all-wave--front">
-          <path d="M0 22 Q9 34 18 22 T36 22 T54 22 T72 22 T90 22 T108 22 T126 22 T144 22" />
-        </g>
-      </svg>
-
-      <span className="relative z-10 flex items-center gap-2 drop-shadow">
-        {/* Equaliser bars */}
-        <span className="flex h-5 items-end gap-[3px]" aria-hidden="true">
-          <span className="listen-all-bar h-2 w-[3px]" />
-          <span className="listen-all-bar h-4 w-[3px]" />
-          <span className="listen-all-bar h-3 w-[3px]" />
-          <span className="listen-all-bar h-5 w-[3px]" />
-        </span>
-        {tr("მოისმინე ყველა ხმა", "Listen to every voice")}
+      {/* Equaliser bars behind the label */}
+      <span className="listen-all__bars" aria-hidden="true">
+        {BAR_HEIGHTS.map((height, index) => (
+          <span
+            key={index}
+            className="listen-all__bar"
+            style={{
+              height: `${height}%`,
+              animationDelay: `${(index % 7) * -0.17}s`,
+              animationDuration: `${1.1 + (index % 5) * 0.14}s`,
+            }}
+          />
+        ))}
       </span>
+
+      <span className="listen-all__play" aria-hidden="true">
+        <Play className="h-5 w-5 translate-x-[1px] fill-current sm:h-7 sm:w-7" />
+      </span>
+
+      <span className="listen-all__label">{label}</span>
+
+      <span className="listen-all__divider" aria-hidden="true" />
+
+      <ChevronRight
+        className="listen-all__chevron h-5 w-5 sm:h-7 sm:w-7"
+        aria-hidden="true"
+      />
     </Link>
   );
 }
