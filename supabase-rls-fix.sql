@@ -99,8 +99,8 @@ CREATE POLICY "admin_manage_quotes" ON public.quote_requests
 -- ---------------------------------------------------------------------
 -- 5. Result - this prints below the editor when the script finishes
 --
--- Expect 11 rows. "roles" should read {authenticated} on every admin_*
--- policy, and {public} on the public_* ones.
+-- Expect 10 rows - two per table. "roles" should read {authenticated}
+-- on every admin_* policy, and {public} on the public_* ones.
 -- ---------------------------------------------------------------------
 SELECT tablename, policyname, cmd, roles
 FROM pg_policies
