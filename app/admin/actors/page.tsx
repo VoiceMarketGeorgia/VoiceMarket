@@ -60,6 +60,8 @@ import {
   EyeOff,
   Coins,
 } from "lucide-react";
+import { toErrorMessage } from "@/lib/error-message";
+import { AdminError } from "@/components/admin/admin-error";
 import {
   TALENT_GENDER_OPTIONS,
   TALENT_LANGUAGE_OPTIONS,
@@ -75,11 +77,8 @@ interface ActorFormData {
   photo_url: string;
   is_featured: boolean;
   is_active: boolean;
+  base_price: number;
   base_price_per_word: number;
-  rush_multiplier: number;
-  revision_price: number;
-  background_music_price: number;
-  sound_effects_price: number;
   audio_samples: AudioSample[];
 }
 
@@ -92,11 +91,8 @@ const INITIAL_FORM_DATA: ActorFormData = {
   photo_url: "",
   is_featured: false,
   is_active: true,
+  base_price: 500,
   base_price_per_word: 0.05,
-  rush_multiplier: 1.5,
-  revision_price: 50,
-  background_music_price: 25,
-  sound_effects_price: 30,
   audio_samples: [],
 };
 
@@ -113,6 +109,8 @@ export default function ActorsPage() {
     useState<VoiceActorWithPricing | null>(null);
   const [formData, setFormData] = useState<ActorFormData>(INITIAL_FORM_DATA);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // Failures used to be console-only, so the admin just saw "nothing happens".
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const loadActors = async () => {
     try {
@@ -153,6 +151,7 @@ export default function ActorsPage() {
   const handleCreateActor = async () => {
     try {
       setIsSubmitting(true);
+      setSubmitError(null);
 
       // Create the actor first
       const newActor = await createVoiceActor(formData);
@@ -184,6 +183,8 @@ export default function ActorsPage() {
       await loadActors();
     } catch (error) {
       console.error("Error creating actor:", error);
+      const message = toErrorMessage(error);
+      setSubmitError(`მსახიობის შექმნა ვერ მოხერხდა: ${message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -194,6 +195,7 @@ export default function ActorsPage() {
 
     try {
       setIsSubmitting(true);
+      setSubmitError(null);
 
       // Update the actor
       await updateVoiceActor(editingActor.id, formData);
@@ -237,6 +239,8 @@ export default function ActorsPage() {
       await loadActors();
     } catch (error) {
       console.error("Error updating actor:", error);
+      const message = toErrorMessage(error);
+      setSubmitError(`ცვლილების შენახვა ვერ მოხერხდა: ${message}`);
     } finally {
       setIsSubmitting(false);
     }
@@ -248,6 +252,8 @@ export default function ActorsPage() {
       await loadActors();
     } catch (error) {
       console.error("Error deleting actor:", error);
+      const message = toErrorMessage(error);
+      setSubmitError(`წაშლა ვერ მოხერხდა: ${message}`);
     }
   };
 
@@ -285,13 +291,10 @@ export default function ActorsPage() {
       gender: actor.gender || "Male",
       photo_url: actor.photo_url || actor.image_url || "",
       is_featured: actor.is_featured || false,
-      is_active: actor.is_active || true,
+      is_active: actor.is_active ?? true,
       // Read from actual database column names (price_per_word, etc.)
+      base_price: pricing?.base_price ?? 500,
       base_price_per_word: pricing?.price_per_word ?? 0.05,
-      rush_multiplier: pricing?.express_delivery_fee ?? 1.5,
-      revision_price: pricing?.revision_fee ?? 50,
-      background_music_price: pricing?.background_music_fee ?? 25,
-      sound_effects_price: pricing?.sound_effects_fee ?? 30,
       audio_samples: audioSamples,
     });
     setIsEditDialogOpen(true);
@@ -353,6 +356,7 @@ export default function ActorsPage() {
               onSubmit={handleCreateActor}
               isSubmitting={isSubmitting}
               submitLabel="მსახიობის შექმნა"
+              submitError={submitError}
             />
           </DialogContent>
         </Dialog>
@@ -539,6 +543,7 @@ export default function ActorsPage() {
             onSubmit={handleEditActor}
             isSubmitting={isSubmitting}
             submitLabel="ცვლილებების შენახვა"
+            submitError={submitError}
           />
         </DialogContent>
       </Dialog>
@@ -560,7 +565,8 @@ function ActorForm({
   onSubmit,
   isSubmitting,
   submitLabel,
-}: ActorFormProps) {
+  submitError,
+}: ActorFormProps & { submitError?: string | null }) {
   const handleLanguageChange = (language: string, checked: boolean) => {
     setFormData((current) => ({
       ...current,
@@ -572,6 +578,8 @@ function ActorForm({
 
   return (
     <div className="space-y-6">
+      <AdminError message={submitError ?? null} />
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="actor_id">მსახიობის ID</Label>
@@ -618,7 +626,7 @@ function ActorForm({
           folder={""}
           fileName={`${
             (formData.actor_id || "").replace(/^0+/, "") || "new"
-          }.jpg`}
+          }`}
           placeholder="ფოტოს ატვირთვა (გადმოიტანეთ ან დააკლიკეთ)"
         />
       </div>
@@ -667,7 +675,25 @@ function ActorForm({
         <h3 className="font-medium mb-4">ფასები</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label>ბაზისური ფასი (სიტყვაზე)</Label>
+            <Label>საწყისი ფასი (1 წუთამდე რგოლი)</Label>
+            <Input
+              type="number"
+              step="10"
+              min="0"
+              value={formData.base_price}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  base_price: parseFloat(e.target.value) || 0,
+                })
+              }
+            />
+            <p className="text-xs text-muted-foreground">
+              საიტზე გამოჩნდება როგორც „₾{formData.base_price}-დან“
+            </p>
+          </div>
+          <div className="space-y-2">
+            <Label>ფასი დამატებით სიტყვაზე (150 სიტყვის შემდეგ)</Label>
             <Input
               type="number"
               step="0.01"
@@ -677,63 +703,6 @@ function ActorForm({
                 setFormData({
                   ...formData,
                   base_price_per_word: parseFloat(e.target.value) || 0,
-                })
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>გადაუდებელი მუშაობის კოეფიციენტი</Label>
-            <Input
-              type="number"
-              step="0.1"
-              min="1"
-              value={formData.rush_multiplier}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  rush_multiplier: parseFloat(e.target.value) || 1,
-                })
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>შესწორების ფასი</Label>
-            <Input
-              type="number"
-              min="0"
-              value={formData.revision_price}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  revision_price: parseInt(e.target.value) || 0,
-                })
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>ფონური მუსიკის ფასი</Label>
-            <Input
-              type="number"
-              min="0"
-              value={formData.background_music_price}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  background_music_price: parseInt(e.target.value) || 0,
-                })
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>ხმოვანი ეფექტების ფასი</Label>
-            <Input
-              type="number"
-              min="0"
-              value={formData.sound_effects_price}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  sound_effects_price: parseInt(e.target.value) || 0,
                 })
               }
             />

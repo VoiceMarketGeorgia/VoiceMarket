@@ -633,11 +633,8 @@ export async function createVoiceActor(actorData: {
   photo_url: string
   is_featured: boolean
   is_active: boolean
+  base_price: number
   base_price_per_word: number
-  rush_multiplier: number
-  revision_price: number
-  background_music_price: number
-  sound_effects_price: number
 }): Promise<VoiceActor> {
   // First, create the voice actor
   const { data: actorResult, error: actorError } = await supabase
@@ -666,11 +663,11 @@ export async function createVoiceActor(actorData: {
     .insert({
       voice_actor_id: actorResult.id,
       // Map admin form fields to pricing table columns
-      price_per_word: actorData.base_price_per_word,
-      express_delivery_fee: actorData.rush_multiplier,
-      revision_fee: actorData.revision_price,
-      background_music_fee: actorData.background_music_price,
-      sound_effects_fee: actorData.sound_effects_price
+      base_price: actorData.base_price,
+      price_per_word: actorData.base_price_per_word
+      // express_delivery_fee / revision_fee / background_music_fee /
+      // sound_effects_fee are left to their column defaults: no calculator
+      // reads them any more, so the admin no longer sets them.
     })
 
   if (pricingError) {
@@ -694,11 +691,8 @@ export async function updateVoiceActor(
     photo_url: string
     is_featured: boolean
     is_active: boolean
+    base_price: number
     base_price_per_word: number
-    rush_multiplier: number
-    revision_price: number
-    background_music_price: number
-    sound_effects_price: number
   }
 ): Promise<VoiceActor> {
   // Update the voice actor
@@ -735,11 +729,8 @@ export async function updateVoiceActor(
   const pricingData = {
     voice_actor_id: actorId,
     // Map admin form fields to pricing table columns
+    base_price: actorData.base_price,
     price_per_word: actorData.base_price_per_word,
-    express_delivery_fee: actorData.rush_multiplier,
-    revision_fee: actorData.revision_price,
-    background_music_fee: actorData.background_music_price,
-    sound_effects_fee: actorData.sound_effects_price,
     updated_at: new Date().toISOString()
   }
 
