@@ -40,11 +40,13 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
+      <div className="container flex h-16 items-center justify-between gap-3 px-4 sm:px-8">
         <div className="flex items-center gap-2">
           <Link href="/" className="flex items-center gap-2">
             <BrandMark className="h-8 w-8 text-gray-900 dark:text-white" />
-            <span className="hidden text-xl font-bold min-[380px]:inline">
+            {/* Shown from 440px: below that, the wordmark plus the header
+                controls are wider than the screen and the page scrolls sideways. */}
+            <span className="hidden text-xl font-bold min-[440px]:inline">
               Voice
               <span className="bg-gradient-to-r from-orange-400 to-orange-600 bg-clip-text text-transparent">
                 market.ge
@@ -53,7 +55,9 @@ export function Header() {
           </Link>
         </div>
 
-        <nav className="hidden md:flex items-center gap-6">
+        {/* Full nav from lg (1024px): logo, links, and controls need ~864px,
+            so at tablet width (768px) the header overflowed the screen. */}
+        <nav className="hidden lg:flex items-center gap-6">
           {routes.map((route) => (
             <Link
               key={route.href}
@@ -86,13 +90,13 @@ export function Header() {
             )}
           </Link>
 
-          <Link href="/pricing">
-            <Button className="hidden md:inline-flex bg-orange-500 hover:bg-orange-600">
+          <Link href="/pricing" className="hidden lg:inline-flex">
+            <Button className="bg-orange-500 hover:bg-orange-600">
               {tr("შეკვეთა", "Order")}
             </Button>
           </Link>
           <Sheet open={isOpen} onOpenChange={setIsOpen}>
-            <SheetTrigger asChild className="md:hidden">
+            <SheetTrigger asChild className="lg:hidden">
               <Button variant="ghost" size="icon">
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">{tr("მენიუს გახსნა", "Open menu")}</span>

@@ -9,7 +9,7 @@ export default function ContactPage() {
   return (
     <div className="container py-10">
       <div className="text-center mb-10">
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+        <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">
           {tr("დაგვიკავშირდით", "Contact us")}
         </h1>
         <p className="mt-4 text-xl text-muted-foreground max-w-3xl mx-auto">

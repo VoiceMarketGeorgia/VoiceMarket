@@ -161,7 +161,7 @@ export function AllTalents() {
       <div className="container py-12">
         <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-center">
           <div>
-            <h1 className="mb-2 text-3xl font-bold text-gray-800 dark:text-foreground">
+            <h1 className="mb-2 text-2xl font-bold text-gray-800 dark:text-foreground">
               {tr("ჩვენი მსახიობები", "Our voice actors")}
             </h1>
             {!error && (

@@ -124,6 +124,9 @@
   .listen-all {
     isolation: isolate;
     overflow: hidden;
+    /* Never wider than its container. Without this the label forced the pill
+       past the screen edge on phones and the whole page scrolled sideways. */
+    max-width: 100%;
     /* Glass fill on the padding box, glowing gradient on the border box. */
     border: 1.5px solid transparent;
     background:
@@ -205,19 +208,41 @@
   .listen-all__label {
     position: relative;
     z-index: 1;
-    white-space: nowrap;
-    font-size: 1rem;
+    /* Phones: wrap onto two even lines when one line cannot fit. */
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: normal;
+    text-wrap: balance;
+    text-align: center;
+    line-height: 1.25;
+    font-size: 0.9375rem;
     font-weight: 800;
     letter-spacing: 0.03em;
     /* Latin only - Georgian is already tall via the site font. */
     text-transform: uppercase;
     color: #fff;
-    text-shadow: 0 1px 10px rgb(0 0 0 / 70%);
+    /* A thin black outline (the eight 1px offsets) plus a dense halo, so
+       the letters stay crisp over the bright equaliser bars. Done with
+       shadows rather than -webkit-text-stroke, which thins the glyphs in
+       browsers without paint-order support. */
+    text-shadow:
+      1px 0 0 #000,
+      -1px 0 0 #000,
+      0 1px 0 #000,
+      0 -1px 0 #000,
+      1px 1px 0 #000,
+      -1px 1px 0 #000,
+      1px -1px 0 #000,
+      -1px -1px 0 #000,
+      0 0 3px rgb(0 0 0 / 100%),
+      0 0 8px rgb(0 0 0 / 95%),
+      0 2px 16px rgb(0 0 0 / 85%);
   }
 
   .listen-all__divider {
     position: relative;
     z-index: 1;
+    flex-shrink: 0;
     width: 1px;
     height: 2rem;
     background: rgb(255 255 255 / 18%);
@@ -226,6 +251,7 @@
   .listen-all__chevron {
     position: relative;
     z-index: 1;
+    flex-shrink: 0;
     color: rgb(255 255 255 / 80%);
     transition: transform 0.3s ease;
   }
@@ -241,6 +267,7 @@
     }
 
     .listen-all__label {
+      white-space: nowrap;
       font-size: 1.5rem;
     }
 
@@ -343,5 +370,10 @@
   }
   body {
     @apply bg-background text-foreground font-sans;
+    /* A single word too long for the screen (the tall Georgian letters are
+       wider than lowercase) wraps inside its box instead of pushing the page
+       wider than the phone and letting it scroll sideways. Only applies when
+       a word cannot fit on a line of its own. */
+    overflow-wrap: break-word;
   }
 }

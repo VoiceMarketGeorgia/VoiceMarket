@@ -9,7 +9,7 @@ export default function PricingPage() {
   return (
     <div className="container py-10 space-y-16">
       <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
+        <h1 className="text-3xl font-bold tracking-tight sm:text-5xl">
           {tr("მსახიობების ინდივიდუალური ფასები", "Individual voice actor pricing")}
         </h1>
         <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
