@@ -107,13 +107,25 @@ export function AudioSampleManager({
     };
   }, []);
 
+  // Next sample number = highest existing number + 1. Using the count
+  // (samples.length + 1) reissued an existing number after a deletion, which
+  // left two samples with the same id - the site uses that id to tell
+  // samples apart in the listen dropdown.
+  const nextSampleId = () => {
+    const highest = samples.reduce((max, sample) => {
+      const suffix = Number(sample.sample_id?.split(".").pop());
+      return Number.isFinite(suffix) ? Math.max(max, suffix) : max;
+    }, 0);
+    return `${actorId}.${highest + 1}`;
+  };
+
   const handleAddSample = () => {
     if (!newSample.name.trim() || !newSample.audio_url) return;
 
     onSamplesChange([
       ...samples,
       {
-        sample_id: `${actorId}.${samples.length + 1}`,
+        sample_id: nextSampleId(),
         name: newSample.name.trim(),
         audio_url: newSample.audio_url,
         category: newSample.category,
@@ -210,7 +222,7 @@ export function AudioSampleManager({
                 onRemove={() => setNewSample((sample) => ({ ...sample, audio_url: "" }))}
                 folder={actorId}
                 dirOverride="audios"
-                fileName={`${actorId}.${samples.length + 1}`}
+                fileName={nextSampleId()}
                 placeholder="აუდიო ფაილის ატვირთვა"
               />
             </div>

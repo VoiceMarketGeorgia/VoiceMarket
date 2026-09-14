@@ -72,19 +72,23 @@ export async function uploadFile(
     const randomStr = Math.random().toString(36).slice(2, 8)
     const ext = (file.name.split('.').pop() || 'bin').toLowerCase()
 
-    // Callers pass a stable base name (e.g. the actor id) so each actor keeps
-    // one predictable file. Any extension they include is dropped in favour of
-    // the uploaded file's real one - otherwise a PNG would be stored as .jpg.
+    // Files are named after what they belong to: actor 52's photo is
+    // "52.jpg", its samples are "52.1.mp3", "52.2.mp3", "52.3.mp3". Sample
+    // numbers are unique per actor (see audio-sample-manager), so every sample
+    // has its own file.
+    //
+    // Only a real media extension is stripped from the name - never the
+    // number after the dot. Stripping "everything after the last dot" once
+    // turned 52.1, 52.2 and 52.3 into the same "52", and all samples of an
+    // actor overwrote one file.
     const baseName = options.fileName
-      ? options.fileName.replace(/\.[^.]+$/, '')
+      ? options.fileName.replace(/\.(mp3|wav|ogg|m4a|jpe?g|png|webp)$/i, '')
       : `${timestamp}-${randomStr}`
     const fileName = `${baseName}.${ext}`
     const filePath = options.folder ? `${options.folder}/${fileName}` : fileName
 
-    // Upload to Supabase Storage.
-    // upsert: replacing an actor's photo or a sample's audio reuses the same
-    // path, and without this every replacement failed with "resource already
-    // exists".
+    // upsert: replacing the audio of sample 52.2 (or an actor's photo) writes
+    // to the same path again.
     const { data, error } = await supabase.storage
       .from(bucketName)
       .upload(filePath, file, {
@@ -101,8 +105,9 @@ export async function uploadFile(
       }
     }
 
-    // Get public URL. A version marker is appended because the path is reused
-    // on replacement and the CDN would otherwise keep serving the old file.
+    // Get public URL. The ?v= marker lives in the link only, not the file
+    // name: when a file is replaced under the same name, the new link makes
+    // browsers and the CDN fetch the new audio instead of a cached old copy.
     const { data: { publicUrl } } = supabase.storage
       .from(bucketName)
       .getPublicUrl(filePath)
